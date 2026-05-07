@@ -1,0 +1,38 @@
+# Model checkpoints & weights
+data/pure_*/
+data/fst_*/
+results/
+results_v3/
+
+# Training data & checkpoints
+data/kazsandra_human_train.csv
+data/kazsandra_human_test.csv
+data/ai_train_native_kk.csv
+data/ai_test.csv
+data/heldout_test.csv
+data/ai_train_kk_checkpoint.jsonl
+data/ai_test_kk_checkpoint.jsonl
+
+# HuggingFace cache
+hf_cache/
+
+# Local only
+CLAUDE.md
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Session & scratch files
+CC-Session-Logs/
+docs/superpowers/
+notebook_analysis.txt
+0.3.9

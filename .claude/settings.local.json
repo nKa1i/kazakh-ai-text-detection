@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'C:\\\\Users\\\\Roza\\\\Downloads\\\\roberta\\\\mBERT_tuned.ipynb', encoding='utf-8'\\)\\); [print\\(f'Cell {i}:', ''.join\\(c['source']\\)[:200]\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'C:\\\\Users\\\\Roza\\\\Downloads\\\\roberta\\\\KazSAnDRA_comparison.ipynb', encoding='utf-8'\\)\\); [print\\(f'Cell {i}:', ''.join\\(c['source']\\)[:200]\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'C:\\\\Users\\\\Roza\\\\Downloads\\\\roberta\\\\KazRoBERTa_+_FSR.ipynb', encoding='utf-8'\\)\\); print\\(repr\\(''.join\\(nb['cells'][0]['source']\\)\\)\\); print\\('cell id:', nb['cells'][0].get\\('id','NO ID'\\)\\)\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'C:\\\\Users\\\\Roza\\\\Downloads\\\\roberta\\\\KazRoBERTa_+_FSR.ipynb', encoding='utf-8'\\)\\); [print\\(f'Cell {i} id={c.get\\(\\\\\"id\\\\\",\\\\\"NONE\\\\\"\\)}:', repr\\(''.join\\(c['source']\\)[:80]\\)\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(python -c ' *)",
+      "Bash(python3)",
+      "Bash(python -c \"import json; nb=json.load\\(open\\('KazRoBERTa_+_FSR.ipynb'\\)\\); [print\\(i, c['id'], repr\\(c['source'][:80]\\)\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(cmd.exe /c nvidia-smi)",
+      "Bash(cmd.exe /c nvcc --version)",
+      "Bash(\"/mnt/c/Windows/System32/cmd.exe\" /c \"nvidia-smi\")",
+      "Bash(\"/c/Windows/System32/cmd.exe\" /c \"nvidia-smi\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(\"/c/Windows/System32/cmd.exe\" /c \"d:\\\\roberta\\\\train\\\\Scripts\\\\python.exe -m pip list 2>&1\")",
+      "Bash(python -c \"import datasets; print\\(datasets.__version__\\)\")",
+      "Bash(python -c \"import multiprocessing; print\\('start method:', multiprocessing.get_start_method\\(\\)\\)\")",
+      "Bash(python -c \"from datasets import load_dataset; import os; cache = os.path.expanduser\\('~/.cache/huggingface/datasets'\\); print\\('Cache exists:', os.path.exists\\(cache\\)\\); import subprocess; result = subprocess.run\\(['dir', cache], shell=True, capture_output=True, text=True\\); print\\(result.stdout[:2000]\\)\")",
+      "Read(//c/Users/Dauka/.cache/huggingface/datasets/**)",
+      "Bash(python -c \"import psutil; m=psutil.virtual_memory\\(\\); print\\(f'Total RAM: {m.total/1e9:.1f} GB, Available: {m.available/1e9:.1f} GB, Used: {m.percent}%'\\)\")",
+      "Bash(conda info *)",
+      "Bash(cmd /c \"conda info --envs 2>&1\")",
+      "Bash(/c/Users/Dauka/anaconda3/Scripts/conda.exe info *)",
+      "Bash(/c/Users/Dauka/miniconda3/Scripts/conda.exe info *)",
+      "Bash(/d/prog/Micondapy11/Scripts/conda.exe run *)",
+      "Bash(/d/prog/Micondapy11/envs/ml/python.exe --version)",
+      "Bash(/d/prog/Micondapy11/envs/ml/Scripts/pip.exe list *)",
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'D:\\\\roberta\\\\KazRoBERTa_+_FSR.ipynb', encoding='utf-8'\\)\\); print\\(len\\(nb['cells']\\)\\); [print\\(i, c['cell_type'], ''.join\\(c['source']\\)[:80].replace\\(chr\\(10\\),' '\\)\\) for i,c in enumerate\\(nb['cells']\\)]\")",
+      "Bash(python -c \"import json; nb=json.load\\(open\\(r'D:\\\\roberta\\\\mBERT_tuned.ipynb'\\)\\); print\\(json.dumps\\({k:v for k,v in nb.items\\(\\) if k!='cells'}, indent=2\\)\\)\")",
+      "Read(//d/prog/Micondapy11/envs/ml/**)",
+      "Bash(/d/prog/Micondapy11/envs/ml/python.exe -c \"import nbformat; print\\(nbformat.__version__\\)\")",
+      "Bash(env)",
+      "Bash(claude mcp *)",
+      "mcp__obsidian__list-available-vaults",
+      "mcp__obsidian__create-directory",
+      "mcp__obsidian__create-note"
+    ]
+  }
+}
