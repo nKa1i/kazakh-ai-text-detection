@@ -33,6 +33,5 @@ __pycache__/
 
 # Session & scratch files
 CC-Session-Logs/
-docs/superpowers/
 notebook_analysis.txt
 0.3.9
