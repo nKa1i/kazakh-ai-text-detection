@@ -49,9 +49,30 @@ Each model is evaluated in two modes:
   - Use **KazRoBERTa Pure** for accuracy-first use cases
   - Use **KazRoBERTa FST** for precision-first use cases (minimizing false accusations)
 
+## Demo
+
+To run the AI-text detector demo locally, you need Docker and Docker Compose installed.
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### One-time Setup
+1. Download or place the KazRoBERTa Pure model weights into the `data/pure_KazRoBERTa/` directory.
+
+### Running the Demo
+1. Build and start the services:
+   ```bash
+   docker compose up --build
+   ```
+2. Open your browser and navigate to the Gradio UI at: **[http://localhost:7860](http://localhost:7860)**
+
 ## Project Structure
 
 ```
+├── api/                                # FastAPI backend for model inference
+├── ui/                                 # Gradio frontend UI
+├── docker-compose.yml                  # Docker deployment configuration
 ├── build_native_kazakh_ai_data.ipynb   # AI data generation (KazSAnDRA-seeded)
 ├── advanced_fst_evaluation.ipynb       # Training + evaluation of all 8 models
 ├── fst_analyzer.py                     # Kazakh morphological segmenter (FST)
