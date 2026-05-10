@@ -22,6 +22,11 @@ class PredictResponse(BaseModel):
     label: str
     confidence: float
 
+class ExplainResponse(BaseModel):
+    label: str
+    confidence: float
+    html: str
+
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
@@ -30,6 +35,12 @@ def health_check():
 def predict_endpoint(request: PredictRequest):
     if not request.text.strip():
         raise HTTPException(status_code=422, detail="Text cannot be empty")
+    return model.predict(request.text)
 
+@app.post("/explain", response_model=ExplainResponse)
+def explain_endpoint(request: PredictRequest):
+    if not request.text.strip():
+        raise HTTPException(status_code=422, detail="Text cannot be empty")
     result = model.predict(request.text)
+    result["html"] = model.explain(request.text)
     return result

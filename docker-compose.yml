@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data/pure_KazRoBERTa:/model:ro
+      - ./data/pure_native_KazRoBERTa:/model:ro
     networks:
       - app-network
 
@@ -19,7 +19,7 @@ services:
     depends_on:
       - api
     environment:
-      - API_URL=http://api:8000/predict
+      - API_URL=http://api:8000
     networks:
       - app-network
 
