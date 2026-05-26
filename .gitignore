@@ -36,3 +36,8 @@ CC-Session-Logs/
 docs/superpowers/
 notebook_analysis.txt
 0.3.9
+
+# Pi related files
+pi_run.log
+pi_run.txt
+pi_*
