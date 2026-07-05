@@ -123,12 +123,22 @@ def compile_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_after = Pt(2.5)
             p.add_run(clean_line)
         elif re.match(r'^\s*\d+\.\s', line):
-            match = re.match(r'^\s*\d+\.\s(.*)', line)
-            clean_line = match.group(1)
-            p = doc.add_paragraph(style='List Number')
+            # Parse as a normal paragraph with manual numbering to avoid Word's list continuation bug
+            p = doc.add_paragraph()
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(2.5)
-            p.add_run(clean_line)
+            p.paragraph_format.line_spacing = 1.15
+            
+            parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', line)
+            for part in parts:
+                if part.startswith('**') and part.endswith('**'):
+                    run = p.add_run(part[2:-2])
+                    run.bold = True
+                elif part.startswith('*') and part.endswith('*'):
+                    run = p.add_run(part[1:-1])
+                    run.italic = True
+                else:
+                    p.add_run(part)
 
         # Paragraph
         elif line.strip():
