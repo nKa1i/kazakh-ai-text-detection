@@ -9,7 +9,7 @@
 ### Abstract
 The rapid rise of generative Artificial Intelligence (AI) has accelerated the need for reliable machine-generated text detectors. However, research remains highly limited for low-resource and morphologically rich languages such as Kazakh. In this paper, we present a systematic benchmark study for detecting AI-generated user reviews in the Kazakh language. We construct a domain-aligned dataset using real-world human reviews from the KazSAnDRA dataset [1] and pair them with AI-generated counterparts produced by a Kazakh-specific Large Language Model (LLM), carefully seeded to match length, domain, and register.
 
-We benchmark four transformer-based models—multilingual (mBERT [4], XLM-R [5]) and monolingual (KazBERT [11], KazRoBERTa [2])—under two distinct conditions: a baseline trained on raw text (Pure) and a model trained on morphologically segmented text (FST) utilizing a rule-based Finite-State Transducer to separate stems from suffixes [3]. Our evaluation shows that monolingual pretraining significantly outperforms early multilingual models, with KazRoBERTa (Pure) achieving the highest overall accuracy of $96.10\%$ (F1-score of $96.15\%$). While explicit morphological segmentation does not improve overall detection accuracy, it dramatically reduces false positive rates on short texts. Specifically, KazRoBERTa (FST) reduces false positives by $32\%$ (from $53$ to $36$ cases) compared to its Pure baseline. We recommend the Pure model for accuracy-first deployments and the FST-augmented model for precision-critical applications to minimize false accusations of AI usage.
+We benchmark four transformer-based models—multilingual (mBERT [4], XLM-R [5]) and monolingual (KazBERT [8], KazRoBERTa [2])—under two distinct conditions: a baseline trained on raw text (Pure) and a model trained on morphologically segmented text (FST) utilizing a rule-based Finite-State Transducer to separate stems from suffixes [3]. Our evaluation shows that monolingual pretraining significantly outperforms early multilingual models, with KazRoBERTa (Pure) achieving the highest overall accuracy of 96.10% (F1-score of 96.15%). While explicit morphological segmentation does not improve overall detection accuracy, it dramatically reduces false positive rates on short texts. Specifically, KazRoBERTa (FST) reduces false positives by 32% (from 53 to 36 cases) compared to its Pure baseline. We recommend the Pure model for accuracy-first deployments and the FST-augmented model for precision-critical applications to minimize false accusations of AI usage.
 
 **Keywords:** AI-generated text detection, Kazakh language, BERT models, Finite-State Transducer (FST), morphological analysis, KazSAnDRA, low-resource NLP
 
@@ -22,14 +22,14 @@ However, the majority of research in AI-generated text detection focuses on high
 
 Moreover, a critical but often overlooked challenge in deploying AI detectors is the rate of false positives—cases where authentic human writing is incorrectly flagged as machine-generated. False accusations can lead to severe reputational, academic, or professional consequences for individuals. This problem is particularly acute for short texts (e.g., product reviews, social media comments), where the lack of context makes detection highly volatile.
 
-In this study, we present a systematic benchmark of transformer-based models for detecting AI-generated user reviews in the Kazakh language. We analyze the performance of two multilingual models (mBERT [4] and XLM-RoBERTa [5]) and two monolingual models (KazBERT [11] and KazRoBERTa [2]). Furthermore, we propose integrating a rule-based Finite-State Transducer (FST) morphological analyzer [3] to segment suffixes from stems prior to tokenization. Our results reveal that while monolingual models achieve superior raw performance, the integration of FST morphological analysis provides a robust defense against false positives, reducing false positive cases on short texts by $32\%$ for the top-performing KazRoBERTa model.
+In this study, we present a systematic benchmark of transformer-based models for detecting AI-generated user reviews in the Kazakh language. We analyze the performance of two multilingual models (mBERT [4] and XLM-RoBERTa [5]) and two monolingual models (KazBERT [8] and KazRoBERTa [2]). Furthermore, we propose integrating a rule-based Finite-State Transducer (FST) morphological analyzer [3] to segment suffixes from stems prior to tokenization. Our results reveal that while monolingual models achieve superior raw performance, the integration of FST morphological analysis provides a robust defense against false positives, reducing false positive cases on short texts by 32% for the top-performing KazRoBERTa model.
 
 ---
 
 ## 2. Related Work
 AI-generated text detection has evolved from statistical methods (e.g., perplexity and burstiness metrics) to deep learning classifiers. Pretrained language models like BERT and RoBERTa have become the standard baselines for this classification task, showing high accuracy in detecting text generated by GPT-3 and GPT-4. Standard detection methods such as DetectGPT [6] utilize probability curvatures to identify machine authorship, but they assume zero-shot access to LLM token probabilities, which is rarely feasible in commercial API detection settings where black-box classification is required.
 
-In low-resource NLP, research has concentrated on building monolingual models to capture native syntax and semantics. For the Kazakh language, models like KazBERT [11] (developed by Eraly-ml) and KazRoBERTa [2] (a conversational model by kz-transformers) have been introduced to improve downstream tasks such as sentiment analysis, named entity recognition, and spelling correction. However, benchmarking these models for AI-generated text detection remains unexplored.
+In low-resource NLP, research has concentrated on building monolingual models to capture native syntax and semantics. For the Kazakh language, models like KazBERT [8] (developed by Eraly-ml) and KazRoBERTa [2] (a conversational model by kz-transformers) have been introduced to improve downstream tasks such as sentiment analysis, named entity recognition, and spelling correction. However, benchmarking these models for AI-generated text detection remains unexplored.
 
 Agglutinative languages pose unique morphological hurdles. Turkic languages like Turkish, Uzbek, and Kazakh feature complex suffixation rules. Previous research in Turkic NLP has demonstrated that rule-based morphological segmentation can alleviate vocabulary sparsity. Tyers and Washington [3] developed open-source finite-state morphological transducers for Kypchak languages (Kazakh, Tatar, and Kumyk) using the Helsinki Finite-State Toolkit (HFST) utilizing the `lexc` formalism for morphotactics and `twol` for morphophonology. While data-driven morphological analysis has been proposed to handle out-of-vocabulary issues [7], rule-based FST approaches remain highly precise. In this work, we investigate whether separating stems from grammatical suffixes helps transformer models learn stylistic boundaries between human and LLM-generated Kazakh text.
 
@@ -41,13 +41,13 @@ Agglutinative languages pose unique morphological hurdles. Turkic languages like
 To construct a realistic evaluation corpus, we aligned human-written Kazakh reviews with LLM-generated counter-examples:
 - **Human Corpus:** Sourced from **KazSAnDRA** (Kazakh Sentiment Analysis Dataset of Reviews and Attitudes) [1]. Introduced by Yeshpanov and Varol (2024), KazSAnDRA is a large-scale corpus containing 180,064 consumer reviews. The reviews span four distinct domains to ensure high vocabulary diversity: **Appstore** (reviews for Android applications), **Bookstore** (feedback on Kazakh audiobooks and text materials), **Mapping** (comments on digital navigation and maps), and **Market** (reviews from e-commerce platforms).
 - **AI Corpus:** Generated using a Kazakh-specific Large Language Model. To ensure the dataset represents a challenging detection task, the AI generator was seeded with the same domain topics, and the generation parameters were set to match the length and register (informal vs. formal) of the corresponding human reviews.
-- **Dataset Splits:** The combined corpus contains a training set of $8,848$ samples and a held-out evaluation test set of $984$ samples. A text is classified as "Short" if it is $\le 60$ characters, and "Long" if it is $> 60$ characters.
+- **Dataset Splits:** The combined corpus contains a training set of 8,848 samples and a held-out evaluation test set of 984 samples. A text is classified as "Short" if it is $\le 60$ characters, and "Long" if it is $> 60$ characters.
 
 ### 3.2 Benchmark Models
 We evaluate four distinct transformer architectures to explore the trade-offs between multilingualism and monolingual pretraining:
 1. **mBERT (bert-base-multilingual-cased) [4]:** Pretrained on 104 languages, including Kazakh, utilizing a shared multilingual vocabulary of 119,547 tokens.
 2. **XLM-RoBERTa (xlm-roberta-base) [5]:** A larger multilingual model trained on CommonCrawl data in 100 languages, optimized for cross-lingual transfer.
-3. **KazBERT (Eraly-ml/KazBERT) [11]:** A monolingual BERT model pretrained specifically on Kazakh Wikipedia and Common Crawl text corpora, utilizing a custom WordPiece tokenizer.
+3. **KazBERT (Eraly-ml/KazBERT) [8]:** A monolingual BERT model pretrained specifically on Kazakh Wikipedia and Common Crawl text corpora, utilizing a custom WordPiece tokenizer.
 4. **KazRoBERTa (kz-transformers/kaz-roberta-conversational) [2]:** A monolingual base-sized RoBERTa model. As detailed in its technical report by Sagyndyk et al. (2025), the model was pretrained from scratch on a 25GB corpus combining MDBKD (Multi-Domain Bilingual Kazakh Dataset) containing 24.8 million texts and Telecom customer-support dialogues from Beeline KZ (2016–2023). It features a 52,000-token BPE vocabulary, 6 hidden layers, 12 attention heads, and a hidden dimension of 768. It was trained using a Masked Language Modeling (MLM) objective with a 15% masking probability for 500k steps with a batch size of 128 and sequence length of 512.
 
 ---
@@ -79,7 +79,7 @@ We evaluate each of the four models under two experimental configurations:
 - **Pure Mode:** The models are trained and evaluated on the raw Kazakh text.
 - **FST Mode:** The raw text is preprocessed using the `AdvancedKazakhFSTAnalyzer` to segment suffixes before model training and evaluation.
 
-All models were fine-tuned for $3$ epochs on the training set using the AdamW optimizer, a learning rate of $2\times10^{-5}$, and a batch size of $16$. Models were evaluated on the held-out evaluation set. 
+All models were fine-tuned for 3 epochs on the training set using the AdamW optimizer, a learning rate of 2e-5, and a batch size of 16. Models were evaluated on the held-out evaluation set. 
 
 ---
 
@@ -104,22 +104,22 @@ The results of the evaluation on the held-out test set are summarized in Table 1
 ### 6.2 Key Findings and Discussion
 
 #### 1. Monolingual vs. Multilingual Performance
-Monolingual pretraining demonstrates a clear advantage. **KazRoBERTa (Pure)** achieves the highest overall accuracy of **$96.10\%$** and F1-score of **$96.15\%$**, outperforming both mBERT and XLM-R. This indicates that pretraining on Kazakh-specific conversational text equips the model with a more nuanced understanding of colloquial reviews than broad multilingual vocabularies.
+Monolingual pretraining demonstrates a clear advantage. **KazRoBERTa (Pure)** achieves the highest overall accuracy of **96.10%** and F1-score of **96.15%**, outperforming both mBERT and XLM-R. This indicates that pretraining on Kazakh-specific conversational text equips the model with a more nuanced understanding of colloquial reviews than broad multilingual vocabularies.
 
 #### 2. The Impact of FST Morphological Segmentation
-Explicit morphological segmentation via FST does not lead to an increase in overall detection accuracy. For mBERT and XLM-R, overall accuracy decreases slightly in FST mode, while for KazBERT and KazRoBERTa, the overall accuracy remains virtually unchanged (e.g., $96.10\%$ vs. $96.07\%$ for KazRoBERTa). 
+Explicit morphological segmentation via FST does not lead to an increase in overall detection accuracy. For mBERT and XLM-R, overall accuracy decreases slightly in FST mode, while for KazBERT and KazRoBERTa, the overall accuracy remains virtually unchanged (e.g., 96.10% vs. 96.07% for KazRoBERTa). 
 
 #### 3. Significant False Positive Reduction on Short Texts
 The most striking finding is the effect of FST segmentation on **False Positive Rates (FPR)** for short texts. On short reviews ($\le 60$ characters), authentic human reviews are frequently misclassified as AI-generated due to the lack of stylistic context. 
 
-When trained in FST mode, **KazRoBERTa (FST)** reduces the number of short false positives from **$53$ to $36$**—a **$32.07\%$ reduction** in false positives compared to the Pure baseline, while maintaining identical accuracy on long texts ($96.98\%$) and preserving overall detection power. 
+When trained in FST mode, **KazRoBERTa (FST)** reduces the number of short false positives from **53 to 36**—a **32.07% reduction** in false positives compared to the Pure baseline, while maintaining identical accuracy on long texts (96.98%) and preserving overall detection power. 
 
 We hypothesize that morphological segmentation prevents the model from misinterpreting complex suffix combinations as artificial patterns. By separating grammatical inflections, the model focuses on the core vocabulary and syntactic layout, which are more stable indicators of human vs. AI origin.
 
 ---
 
 ## 7. Conclusion & Practical Recommendations
-In this paper, we benchmarked four BERT-based models for Kazakh AI-generated text detection, highlighting the superiority of monolingual pretraining. We showed that while integrating rule-based FST morphological segmentation does not raise overall accuracy, it significantly alleviates the problem of false accusations. For the top-performing KazRoBERTa model, FST preprocessing reduced false positives on short texts by over $32\%$.
+In this paper, we benchmarked four BERT-based models for Kazakh AI-generated text detection, highlighting the superiority of monolingual pretraining. We showed that while integrating rule-based FST morphological segmentation does not raise overall accuracy, it significantly alleviates the problem of false accusations. For the top-performing KazRoBERTa model, FST preprocessing reduced false positives on short texts by over 32%.
 
 Based on these findings, we outline the following deployment recommendations:
 - **Accuracy-First Deployments:** Use the **KazRoBERTa (Pure)** model for high-throughput filtering or content moderations where maximum recall is required.
@@ -135,3 +135,4 @@ Based on these findings, we outline the following deployment recommendations:
 5. Conneau, A., Khandelwal, K., Goyal, N., Chaudhary, V., Ji, G., Synnaeve, G., Stoyanov, V.: Unsupervised cross-lingual representation learning at scale. arXiv preprint arXiv:1911.02116 (2019)
 6. Mitchell, E., Yoon, J., Liang, P., Finn, C., Manning, C.D.: DetectGPT: Zero-shot machine-generated text detection using probability curvature. In: International Conference on Machine Learning (ICML) (2023)
 7. Makhambetov, B., Makazhanov, A., Yessenbayev, Z., Matkarimov, B., Sabyrgaliyev, I., Sharafudinov, A.: Towards a data-driven morphological analysis of Kazakh language. In: Proceedings of the 2015 Workshop on Turkish Natural Language Processing, pp. 32–39 (2015)
+8. Eraly-ml: KazBERT: Kazakh BERT-base model for natural language processing. Hugging Face repository (2021). https://huggingface.co/Eraly-ml/KazBERT
