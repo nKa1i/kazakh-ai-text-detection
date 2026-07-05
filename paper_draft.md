@@ -1,8 +1,8 @@
 # Detecting AI-Generated User Reviews in Kazakh: A Study on BERT Model Performance and False Positive Reduction
 
 **Authors:** Daulet Anekesh, Irina Ualiyeva  
-*University Affiliation*  
-*Contact: daulet.anekesh@example.edu, irina.ualiyeva@example.edu*
+*Al-Farabi Kazakh National University (KazNU)*  
+*Contact: anekeshd@gmail.com, i.ualiyeva@gmail.com*
 
 ---
 
