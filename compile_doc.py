@@ -75,15 +75,31 @@ def compile_markdown_to_docx(md_path, docx_path):
                         cols.append("")
                     for c_idx, val in enumerate(cols[:col_count]):
                         cell = table.cell(r_idx, c_idx)
-                        cell.text = val
+                        p = cell.paragraphs[0]
+                        p.text = ""  # Clear default text
+                        p.paragraph_format.space_before = Pt(2)
+                        p.paragraph_format.space_after = Pt(2)
+                        
+                        # Simple inline formatting parser (bold/italics) for cells
+                        parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', val)
+                        for part in parts:
+                            if part.startswith('**') and part.endswith('**'):
+                                run = p.add_run(part[2:-2])
+                                run.bold = True
+                            elif part.startswith('*') and part.endswith('*'):
+                                run = p.add_run(part[1:-1])
+                                run.italic = True
+                            else:
+                                p.add_run(part)
+                                
                         set_cell_margins(cell)
                         # Formatting headers
                         if r_idx == 0:
-                            for run in cell.paragraphs[0].runs:
+                            for run in p.runs:
                                 run.font.bold = True
-                                run.font.size = Pt(10.5)
+                                run.font.size = Pt(10)
                         else:
-                            for run in cell.paragraphs[0].runs:
+                            for run in p.runs:
                                 run.font.size = Pt(9.5)
             table_rows = []
             in_table = False
@@ -114,6 +130,28 @@ def compile_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(12)
             p.paragraph_format.space_after = Pt(4)
             p.paragraph_format.keep_with_next = True
+        
+        # Images
+        elif re.match(r'^!\[(.*?)\]\((.*?)\)', line):
+            match = re.match(r'^!\[(.*?)\]\((.*?)\)', line)
+            alt_text = match.group(1)
+            img_path = match.group(2)
+            if os.path.exists(img_path):
+                p = doc.add_paragraph()
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p.paragraph_format.space_before = Pt(10)
+                p.paragraph_format.space_after = Pt(4)
+                run = p.add_run()
+                run.add_picture(img_path, width=Inches(5))
+                
+                # Add figure caption below
+                p_cap = doc.add_paragraph()
+                p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_cap.paragraph_format.space_before = Pt(2)
+                p_cap.paragraph_format.space_after = Pt(12)
+                run_cap = p_cap.add_run(f"Figure: {alt_text}")
+                run_cap.italic = True
+                run_cap.font.size = Pt(9.5)
         
         # List Items
         elif line.strip().startswith(('* ', '- ')):
