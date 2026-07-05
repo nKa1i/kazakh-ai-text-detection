@@ -130,6 +130,11 @@ def compile_markdown_to_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(12)
             p.paragraph_format.space_after = Pt(4)
             p.paragraph_format.keep_with_next = True
+        elif line.startswith('#### '):
+            p = doc.add_heading(line[5:], level=4)
+            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_after = Pt(3)
+            p.paragraph_format.keep_with_next = True
         
         # Images
         elif re.match(r'^!\[(.*?)\]\((.*?)\)', line):
@@ -159,7 +164,18 @@ def compile_markdown_to_docx(md_path, docx_path):
             p = doc.add_paragraph(style='List Bullet')
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(2.5)
-            p.add_run(clean_line)
+            
+            # Parse inline formatting for bold/italic in bullet list items
+            parts = re.split(r'(\*\*.*?\*\*|\*.*?\*)', clean_line)
+            for part in parts:
+                if part.startswith('**') and part.endswith('**'):
+                    run = p.add_run(part[2:-2])
+                    run.bold = True
+                elif part.startswith('*') and part.endswith('*'):
+                    run = p.add_run(part[1:-1])
+                    run.italic = True
+                else:
+                    p.add_run(part)
         elif re.match(r'^\s*\d+\.\s', line):
             # Parse as a normal paragraph with manual numbering to avoid Word's list continuation bug
             p = doc.add_paragraph()
