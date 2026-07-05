@@ -170,4 +170,4 @@ def compile_markdown_to_docx(md_path, docx_path):
     print(f"Successfully compiled {md_path} to {docx_path}")
 
 if __name__ == '__main__':
-    compile_markdown_to_docx('paper_draft.md', 'paper_draft_final.docx')
+    compile_markdown_to_docx('paper_draft.md', 'paper_draft.docx')
