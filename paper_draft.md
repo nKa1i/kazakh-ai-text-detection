@@ -43,7 +43,7 @@ To construct a realistic evaluation corpus, we aligned human-written Kazakh revi
 - **AI Corpus:** Generated using a Kazakh-specific Large Language Model. To ensure the dataset represents a challenging detection task, the AI generator was seeded with the same domain topics, and the generation parameters were set to match the length and register (informal vs. formal) of the corresponding human reviews.
 - **Dataset Splits:** The combined corpus contains a training set of 8,848 samples and a held-out evaluation test set of 984 samples. A text is classified as "Short" if it is <= 60 characters, and "Long" if it is > 60 characters.
 
-#### Example of a Human Review:
+#### Example of a Human Review.
 Below is an authentic review from the e-commerce App segment of the KazSAnDRA dataset:
 > *"Каспи редті клиентке үлкен суммаға ашқызғандарың адамгершілікке жатпайды (недобросовестно). Кішкентай соманы менюдің бір жеріне тығып қойыпсыңдар. Білетін, шұқылайтын адам болмаса қораға кіргізіп тұрсыңдар ғой. Айтса айтты дейсіңдер. Плюсі, жылдам істейді."*  
 > *(Translation: "Opening a Kaspi Red for a client with a large sum is not humane (unfair). You hid the small sum somewhere in the menu. If someone doesn't know and dig into it, you're trapping them... Plus, it works fast.")*
@@ -119,13 +119,13 @@ Below is the combined Cleveland dumbbell dot plot showing the comparative perfor
 
 ### 6.3 Key Findings and Discussion
 
-#### 1. Monolingual vs. Multilingual Performance
+#### Monolingual vs. Multilingual Performance.
 Monolingual pretraining demonstrates a clear advantage. As shown in the Overall Accuracy panel of the Cleveland dot plot (Figure 1, Left), **KazRoBERTa (Pure)** achieves the highest overall accuracy of **96.10%** and F1-score of **96.15%**, outperforming both mBERT and XLM-R. This indicates that pretraining on Kazakh-specific conversational text equips the model with a more nuanced understanding of colloquial reviews than broad multilingual vocabularies.
 
-#### 2. The Impact of FST Morphological Segmentation
+#### The Impact of FST Morphological Segmentation.
 Explicit morphological segmentation via FST does not lead to an increase in overall detection accuracy. For mBERT and XLM-R, overall accuracy decreases slightly in FST mode, while for KazBERT and KazRoBERTa, the overall accuracy remains virtually unchanged (e.g., 96.10% vs. 96.07% for KazRoBERTa). 
 
-#### 3. Significant False Positive Reduction on Short Texts
+#### Significant False Positive Reduction on Short Texts.
 The most striking finding is the effect of FST segmentation on **False Positive Rates (FPR)** for short texts. On short reviews (<= 60 characters), authentic human reviews are frequently misclassified as AI-generated due to the lack of stylistic context. 
 
 When trained in FST mode, **KazRoBERTa (FST)** reduces the number of short false positives from **53 to 36**—a **32.07% reduction** in false positives compared to the Pure baseline (visualized in the False Positives panel of the dot plot, Figure 1, Right), while maintaining identical accuracy on long texts (96.98%) and preserving overall detection power. 

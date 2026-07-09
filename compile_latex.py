@@ -12,9 +12,9 @@ def compile_markdown_to_latex(md_path, tex_path):
     
     # Headers metadata
     title = "Detecting AI-Generated User Reviews in Kazakh: A Study on BERT Model Performance and False Positive Reduction"
-    authors = "Daulet Anekesh \\and Irina Ualiyeva"
+    authors = "Daulet Anekesh\\inst{1} \\and Irina Ualiyeva\\inst{1}"
     affiliation = "Al-Farabi Kazakh National University (KazNU), Almaty, Kazakhstan"
-    emails = "\\email{anekeshd@gmail.com, i.ualiyeva@gmail.com}"
+    emails = "\\email{\\{anekeshd, i.ualiyeva\\}@gmail.com}"
     
     # Boilerplate preamble
     tex_lines.append(r"\documentclass[runningheads]{llncs}")
@@ -233,8 +233,10 @@ def compile_markdown_to_latex(md_path, tex_path):
             continue
         elif line.startswith('#### '):
             heading_text = line[5:].strip()
+            heading_text = re.sub(r'^\d+\.\s*', '', heading_text)
+            heading_text = heading_text.rstrip('. \t\r\n')
             heading_text = heading_text.replace('&', '\\&')
-            tex_lines.append(f"\\subsubsection{{{heading_text}}}")
+            tex_lines.append(f"\\subsubsection{{{heading_text}.}}")
             i += 1
             continue
 
