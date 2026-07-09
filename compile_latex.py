@@ -66,13 +66,14 @@ def compile_markdown_to_latex(md_path, tex_path):
             i += 1
             continue
             
-        # Skip title and authors metadata lines from markdown
-        if line.startswith('# ') and "Detecting" in line:
-            i += 1
-            continue
-        if "Authors:" in line or "KazNU" in line or "Contact:" in line:
-            i += 1
-            continue
+        # Skip title and authors metadata lines from markdown (only at the beginning of the document)
+        if i < 10:
+            if line.startswith('# ') and "Detecting" in line:
+                i += 1
+                continue
+            if "Authors:" in line or "KazNU" in line or "Contact:" in line:
+                i += 1
+                continue
             
         # Abstract block
         if line.startswith('### Abstract'):

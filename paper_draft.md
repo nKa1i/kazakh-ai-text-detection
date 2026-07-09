@@ -180,6 +180,12 @@ Based on these findings, we outline the following deployment recommendations:
 - **Accuracy-First Deployments:** Use the **KazRoBERTa (Pure)** model for high-throughput filtering or content moderations where maximum recall is required.
 - **Precision-Critical Deployments:** In settings where false accusations carry heavy consequences (e.g., academic grading, automated plagiarism detection), use **KazRoBERTa (FST)** to minimize false positives and protect authentic writers.
 
+#### Acknowledgments
+This research was supported by Al-Farabi Kazakh National University (KazNU).
+
+#### Disclosure of Interests
+The authors have no competing interests to declare.
+
 ---
 
 ## References
