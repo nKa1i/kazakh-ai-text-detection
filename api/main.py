@@ -17,6 +17,7 @@ app = FastAPI(title="KazRoBERTa AI-Text Detector API")
 
 class PredictRequest(BaseModel):
     text: str = Field(..., min_length=1, description="The text to analyze")
+    mode: str = Field("pure", description="The mode to run: pure or fst")
 
 class PredictResponse(BaseModel):
     label: str
@@ -35,12 +36,12 @@ def health_check():
 def predict_endpoint(request: PredictRequest):
     if not request.text.strip():
         raise HTTPException(status_code=422, detail="Text cannot be empty")
-    return model.predict(request.text)
+    return model.predict(request.text, request.mode)
 
 @app.post("/explain", response_model=ExplainResponse)
 def explain_endpoint(request: PredictRequest):
     if not request.text.strip():
         raise HTTPException(status_code=422, detail="Text cannot be empty")
-    result = model.predict(request.text)
-    result["html"] = model.explain(request.text)
+    result = model.predict(request.text, request.mode)
+    result["html"] = model.explain(request.text, request.mode)
     return result

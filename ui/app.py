@@ -4,14 +4,17 @@ import requests
 
 API_URL = os.environ.get("API_URL", "http://api:8000")
 
-def predict_text(text):
+def predict_text(text, mode):
     if not text or len(text.strip()) < 10:
         return "Please enter at least 10 characters.", ""
+
+    # Map user-friendly mode selection to API parameter
+    api_mode = "pure" if "Pure" in mode else "fst"
 
     try:
         response = requests.post(
             f"{API_URL}/explain",
-            json={"text": text.strip()},
+            json={"text": text.strip(), "mode": api_mode},
             timeout=30
         )
         response.raise_for_status()
@@ -33,11 +36,18 @@ def predict_text(text):
 
 demo = gr.Interface(
     fn=predict_text,
-    inputs=gr.Textbox(
-        lines=5,
-        placeholder="Enter Kazakh product/app review text here...",
-        label="Text Input"
-    ),
+    inputs=[
+        gr.Textbox(
+            lines=5,
+            placeholder="Enter Kazakh product/app review text here...",
+            label="Text Input"
+        ),
+        gr.Radio(
+            choices=["Pure (Raw Text)", "FST (Morphologically Segmented)"],
+            value="Pure (Raw Text)",
+            label="Processing Mode"
+        )
+    ],
     outputs=[
         gr.Textbox(label="Result"),
         gr.HTML(label="Token Importance (green = human signal, red = AI signal)")

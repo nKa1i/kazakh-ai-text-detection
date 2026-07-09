@@ -1,32 +1,75 @@
 import os
 import sys
+import re
 import unicodedata
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers_interpret import SequenceClassificationExplainer
+import fst_analyzer
 
-MODEL_PATH = os.environ.get("MODEL_PATH", "/model")
+# Determine model paths
+DATA_DIR = "D:/roberta/data"
+DEFAULT_PURE_PATH = os.path.join(DATA_DIR, "pure_native_KazRoBERTa")
+DEFAULT_FST_PATH = os.path.join(DATA_DIR, "fst_native_KazRoBERTa")
+
+# Check environment variables, then local D: drive paths, then fallback paths
+MODEL_PATH_PURE = os.environ.get("MODEL_PATH_PURE", os.environ.get("MODEL_PATH", "/model_pure" if os.path.exists("/model_pure") else "/model"))
+if not os.path.exists(MODEL_PATH_PURE) and os.path.exists(DEFAULT_PURE_PATH):
+    MODEL_PATH_PURE = DEFAULT_PURE_PATH
+
+MODEL_PATH_FST = os.environ.get("MODEL_PATH_FST", "/model_fst" if os.path.exists("/model_fst") else "/model")
+if not os.path.exists(MODEL_PATH_FST) and os.path.exists(DEFAULT_FST_PATH):
+    MODEL_PATH_FST = DEFAULT_FST_PATH
+
 LABEL_MAP = {0: "human", 1: "ai"}
 
+# Initialize models and explainers
 try:
-    print(f"Loading model from {MODEL_PATH}...")
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
-    model.config.id2label = {0: "human", 1: "ai"}
-    model.config.label2id = {"human": 0, "ai": 1}
-    model.eval()
-    explainer = SequenceClassificationExplainer(model, tokenizer)
-    print("Model loaded successfully.")
+    print(f"Loading Pure model from {MODEL_PATH_PURE}...")
+    pure_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_PURE)
+    pure_model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH_PURE)
+    pure_model.config.id2label = {0: "human", 1: "ai"}
+    pure_model.config.label2id = {"human": 0, "ai": 1}
+    pure_model.eval()
+    pure_explainer = SequenceClassificationExplainer(pure_model, pure_tokenizer)
+    print("Pure model loaded successfully.")
 except Exception as e:
-    print(f"Failed to load model from {MODEL_PATH}: {e}")
+    print(f"Failed to load Pure model: {e}")
     sys.exit(1)
 
+try:
+    print(f"Loading FST model from {MODEL_PATH_FST}...")
+    fst_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_FST)
+    fst_model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH_FST)
+    fst_model.config.id2label = {0: "human", 1: "ai"}
+    fst_model.config.label2id = {"human": 0, "ai": 1}
+    fst_model.eval()
+    fst_explainer = SequenceClassificationExplainer(fst_model, fst_tokenizer)
+    print("FST model loaded successfully.")
+except Exception as e:
+    print(f"Failed to load FST model: {e}")
+    # Don't exit here if FST fails, fallback to Pure
+    print("Continuing with Pure model only.")
+    fst_model = None
+    fst_tokenizer = None
+    fst_explainer = None
 
-def predict(text: str) -> dict:
+
+def predict(text: str, mode: str = "pure") -> dict:
     """
     Tokenizes text, runs inference, returns label + confidence.
     """
-    inputs = tokenizer(
+    # Pick active model and tokenizer
+    active_model = pure_model
+    active_tokenizer = pure_tokenizer
+    
+    if mode == "fst" and fst_model is not None:
+        active_model = fst_model
+        active_tokenizer = fst_tokenizer
+        # Preprocess text with FST morphological segmentation
+        text = fst_analyzer.analyze_and_segment(text)
+
+    inputs = active_tokenizer(
         text,
         return_tensors="pt",
         truncation=True,
@@ -34,7 +77,7 @@ def predict(text: str) -> dict:
     )
 
     with torch.no_grad():
-        outputs = model(**inputs)
+        outputs = active_model(**inputs)
 
     probabilities = torch.softmax(outputs.logits, dim=1)[0]
     predicted_class_id = torch.argmax(probabilities).item()
@@ -46,12 +89,21 @@ def predict(text: str) -> dict:
     }
 
 
-def explain(text: str) -> str:
+def explain(text: str, mode: str = "pure") -> str:
     """
     Returns an HTML string highlighting tokens green (human signal)
     or red (AI signal) based on integrated gradient attributions.
     """
-    word_attributions = explainer(text)
+    active_explainer = pure_explainer
+    active_tokenizer = pure_tokenizer
+    
+    if mode == "fst" and fst_explainer is not None:
+        active_explainer = fst_explainer
+        active_tokenizer = fst_tokenizer
+        # Preprocess text with FST morphological segmentation
+        text = fst_analyzer.analyze_and_segment(text)
+
+    word_attributions = active_explainer(text)
 
     if not word_attributions:
         return "<p>No attribution data.</p>"
@@ -69,7 +121,7 @@ def explain(text: str) -> str:
         if word in ("[CLS]", "[SEP]", "<s>", "</s>", "[PAD]"):
             continue
         # Decode byte-level BPE tokens back to proper Unicode (Kazakh/Cyrillic)
-        word = tokenizer.convert_tokens_to_string([word]).strip()
+        word = active_tokenizer.convert_tokens_to_string([word]).strip()
         if not word:
             continue
         # Skip replacement characters, variation selectors, zero-width chars
@@ -83,7 +135,7 @@ def explain(text: str) -> str:
             spans.append(f'<span style="padding: 1px 3px; margin: 1px; display: inline-block; font-size: 14px;">{word}</span>')
         else:
             # Flip score if prediction is AI so green always = human signal, red always = AI signal
-            adjusted = score if explainer.predicted_class_index == 0 else -score
+            adjusted = score if active_explainer.predicted_class_index == 0 else -score
             if adjusted > 0:
                 # Green = pushed toward HUMAN
                 r, g, b = int(60 - 60 * intensity), int(180 * intensity + 60), int(60 - 60 * intensity)
@@ -102,13 +154,13 @@ def explain(text: str) -> str:
     # Build key evidence list — only highlighted tokens, sorted by absolute influence
     evidence = []
     for word, score in word_attributions:
-        decoded = tokenizer.convert_tokens_to_string([word]).strip()
+        decoded = active_tokenizer.convert_tokens_to_string([word]).strip()
         if not decoded or abs(score) < threshold:
             continue
         if all(ord(c) in (0xFFFD, 0xFE0F, 0x200D, 0x200B, 0x200C) or
                unicodedata.category(c) in ('Cc', 'Cf') for c in decoded):
             continue
-        adjusted = score if explainer.predicted_class_index == 0 else -score
+        adjusted = score if active_explainer.predicted_class_index == 0 else -score
         evidence.append((decoded, adjusted, abs(score) / max_score))
 
     # Sort by absolute weight descending
