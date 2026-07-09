@@ -97,7 +97,7 @@ The results of the evaluation on the held-out test set are summarized in Table 1
 
 *Table 1: Complete Evaluation Results (Pure vs. FST Mode)*
 
-| Model | Mode | Overall Acc | F1-Score | Acc (Short <= 60) | Acc (Long > 60) | False Positives (Short) |
+| Model | Mode | Overall Acc | F1-Score | Acc (Short) | Acc (Long) | FPs (Short) |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | mBERT | Pure | 95.42% | 95.46% | 94.43% | 96.26% | 58 |
 | mBERT | FST | 93.62% | 93.71% | 92.83% | 94.29% | 70 |

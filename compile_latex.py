@@ -26,6 +26,7 @@ def compile_markdown_to_latex(md_path, tex_path):
     tex_lines.append(r"\usepackage[english]{babel}") # Avoid kazakh.ldf missing error on Overleaf
     tex_lines.append("")
     tex_lines.append(r"\begin{document}")
+    tex_lines.append(r"\sloppy") # Relax word spacing to prevent Cyrillic/Model names from causing overfull hboxes
     tex_lines.append("")
     tex_lines.append(f"\\title{{{title}}}")
     tex_lines.append(r"\titlerunning{Detecting AI-Generated Reviews in Kazakh}")
