@@ -22,8 +22,8 @@ def compile_markdown_to_latex(md_path, tex_path):
     tex_lines.append(r"\usepackage{booktabs}")
     tex_lines.append(r"\usepackage{hyperref}")
     tex_lines.append(r"\usepackage[utf8]{inputenc}")
-    tex_lines.append(r"\usepackage[T2A,T1]{fontenc}") # For Cyrillic support
-    tex_lines.append(r"\usepackage[kazakh,english]{babel}")
+    tex_lines.append(r"\usepackage[T1,T2A]{fontenc}") # Set T2A (Cyrillic) as default active encoding
+    tex_lines.append(r"\usepackage[english]{babel}") # Avoid kazakh.ldf missing error on Overleaf
     tex_lines.append("")
     tex_lines.append(r"\begin{document}")
     tex_lines.append("")
