@@ -24,6 +24,8 @@ def compile_markdown_to_latex(md_path, tex_path):
     tex_lines.append(r"\usepackage[utf8]{inputenc}")
     tex_lines.append(r"\usepackage[T1,T2A]{fontenc}") # Set T2A (Cyrillic) as default active encoding
     tex_lines.append(r"\usepackage[english]{babel}") # Avoid kazakh.ldf missing error on Overleaf
+    tex_lines.append(r"\usepackage{array}") # For custom column alignments
+    tex_lines.append(r"\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}") # Force wrapping without hyphenation warnings
     tex_lines.append("")
     tex_lines.append(r"\begin{document}")
     tex_lines.append(r"\sloppy") # Relax word spacing to prevent Cyrillic/Model names from causing overfull hboxes
@@ -176,7 +178,7 @@ def compile_markdown_to_latex(md_path, tex_path):
                 if "Token Attribution" in table_caption or "Token" in headers[0]:
                     tex_lines.append(r"\begin{tabular}{lclclc}")
                 else:
-                    tex_lines.append(r"\begin{tabular}{lp{2.0cm}p{2.0cm}ccp{3.2cm}}")
+                    tex_lines.append(r"\begin{tabular}{lP{2.0cm}P{2.0cm}ccP{3.2cm}}")
             else:
                 tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
             tex_lines.append(r"\toprule")

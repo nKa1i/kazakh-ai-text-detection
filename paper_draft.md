@@ -139,7 +139,7 @@ To understand the practical impact of the FST morphological analyzer, we perform
 
 *Table 2: Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)*
 
-| Case Type | Original Kazakh Review | English Translation | Pure Pred (Prob AI) | FST Pred (Prob AI) | Linguistic Analysis |
+| Case Type | Original Kazakh Review | English Translation | Pure Pred. | FST Pred. | Linguistic Analysis |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | **True Negative (TN)** | Каспи маған өте қатты ұнайды, кез келген уақытта ақша аудара аласың. | I like Kaspi very much, you can transfer money at any time. | Human (4.2%) | Human (2.1%) | Features simple colloquial vocabulary and casual syntax typical of authentic consumer feedback. |
 | **True Positive (TP)** | Бұл мобильді қосымша транзакцияларды жылдам және қауіпсіз орындауға мүмкіндік береді. | This mobile application enables executing transactions quickly and securely. | AI (98.4%) | AI (99.1%) | Uses highly formal terminology and perfect syntax without colloquial contractions, characteristic of LLM generation. |
@@ -158,7 +158,7 @@ To visually demonstrate this difference in token attribution, Table 3 compares t
 
 *Table 3: Detailed Token Attribution Comparison for "жылдам аударымдары үшін рахмет" (Pure vs. FST)*
 
-| Pure Model Configuration (Prediction: AI, Confidence: 84.6%) | | | FST Model Configuration (Prediction: Human, Confidence: 91.7%) | | |
+| Pure Model (AI, 84.6%) | | | FST Model (Human, 91.7%) | | |
 | :--- | :---: | :---: | :--- | :---: | :---: |
 | **Token** | **Attribution** | **Signal** | **Token** | **Attribution** | **Signal** |
 | жылдам | +0.05 | Human | жылдам | +0.04 | Human |

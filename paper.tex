@@ -5,6 +5,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1,T2A]{fontenc}
 \usepackage[english]{babel}
+\usepackage{array}
+\newcolumntype{P}\cite{1}{>{\raggedright\arraybackslash}p{#1}}
 
 \begin{document}
 \sloppy
@@ -140,9 +142,9 @@ To understand the practical impact of the FST morphological analyzer, we perform
 \label{tab:table2}
 \centering
 \footnotesize
-\begin{tabular}{lp{2.0cm}p{2.0cm}ccp{3.2cm}}
+\begin{tabular}{lP{2.0cm}P{2.0cm}ccP{3.2cm}}
 \toprule
-Case Type & Original Kazakh Review & English Translation & Pure Pred (Prob AI) & FST Pred (Prob AI) & Linguistic Analysis \\
+Case Type & Original Kazakh Review & English Translation & Pure Pred. & FST Pred. & Linguistic Analysis \\
 \midrule
 \textbf{True Negative (TN)} & Каспи маған өте қатты ұнайды, кез келген уақытта ақша аудара аласың. & I like Kaspi very much, you can transfer money at any time. & Human (4.2\%) & Human (2.1\%) & Features simple colloquial vocabulary and casual syntax typical of authentic consumer feedback. \\
 \textbf{True Positive (TP)} & Бұл мобильді қосымша транзакцияларды жылдам және қауіпсіз орындауға мүмкіндік береді. & This mobile application enables executing transactions quickly and securely. & AI (98.4\%) & AI (99.1\%) & Uses highly formal terminology and perfect syntax without colloquial contractions, characteristic of LLM generation. \\
@@ -165,7 +167,7 @@ To visually demonstrate this difference in token attribution, Table 3 compares t
 \footnotesize
 \begin{tabular}{lclclc}
 \toprule
-\multicolumn{3}{c}{Pure Model Configuration (Prediction: AI, Confidence: 84.6\%)} & \multicolumn{3}{c}{FST Model Configuration (Prediction: Human, Confidence: 91.7\%)} \\
+\multicolumn{3}{c}{Pure Model (AI, 84.6\%)} & \multicolumn{3}{c}{FST Model (Human, 91.7\%)} \\
 \midrule
 \textbf{Token} & \textbf{Attribution} & \textbf{Signal} & \textbf{Token} & \textbf{Attribution} & \textbf{Signal} \\
 жылдам & +0.05 & Human & жылдам & +0.04 & Human \\
