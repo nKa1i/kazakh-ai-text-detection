@@ -5,6 +5,9 @@ def compile_markdown_to_latex(md_path, tex_path):
     with open(md_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
+    # Pre-process citations in markdown before split
+    content = re.sub(r'\[(\d+)\]', r'\\cite{\1}', content)
+
     # Split lines
     lines = content.split('\n')
     
@@ -322,12 +325,6 @@ def compile_markdown_to_latex(md_path, tex_path):
     
     # Convert markdown italic *text* to \textit{text}
     tex_content = re.sub(r'\*(.*?)\*', r'\\textit{\1}', tex_content)
-    
-    # Convert citation markers [1] to \cite{1}
-    # Be careful not to replace things like [1] in bibliography
-    # We only match [num] if it's not inside \bibitem{num} or \begin{thebibliography}
-    # So we do a negative lookbehind for bibitem
-    tex_content = re.sub(r'(?<!\\bibitem\{)(?<!\\begin\{thebibliography\}\{)(?<!\\cite\{)\[(\d+)\]', r'\\cite{\1}', tex_content)
     
     # Escape percent signs (%) in body text unless already escaped
     # We match % only if not preceded by \
