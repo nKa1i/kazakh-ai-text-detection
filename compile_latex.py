@@ -174,60 +174,97 @@ def compile_markdown_to_latex(md_path, tex_path):
             
             headers = [c.strip() for c in table_rows[0].split('|')[1:-1]]
             col_count = len(headers)
+            is_qualitative_table = (col_count == 6 and "Qualitative" in table_caption)
             
-            if col_count == 7:
-                tex_lines.append(r"\begin{tabular}{llccccc}")
-            elif col_count == 6:
-                if "Token Attribution" in table_caption or "Token" in headers[0]:
-                    tex_lines.append(r"\begin{tabular}{lclclc}")
-                else:
-                    tex_lines.append(r"\begin{tabular}{lP{2.5cm}P{2.5cm}ccP{3.5cm}}")
+            if is_qualitative_table:
+                tex_lines.append(r"\begin{tabular}{p{11.8cm}}")
+                tex_lines.append(r"\toprule")
+                # Parse rows (skip index 1 as it is the divider | :--- |)
+                for r_idx, row_str in enumerate(table_rows[2:]):
+                    cols = [c.strip() for c in row_str.split('|')[1:-1]]
+                    case_type = cols[0]
+                    # Convert markdown bold/italic
+                    case_type = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', case_type)
+                    
+                    kaz_review = cols[1]
+                    eng_trans = cols[2]
+                    
+                    pure_pred = cols[3].replace('%', '\\%')
+                    fst_pred = cols[4].replace('%', '\\%')
+                    
+                    ling_analysis = cols[5]
+                    ling_analysis = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', ling_analysis)
+                    ling_analysis = re.sub(r'\*(.*?)\*', r'\\textit{\1}', ling_analysis)
+                    # Replace smart quotes in analysis
+                    ling_analysis = ling_analysis.replace('“', '``').replace('”', "''")
+                    
+                    if r_idx > 0:
+                        tex_lines.append(r"\midrule")
+                    
+                    tex_lines.append(f"{case_type} \\\\")
+                    tex_lines.append(r"\smallskip")
+                    tex_lines.append(f"\\textbf{{Original Review:}} {kaz_review} \\\\")
+                    tex_lines.append(f"\\textbf{{Translation:}} {eng_trans} \\\\")
+                    tex_lines.append(f"\\textbf{{Predictions:}} Pure: {pure_pred} \\hfill FST: {fst_pred} \\\\")
+                    tex_lines.append(f"\\textbf{{Analysis:}} {ling_analysis} \\\\")
+                    
+                tex_lines.append(r"\bottomrule")
+                tex_lines.append(r"\end{tabular}")
             else:
-                tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
-            tex_lines.append(r"\toprule")
-            
-            # Helper to parse columns with potential empty multicolumn spans
-            def parse_row_cols(cols, is_header=False):
-                formatted_cols = []
-                j = 0
-                while j < len(cols):
-                    col = cols[j]
-                    if col == "" and j > 0:
-                        j += 1
-                        continue
-                    
-                    # Count consecutive empty cells for multicolumn span
-                    span = 1
-                    while j + span < len(cols) and cols[j + span] == "":
-                        span += 1
-                    
-                    c = col
-                    c = c.replace('%', '\\%')
-                    c = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', c)
-                    c = re.sub(r'\*(.*?)\*', r'\\textit{\1}', c)
-                    
-                    if span > 1:
-                        # Wrap in multicolumn
-                        if is_header or c.startswith('\\textbf'):
-                            formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{{c}}}")
-                        else:
-                            formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{\\textbf{{{c}}}}}")
+                # Regular tables
+                if col_count == 7:
+                    tex_lines.append(r"\begin{tabular}{llccccc}")
+                elif col_count == 6:
+                    if "Token Attribution" in table_caption or "Token" in headers[0]:
+                        tex_lines.append(r"\begin{tabular}{lclclc}")
                     else:
-                        formatted_cols.append(c)
-                    j += span
-                return " & ".join(formatted_cols) + " \\\\"
-
-            # Parse headers
-            tex_lines.append(parse_row_cols(headers, is_header=True))
-            tex_lines.append(r"\midrule")
-            
-            # Parse rows (skip index 1 as it is the divider | :--- |)
-            for row_str in table_rows[2:]:
-                cols = [c.strip() for c in row_str.split('|')[1:-1]]
-                tex_lines.append(parse_row_cols(cols, is_header=False))
+                        tex_lines.append(r"\begin{tabular}{lP{2.5cm}P{2.5cm}ccP{3.5cm}}")
+                else:
+                    tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
+                tex_lines.append(r"\toprule")
                 
-            tex_lines.append(r"\bottomrule")
-            tex_lines.append(r"\end{tabular}")
+                # Helper to parse columns with potential empty multicolumn spans
+                def parse_row_cols(cols, is_header=False):
+                    formatted_cols = []
+                    j = 0
+                    while j < len(cols):
+                        col = cols[j]
+                        if col == "" and j > 0:
+                            j += 1
+                            continue
+                        
+                        # Count consecutive empty cells for multicolumn span
+                        span = 1
+                        while j + span < len(cols) and cols[j + span] == "":
+                            span += 1
+                        
+                        c = col
+                        c = c.replace('%', '\\%')
+                        c = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', c)
+                        c = re.sub(r'\*(.*?)\*', r'\\textit{\1}', c)
+                        
+                        if span > 1:
+                            # Wrap in multicolumn
+                            if is_header or c.startswith('\\textbf'):
+                                formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{{c}}}")
+                            else:
+                                formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{\\textbf{{{c}}}}}")
+                        else:
+                            formatted_cols.append(c)
+                        j += span
+                    return " & ".join(formatted_cols) + " \\\\"
+
+                # Parse headers
+                tex_lines.append(parse_row_cols(headers, is_header=True))
+                tex_lines.append(r"\midrule")
+                
+                # Parse rows (skip index 1 as it is the divider | :--- |)
+                for row_str in table_rows[2:]:
+                    cols = [c.strip() for c in row_str.split('|')[1:-1]]
+                    tex_lines.append(parse_row_cols(cols, is_header=False))
+                    
+                tex_lines.append(r"\bottomrule")
+                tex_lines.append(r"\end{tabular}")
             tex_lines.append(r"\end{table}")
             tex_lines.append("")
             table_rows = []
