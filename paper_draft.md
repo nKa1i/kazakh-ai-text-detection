@@ -193,7 +193,7 @@ The authors have no competing interests to declare.
 2. Devlin, J., Chang, M.W., Lee, K., Toutanova, K.: BERT: Pre-training of deep bidirectional transformers for language understanding. arXiv preprint arXiv:1810.04805 (2018)
 3. Conneau, A., Khandelwal, K., Goyal, N., Chaudhary, V., Ji, G., Synnaeve, G., Stoyanov, V.: Unsupervised cross-lingual representation learning at scale. arXiv preprint arXiv:1911.02116 (2019)
 4. Eraly-ml: KazBERT: Kazakh BERT-base model for natural language processing. Hugging Face repository (2021). https://huggingface.co/Eraly-ml/KazBERT
-5. Sagyndyk, B., Murzakhmetov, S., Yakunin, K.: Kaz-RoBERTa Conversational Technical Report. TechRxiv (2025). https://doi.org/10.36227/techrxiv.175942902.25827042
+5. Sagyndyk, B., Murzakhmetov, S., Yakunin, K.: Kaz-RoBERTa Conversational Technical Report. TechRxiv (2025). https://doi.org/10.36227/techrxiv.175942902.25827042/v1
 6. Tyers, F.M., Washington, J.N.: Finite-state morphological transducers for three Kypchak languages. In: Proceedings of the 10th International Conference on Language Resources and Evaluation (LREC 2016), pp. 1114–1121 (2016)
 7. Mitchell, E., Yoon, J., Liang, P., Finn, C., Manning, C.D.: DetectGPT: Zero-shot machine-generated text detection using probability curvature. In: International Conference on Machine Learning (ICML) (2023)
 8. Gehrmann, S., Strobelt, H., Rush, A.M.: GLTR: Statistical visualization and detection of generation from large language models. In: Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics: System Demonstrations, pp. 111–116 (2019)

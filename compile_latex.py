@@ -181,7 +181,7 @@ def compile_markdown_to_latex(md_path, tex_path):
                 if "Token Attribution" in table_caption or "Token" in headers[0]:
                     tex_lines.append(r"\begin{tabular}{lclclc}")
                 else:
-                    tex_lines.append(r"\begin{tabular}{lP{2.0cm}P{2.0cm}ccP{3.2cm}}")
+                    tex_lines.append(r"\begin{tabular}{lP{2.5cm}P{2.5cm}ccP{3.5cm}}")
             else:
                 tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
             tex_lines.append(r"\toprule")
