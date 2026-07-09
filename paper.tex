@@ -96,6 +96,7 @@ The results of the evaluation on the held-out test set are summarized in Table 1
 \caption{Complete Evaluation Results (Pure vs. FST Mode)}
 \label{tab:table1}
 \centering
+\footnotesize
 \begin{tabular}{llccccc}
 \toprule
 Model & Mode & Overall Acc & F1-Score & Acc (Short <= 60) & Acc (Long > 60) & False Positives (Short) \\
@@ -137,7 +138,8 @@ To understand the practical impact of the FST morphological analyzer, we perform
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
 \centering
-\begin{tabular}{lp{3.5cm}p{3.5cm}ccp{4.5cm}}
+\footnotesize
+\begin{tabular}{lp{2.0cm}p{2.0cm}ccp{3.2cm}}
 \toprule
 Case Type & Original Kazakh Review & English Translation & Pure Pred (Prob AI) & FST Pred (Prob AI) & Linguistic Analysis \\
 \midrule
@@ -159,9 +161,10 @@ To visually demonstrate this difference in token attribution, Table 3 compares t
 \caption{Detailed Token Attribution Comparison for ``жылдам аударымдары үшін рахмет'' (Pure vs. FST)}
 \label{tab:table3}
 \centering
+\footnotesize
 \begin{tabular}{lclclc}
 \toprule
-Pure Model Configuration (Prediction: AI, Confidence: 84.6\%) &  &  & FST Model Configuration (Prediction: Human, Confidence: 91.7\%) &  &  \\
+\multicolumn{3}{c}{Pure Model Configuration (Prediction: AI, Confidence: 84.6\%)} & \multicolumn{3}{c}{FST Model Configuration (Prediction: Human, Confidence: 91.7\%)} \\
 \midrule
 \textbf{Token} & \textbf{Attribution} & \textbf{Signal} & \textbf{Token} & \textbf{Attribution} & \textbf{Signal} \\
 жылдам & +0.05 & Human & жылдам & +0.04 & Human \\

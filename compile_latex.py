@@ -164,6 +164,7 @@ def compile_markdown_to_latex(md_path, tex_path):
             tex_lines.append(f"\\caption{{{table_caption}}}")
             tex_lines.append(f"\\label{{tab:table{table_count}}}")
             tex_lines.append(r"\centering")
+            tex_lines.append(r"\footnotesize") # Use footnotesize to fit text width
             
             headers = [c.strip() for c in table_rows[0].split('|')[1:-1]]
             col_count = len(headers)
@@ -174,32 +175,50 @@ def compile_markdown_to_latex(md_path, tex_path):
                 if "Token Attribution" in table_caption or "Token" in headers[0]:
                     tex_lines.append(r"\begin{tabular}{lclclc}")
                 else:
-                    tex_lines.append(r"\begin{tabular}{lp{3.5cm}p{3.5cm}ccp{4.5cm}}")
+                    tex_lines.append(r"\begin{tabular}{lp{2.0cm}p{2.0cm}ccp{3.2cm}}")
             else:
                 tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
             tex_lines.append(r"\toprule")
             
+            # Helper to parse columns with potential empty multicolumn spans
+            def parse_row_cols(cols, is_header=False):
+                formatted_cols = []
+                j = 0
+                while j < len(cols):
+                    col = cols[j]
+                    if col == "" and j > 0:
+                        j += 1
+                        continue
+                    
+                    # Count consecutive empty cells for multicolumn span
+                    span = 1
+                    while j + span < len(cols) and cols[j + span] == "":
+                        span += 1
+                    
+                    c = col
+                    c = c.replace('%', '\\%')
+                    c = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', c)
+                    c = re.sub(r'\*(.*?)\*', r'\\textit{\1}', c)
+                    
+                    if span > 1:
+                        # Wrap in multicolumn
+                        if is_header or c.startswith('\\textbf'):
+                            formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{{c}}}")
+                        else:
+                            formatted_cols.append(f"\\multicolumn{{{span}}}{{c}}{{\\textbf{{{c}}}}}")
+                    else:
+                        formatted_cols.append(c)
+                    j += span
+                return " & ".join(formatted_cols) + " \\\\"
+
             # Parse headers
-            formatted_headers = []
-            for h in headers:
-                h = h.replace('%', '\\%')
-                h = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', h)
-                formatted_headers.append(h)
-            tex_lines.append(" & ".join(formatted_headers) + " \\\\")
+            tex_lines.append(parse_row_cols(headers, is_header=True))
             tex_lines.append(r"\midrule")
             
             # Parse rows (skip index 1 as it is the divider | :--- |)
             for row_str in table_rows[2:]:
                 cols = [c.strip() for c in row_str.split('|')[1:-1]]
-                formatted_cols = []
-                for col in cols:
-                    c = col
-                    c = c.replace('%', '\\%')
-                    # Convert markdown bold/italic to latex
-                    c = re.sub(r'\*\*(.*?)\*\*', r'\\textbf{\1}', c)
-                    c = re.sub(r'\*(.*?)\*', r'\\textit{\1}', c)
-                    formatted_cols.append(c)
-                tex_lines.append(" & ".join(formatted_cols) + " \\\\")
+                tex_lines.append(parse_row_cols(cols, is_header=False))
                 
             tex_lines.append(r"\bottomrule")
             tex_lines.append(r"\end{tabular}")
