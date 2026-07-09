@@ -170,7 +170,10 @@ def compile_markdown_to_latex(md_path, tex_path):
             if col_count == 7:
                 tex_lines.append(r"\begin{tabular}{llccccc}")
             elif col_count == 6:
-                tex_lines.append(r"\begin{tabular}{lp{3.5cm}p{3.5cm}ccp{4.5cm}}")
+                if "Token Attribution" in table_caption or "Token" in headers[0]:
+                    tex_lines.append(r"\begin{tabular}{lclclc}")
+                else:
+                    tex_lines.append(r"\begin{tabular}{lp{3.5cm}p{3.5cm}ccp{4.5cm}}")
             else:
                 tex_lines.append(f"\\begin{{tabular}}{{{'c' * col_count}}}")
             tex_lines.append(r"\toprule")
