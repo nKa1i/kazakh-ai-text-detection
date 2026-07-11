@@ -62,10 +62,12 @@ def compile_markdown_to_latex(md_path, tex_path):
             line = re.sub(r'^\s*>\s*', '', line)
             
         # Detect table captions
-        if '*Table ' in line or 'Table ' in line:
+        if line.strip().startswith('*Table') and line.strip().endswith('*'):
             clean_cap = line.strip('* \t\r\n')
             clean_cap = re.sub(r'^Table\s+\d+[:\s\-]*', '', clean_cap, flags=re.IGNORECASE)
             table_caption = clean_cap
+            i += 1
+            continue
             
         # Skip horizontal dividers and section separators
         if line.strip() == '---':

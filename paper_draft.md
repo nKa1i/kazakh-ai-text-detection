@@ -180,8 +180,10 @@ Based on these findings, we outline the following deployment recommendations:
 - **Accuracy-First Deployments:** Use the **KazRoBERTa (Pure)** model for high-throughput filtering or content moderations where maximum recall is required.
 - **Precision-Critical Deployments:** In settings where false accusations carry heavy consequences (e.g., academic grading, automated plagiarism detection), use **KazRoBERTa (FST)** to minimize false positives and protect authentic writers.
 
-#### Acknowledgments
-This research was supported by Al-Farabi Kazakh National University (KazNU).
+### 7.1 Limitations and Future Work
+While our benchmark study demonstrates strong performance, we identify two key areas for future research:
+1. **Dataset Scale:** The current benchmark corpus is relatively modest in size, focusing primarily on consumer reviews. Expanding this corpus to include larger, more diverse web texts, news articles, and academic essays will be crucial to evaluate the generalizability of these detection models.
+2. **Detection Limits on High-Similarity Texts:** In scenarios where AI-generated text is highly optimized (e.g., via prompt tuning or temperature controls) such that its similarity to human writing reaches a 95% semantic or n-gram similarity metric, it remains an open question whether classifiers like KazRoBERTa can still detect the hidden statistical artifacts of machine generation. Investigating these boundary cases is essential as LLM generation quality continues to advance.
 
 #### Disclosure of Interests
 The authors have no competing interests to declare.

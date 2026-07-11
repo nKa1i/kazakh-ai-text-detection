@@ -94,7 +94,6 @@ All models were fine-tuned for 3 epochs on the training set using the AdamW opti
 \section{Results and Discussion}
 \subsection{Performance Benchmark}
 The results of the evaluation on the held-out test set are summarized in Table 1.
-\textit{Table 1: Complete Evaluation Results (Pure vs. FST Mode)}
 \begin{table}
 \caption{Complete Evaluation Results (Pure vs. FST Mode)}
 \label{tab:table1}
@@ -136,7 +135,6 @@ When trained in FST mode, \textbf{KazRoBERTa (FST)} reduces the number of short 
 We hypothesize that morphological segmentation prevents the model from misinterpreting complex suffix combinations as artificial patterns. By separating grammatical inflections, the model focuses on the core vocabulary and syntactic layout, which are more stable indicators of human vs. AI origin.
 \subsection{Qualitative Analysis and Error Breakdown}
 To understand the practical impact of the FST morphological analyzer, we perform a qualitative evaluation of the top-performing KazRoBERTa model in both its Pure and FST-augmented configurations. Table 2 provides representative examples of correct and incorrect predictions, accompanied by their English translation and a linguistic analysis of the model's behavior.
-\textit{Table 2: Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \begin{table}
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
@@ -180,7 +178,6 @@ However, the impact of FST morphological analysis varies dramatically across the
 This divergence is rooted in vocabulary alignment and tokenizer compatibility. Multilingual models (mBERT and XLM-R) utilize massive shared vocabularies trained across 100+ languages. When FST splits Kazakh words into isolated stems and grammatical suffixes (e.g., separating suffix tokens like \textit{-ңыз} or \textit{-мыз} with spaces), these separated units do not align well with the multilingual tokenizers. Instead, the tokenizers fragment them further into arbitrary multilingual subwords, increasing character-level sparsity and making human text appear syntactically anomalous (thus triggering False Positives). Similarly, KazBERT's WordPiece tokenizer was pretrained on formal Wikipedia text; it struggles with the separated colloquial suffixes and informal review syntax. 
 Conversely, \textbf{KazRoBERTa} is uniquely optimized for this task. It is a monolingual model trained specifically on conversational Kazakh text (customer support dialogues and reviews) using a Byte-Pair Encoding (BPE) tokenizer with a 52,000 vocabulary. Its BPE tokenizer has dedicated, well-trained representations for both common Kazakh roots and isolated nominal suffixes (like \textit{-лар}, \textit{-ды}, \textit{-дан}). By feeding FST-segmented tokens directly into KazRoBERTa, the BPE tokenizer maps them cleanly to native vocabulary tokens. This reduces out-of-vocabulary noise and allows the model to focus on the semantic root and natural syntactic structures, enabling KazRoBERTa to handle false positive cases on short texts far better than any other benchmarked model.
 To visually demonstrate this difference in token attribution, Table 3 compares the raw token importances and weights computed by the Sequence Classification Explainer for the critical false positive review \textit{``жылдам аударымдары үшін рахмет''} under both Pure and FST-augmented configurations.
-\textit{Table 3: Detailed Token Attribution Comparison for ``жылдам аударымдары үшін рахмет'' (Pure vs. FST)}
 \begin{table}
 \caption{Detailed Token Attribution Comparison for ``жылдам аударымдары үшін рахмет'' (Pure vs. FST)}
 \label{tab:table3}
@@ -211,8 +208,13 @@ Based on these findings, we outline the following deployment recommendations:
 \item \textbf{Precision-Critical Deployments:} In settings where false accusations carry heavy consequences (e.g., academic grading, automated plagiarism detection), use \textbf{KazRoBERTa (FST)} to minimize false positives and protect authentic writers.
 \end{itemize}
 
-\subsubsection{Acknowledgments.}
-This research was supported by Al-Farabi Kazakh National University (KazNU).
+\subsection{Limitations and Future Work}
+While our benchmark study demonstrates strong performance, we identify two key areas for future research:
+\begin{enumerate}
+\item \textbf{Dataset Scale:} The current benchmark corpus is relatively modest in size, focusing primarily on consumer reviews. Expanding this corpus to include larger, more diverse web texts, news articles, and academic essays will be crucial to evaluate the generalizability of these detection models.
+\item \textbf{Detection Limits on High-Similarity Texts:} In scenarios where AI-generated text is highly optimized (e.g., via prompt tuning or temperature controls) such that its similarity to human writing reaches a 95\% semantic or n-gram similarity metric, it remains an open question whether classifiers like KazRoBERTa can still detect the hidden statistical artifacts of machine generation. Investigating these boundary cases is essential as LLM generation quality continues to advance.
+\end{enumerate}
+
 \subsubsection{Disclosure of Interests.}
 The authors have no competing interests to declare.
 \begin{thebibliography}{11}
