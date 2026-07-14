@@ -4,14 +4,13 @@ from pydantic import BaseModel, Field
 # We import model.py which will load the model at startup
 # and fail fast if the model isn't available.
 try:
-    import model
-except SystemExit:
-    # Rethrow so the app truly exits if model import exits
-    raise
+    try:
+        from api import model
+    except ImportError:
+        import model
 except Exception as e:
-    import sys
-    print(f"Failed to initialize model module: {e}")
-    sys.exit(1)
+    print(f"Model initialization skipped/failed: {e}")
+    model = None
 
 app = FastAPI(title="KazRoBERTa AI-Text Detector API")
 
@@ -42,6 +41,23 @@ def predict_endpoint(request: PredictRequest):
 def explain_endpoint(request: PredictRequest):
     if not request.text.strip():
         raise HTTPException(status_code=422, detail="Text cannot be empty")
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model unavailable")
     result = model.predict(request.text, request.mode)
     result["html"] = model.explain(request.text, request.mode)
     return result
+
+from typing import Dict, Any, Optional
+from consensus_engine import ConsensusEngine
+
+consensus_engine = ConsensusEngine()
+
+class VerificationRequest(BaseModel):
+    text: str
+    telemetry: Optional[Dict[str, Any]] = None
+
+@app.post("/v1/verify")
+def verify_content(req: VerificationRequest):
+    result = consensus_engine.evaluate(req.text, req.telemetry, layer1_score=0.10)
+    return result
+
