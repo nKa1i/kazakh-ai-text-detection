@@ -5,7 +5,7 @@ from unittest.mock import patch
 # We need to mock the model import in main.py to prevent it from trying to load a real model
 with patch.dict('sys.modules', {
     'model': type('MockModel', (), {
-        'predict': lambda text: {'label': 'ai', 'confidence': 0.95}
+        'predict': lambda text, mode="pure": {'label': 'ai', 'confidence': 0.95}
     })
 }):
     from main import app
