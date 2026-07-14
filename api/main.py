@@ -56,8 +56,13 @@ class VerificationRequest(BaseModel):
     text: str
     telemetry: Optional[Dict[str, Any]] = None
 
+import time
+
 @app.post("/v1/verify")
 def verify_content(req: VerificationRequest):
+    t0 = time.time()
     result = consensus_engine.evaluate(req.text, req.telemetry, layer1_score=0.10)
+    result["processing_time_ms"] = round((time.time() - t0) * 1000, 2)
     return result
+
 
