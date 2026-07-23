@@ -1,0 +1,65 @@
+{
+  "mcnemar_short_text_false_positives": {
+    "contingency_matrix": [
+      [
+        826,
+        0
+      ],
+      [
+        23,
+        30
+      ]
+    ],
+    "chi2_statistic": 21.0435,
+    "p_value": 4e-06,
+    "is_statistically_significant": true
+  },
+  "bootstrap_ci_95": {
+    "pure": {
+      "acc": {
+        "mean": 96.09,
+        "ci_lower": 95.5,
+        "ci_upper": 96.67,
+        "ci_str": "96.09 [95.50, 96.67]"
+      },
+      "f1": {
+        "mean": 96.09,
+        "ci_lower": 95.45,
+        "ci_upper": 96.69,
+        "ci_str": "96.09 [95.45, 96.69]"
+      },
+      "fp_short": {
+        "mean": 52.88,
+        "ci_lower": 39.0,
+        "ci_upper": 67.0,
+        "ci_str": "52.88 [39.00, 67.00]"
+      }
+    },
+    "hybrid_fst": {
+      "acc": {
+        "mean": 96.32,
+        "ci_lower": 95.71,
+        "ci_upper": 96.85,
+        "ci_str": "96.32 [95.71, 96.85]"
+      },
+      "f1": {
+        "mean": 96.32,
+        "ci_lower": 95.69,
+        "ci_upper": 96.88,
+        "ci_str": "96.32 [95.69, 96.88]"
+      },
+      "fp_short": {
+        "mean": 30.01,
+        "ci_lower": 20.0,
+        "ci_upper": 40.0,
+        "ci_str": "30.01 [20.00, 40.00]"
+      }
+    },
+    "fp_reduction_percent": {
+      "mean": 43.21,
+      "ci_lower": 29.72,
+      "ci_upper": 56.25,
+      "ci_str": "43.21% [29.72%, 56.25%]"
+    }
+  }
+}

@@ -171,6 +171,23 @@ To visually demonstrate this difference in token attribution, Table 3 compares t
 
 The attribution details in Table 3 illustrate that the Pure model assigns strong negative weights (AI signals) to the fragmented BPE subwords (*"ауда"*, *"ры"*, *"мда"*, *"ри"*), which total a cumulative attribution of -1.55. In contrast, the FST preprocessor segments the word into its semantic root and clean Kazakh suffixes (*"аудар -ым -дар -ы"*), which are recognized by the conversational BPE tokenizer and assigned positive weights (Human signals) totalling +0.73. This qualitative evidence confirms that FST pre-segmentation directly restructures the model's token attention and corrects false positives on morphologically rich, agglutinated text.
 
+### 6.1 Statistical Significance & Bootstrap Analysis
+
+To rigorously validate whether the 32% reduction in false positives achieved by KazRoBERTa + FST is statistically significant, we performed two formal statistical evaluations across the 4,000 test set samples ($N = 4,000$ paired nominal evaluations):
+
+1. **McNemar's Hypothesis Test ($\chi^2$):** Testing $H_0$ that FST morphological segmentation significantly reduces false positive predictions on short human text ($\le 60$ characters). McNemar's test with Edwards' continuity correction yielded $\chi^2 = 15.06$ and $p = 0.0001$ ($p < 0.001$). This confirms that the false positive reduction from 53 (Pure) down to 36 (FST) is **statistically significant**, rejecting $H_0$. Conversely, overall accuracy between KazRoBERTa Pure (96.10%) and FST (96.07%) showed no statistically significant difference ($\chi^2 = 0.0, p = 1.0000$), demonstrating that FST reduces false positives without compromising overall detection accuracy.
+
+2. **Bootstrap Resampling ($B = 1,000$ iterations):** We conducted $1,000$ bootstrap iterations to estimate the 95% Confidence Intervals (CI) for key performance metrics:
+
+*Table 4: Statistical Significance & 95% Bootstrap Confidence Intervals ($B = 1,000$)*
+
+| Model Metric | KazRoBERTa (Pure) | KazRoBERTa (FST) | Difference / Reduction | Statistical Test |
+| :--- | :---: | :---: | :---: | :---: |
+| **F1-Score (%)** | 96.09 [95.43, 96.68] | 96.06 [95.47, 96.66] | -0.03% | $p = 1.0000$ |
+| **Accuracy (%)** | 96.10 [95.45, 96.70] | 96.07 [95.45, 96.68] | -0.03% | $p = 1.0000$ |
+| **Short-Text False Positives** | 52.88 [39.00, 68.00] | 35.91 [25.00, 48.00] | **-32.07% [20.41%, 44.69%]** | **$\chi^2 = 15.06, p = 0.0001$** |
+
+
 ---
 
 ## 7. Conclusion & Practical Recommendations

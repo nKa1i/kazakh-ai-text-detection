@@ -1,0 +1,96 @@
+{
+  "mcnemar_overall": {
+    "contingency_matrix": [
+      [
+        3826,
+        18
+      ],
+      [
+        17,
+        139
+      ]
+    ],
+    "n_pure_only_correct": 18,
+    "n_fst_only_correct": 17,
+    "chi2_statistic": 0.0,
+    "p_value": 1.0,
+    "is_statistically_significant": false
+  },
+  "mcnemar_short_text_false_positives": {
+    "contingency_matrix": [
+      [
+        827,
+        0
+      ],
+      [
+        17,
+        36
+      ]
+    ],
+    "n_pure_only_correct": 0,
+    "n_fst_only_correct": 17,
+    "chi2_statistic": 15.0588,
+    "p_value": 0.000104211945158089,
+    "is_statistically_significant": true
+  },
+  "bootstrap_ci": {
+    "pure": {
+      "accuracy": {
+        "mean": 96.09,
+        "ci_lower": 95.47,
+        "ci_upper": 96.65,
+        "ci_str": "96.09 [95.47, 96.65]"
+      },
+      "f1": {
+        "mean": 96.09,
+        "ci_lower": 95.43,
+        "ci_upper": 96.68,
+        "ci_str": "96.09 [95.43, 96.68]"
+      },
+      "precision": {
+        "mean": 96.2,
+        "ci_lower": 95.33,
+        "ci_upper": 97.02,
+        "ci_str": "96.20 [95.33, 97.02]"
+      },
+      "fp_short": {
+        "mean": 52.88,
+        "ci_lower": 39.0,
+        "ci_upper": 68.0,
+        "ci_str": "52.88 [39.00, 68.00]"
+      }
+    },
+    "fst": {
+      "accuracy": {
+        "mean": 96.07,
+        "ci_lower": 95.45,
+        "ci_upper": 96.65,
+        "ci_str": "96.07 [95.45, 96.65]"
+      },
+      "f1": {
+        "mean": 96.06,
+        "ci_lower": 95.47,
+        "ci_upper": 96.66,
+        "ci_str": "96.06 [95.47, 96.66]"
+      },
+      "precision": {
+        "mean": 96.2,
+        "ci_lower": 95.39,
+        "ci_upper": 96.99,
+        "ci_str": "96.20 [95.39, 96.99]"
+      },
+      "fp_short": {
+        "mean": 35.91,
+        "ci_lower": 25.0,
+        "ci_upper": 48.0,
+        "ci_str": "35.91 [25.00, 48.00]"
+      }
+    },
+    "fp_reduction_percent": {
+      "mean": 32.07,
+      "ci_lower": 20.41,
+      "ci_upper": 44.69,
+      "ci_str": "32.07% [20.41%, 44.69%]"
+    }
+  }
+}

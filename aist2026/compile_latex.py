@@ -30,6 +30,12 @@ def compile_markdown_to_latex(md_path, tex_path):
     tex_lines.append(r"\usepackage{array}") # For custom column alignments
     tex_lines.append(r"\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}") # Force wrapping without hyphenation warnings
     tex_lines.append("")
+    tex_lines.append(r"% Optimize float placement parameters to prevent giant vertical gaps")
+    tex_lines.append(r"\renewcommand{\topfraction}{0.85}")
+    tex_lines.append(r"\renewcommand{\bottomfraction}{0.75}")
+    tex_lines.append(r"\renewcommand{\textfraction}{0.1}")
+    tex_lines.append(r"\renewcommand{\floatpagefraction}{0.75}")
+    tex_lines.append("")
     tex_lines.append(r"\begin{document}")
     tex_lines.append(r"\sloppy") # Relax word spacing to prevent Cyrillic/Model names from causing overfull hboxes
     tex_lines.append("")
@@ -168,11 +174,11 @@ def compile_markdown_to_latex(md_path, tex_path):
             in_table = False
             table_count += 1
             # Render LaTeX table
-            tex_lines.append(r"\begin{table}")
+            tex_lines.append(r"\begin{table}[htbp]")
             tex_lines.append(f"\\caption{{{table_caption}}}")
             tex_lines.append(f"\\label{{tab:table{table_count}}}")
             tex_lines.append(r"\centering")
-            tex_lines.append(r"\footnotesize") # Use footnotesize to fit text width
+            tex_lines.append(r"\resizebox{\textwidth}{!}{%")
             
             headers = [c.strip() for c in table_rows[0].split('|')[1:-1]]
             col_count = len(headers)
@@ -267,6 +273,7 @@ def compile_markdown_to_latex(md_path, tex_path):
                     
                 tex_lines.append(r"\bottomrule")
                 tex_lines.append(r"\end{tabular}")
+            tex_lines.append(r"}") # Close resizebox
             tex_lines.append(r"\end{table}")
             tex_lines.append("")
             table_rows = []

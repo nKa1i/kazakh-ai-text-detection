@@ -1,0 +1,23 @@
+{
+  "Consumer Reviews": {
+    "false_positive_rate_pure_pct": 12.8,
+    "false_positive_rate_hybrid_fst_pct": 7.2,
+    "fpr_reduction_pct": 43.75,
+    "accuracy_pure_pct": 93.6,
+    "accuracy_hybrid_fst_pct": 96.4
+  },
+  "Formal News": {
+    "false_positive_rate_pure_pct": 4.2,
+    "false_positive_rate_hybrid_fst_pct": 2.4,
+    "fpr_reduction_pct": 42.86,
+    "accuracy_pure_pct": 97.9,
+    "accuracy_hybrid_fst_pct": 98.8
+  },
+  "Wikipedia": {
+    "false_positive_rate_pure_pct": 3.6,
+    "false_positive_rate_hybrid_fst_pct": 1.8,
+    "fpr_reduction_pct": 50.0,
+    "accuracy_pure_pct": 98.2,
+    "accuracy_hybrid_fst_pct": 99.1
+  }
+}

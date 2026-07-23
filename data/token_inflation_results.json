@@ -1,0 +1,26 @@
+{
+  "KazRoBERTa": {
+    "mean_tw_raw": 2.461,
+    "mean_tw_fst": 2.202,
+    "reduction_pct": 10.51,
+    "t_stat": 6.4712,
+    "p_value": 0.0,
+    "is_statistically_significant": true
+  },
+  "XLM-RoBERTa": {
+    "mean_tw_raw": 2.461,
+    "mean_tw_fst": 2.202,
+    "reduction_pct": 10.51,
+    "t_stat": 6.4712,
+    "p_value": 0.0,
+    "is_statistically_significant": true
+  },
+  "mBERT": {
+    "mean_tw_raw": 3.476,
+    "mean_tw_fst": 2.202,
+    "reduction_pct": 36.65,
+    "t_stat": 20.1407,
+    "p_value": 0.0,
+    "is_statistically_significant": true
+  }
+}
