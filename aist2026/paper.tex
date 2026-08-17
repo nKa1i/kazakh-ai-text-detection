@@ -234,7 +234,7 @@ As shown in Table \ref{tab:table3}, the Pure model assigns large negative attrib
 \subsection{Statistical Significance \& Bootstrap Analysis}
 To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid FST is statistically significant, we conduct formal hypothesis testing on the $N = 4,000$ paired test evaluations:
 \begin{enumerate}
-\item \textbf{McNemar's Test:} We formulate the null hypothesis $H_0: p_{\text{Pure}} = p_{\text{FST}}$ (that there is no difference in the false-positive rate on short human text between Pure and FST models). McNemar's test with Edwards' continuity correction yields $\chi^2 = 21.04$ and $p = 0.000004$ ($p < 0.00001$), successfully rejecting $H_0$ and establishing that the reduction from 53 down to 30 false positives is statistically significant.
+\item \textbf{McNemar's Test:} We formulate the null hypothesis $H_0: p_{\mathrm{Pure}} = p_{\mathrm{FST}}$ (that there is no difference in the false-positive rate on short human text between Pure and FST models). McNemar's test with Edwards' continuity correction yields $\chi^2 = 21.04$ and $p = 0.000004$ ($p < 0.00001$), successfully rejecting $H_0$ and establishing that the reduction from 53 down to 30 false positives is statistically significant.
 \item \textbf{Bootstrap Resampling ($B = 1,000$ iterations):} Table \ref{tab:table4} reports empirical 95\% Confidence Intervals (CI).
 \end{enumerate}
 
