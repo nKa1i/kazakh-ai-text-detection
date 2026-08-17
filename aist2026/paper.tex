@@ -6,8 +6,6 @@
 \usepackage[T1,T2A]{fontenc}
 \usepackage[english]{babel}
 \usepackage{array}
-\let\vec\relax
-\usepackage{amsmath}
 \usepackage{float}
 
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -142,7 +140,7 @@ Monolingual pretraining yields a clear advantage. KazRoBERTa (Pure) achieves the
 \subsection{Token Inflation Ratio ($T/W$) \& Morphemic Limit Convergence}
 To uncover the mathematical mechanism behind FST tokenization, we define the \textbf{Token Inflation Ratio ($T/W$)}:
 \begin{equation}
-T/W = \frac{\text{Total Generated Subword Tokens}}{\text{Total Whitespace-Separated Words}}
+T/W = \frac{\mbox{Total Generated Subword Tokens}}{\mbox{Total Whitespace-Separated Words}}
 \end{equation}
 Table \ref{tab:table_inflation} presents the measured token inflation before and after FST segmentation across tokenizers.
 
