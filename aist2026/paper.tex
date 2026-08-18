@@ -158,11 +158,13 @@ Table \ref{tab:table_inflation} presents the measured token inflation before and
 \setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lcccc}
 \toprule
-\makecell[l]{Model Architecture} & \makecell{Raw Text\\($T/W$)} & \makecell{Hybrid FST\\($T/W$)} & \makecell{Inflation\\Reduction} & \makecell{Significance\\($p$-value)} \\
+\makecell[l]{Model Architecture\\(Tokenizer)} & \makecell{Raw Text\\($T/W$)} & \makecell{Hybrid FST\\($T/W$)} & \makecell{Inflation\\Reduction} & \makecell{Significance\\($p$-value)} \\
 \midrule
-\textbf{mBERT (WordPiece)} & 3.476 & \textbf{2.202} & \textbf{-36.65\%} & $p < 0.000001$ \\
-\textbf{XLM-RoBERTa (SentencePiece)} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 0.000001$ \\
-\textbf{KazRoBERTa (BPE)} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 0.000001$ \\
+\makecell[l]{\textbf{mBERT}\\\textit{(WordPiece)}} & 3.476 & \textbf{2.202} & \textbf{-36.65\%} & $p < 10^{-6}$ \\
+\addlinespace[2pt]
+\makecell[l]{\textbf{XLM-RoBERTa}\\\textit{(SentencePiece)}} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 10^{-6}$ \\
+\addlinespace[2pt]
+\makecell[l]{\textbf{KazRoBERTa}\\\textit{(BPE)}} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 10^{-6}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -231,14 +233,16 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \label{tab:table4}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{3.5pt}
+\setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lcccc}
 \toprule
 Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \makecell{Relative\\Reduction} & Significance \\
 \midrule
-\textbf{F1-Score (\%)} & 96.09 [95.45, 96.69] & 96.32 [95.69, 96.88] & +0.23\% & $p = 0.4810$ \\
-\textbf{Accuracy (\%)} & 96.10 [95.45, 96.70] & 96.32 [95.70, 96.90] & +0.22\% & $p = 0.4810$ \\
-\textbf{\makecell[l]{Short False\\Positives}} & 52.88 [39.00, 68.00] & 30.00 [20.00, 41.00] & \textbf{43.21\% [28.57\%, 57.14\%]} & \textbf{\makecell{$\chi^2 = 21.04$\\$p < 10^{-5}$}} \\
+\textbf{F1-Score (\%)} & \makecell{96.09\\{\scriptsize[95.45, 96.69]}} & \makecell{96.32\\{\scriptsize[95.69, 96.88]}} & +0.23\% & $p = 0.4810$ \\
+\addlinespace[2pt]
+\textbf{Accuracy (\%)} & \makecell{96.10\\{\scriptsize[95.45, 96.70]}} & \makecell{96.32\\{\scriptsize[95.70, 96.90]}} & +0.22\% & $p = 0.4810$ \\
+\addlinespace[2pt]
+\textbf{\makecell[l]{Short False\\Positives}} & \makecell{52.88\\{\scriptsize[39.00, 68.00]}} & \makecell{30.00\\{\scriptsize[20.00, 41.00]}} & \makecell{\textbf{43.21\%}\\{\scriptsize[28.57\%, 57.14\%]}} & \makecell{$\chi^2 = 21.04$\\$p < 10^{-5}$} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -251,14 +255,16 @@ To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample
 \label{tab:table_ood}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lcccc}
 \toprule
 \makecell[l]{Domain Genre /\\Register} & \makecell{Pure\\FPR (\%)} & \makecell{Hybrid FST\\FPR (\%)} & \makecell{Relative FP\\Reduction} & \makecell{Overall Acc\\(FST)} \\
 \midrule
-\textbf{Consumer Reviews (Informal)} & 12.80\% & \textbf{7.20\%} & \textbf{-43.75\%} & \textbf{96.40\%} \\
-\textbf{Formal News (Informburo)} & 4.20\% & \textbf{2.40\%} & \textbf{-42.86\%} & \textbf{98.80\%} \\
-\textbf{Wikipedia (Academic)} & 3.60\% & \textbf{1.80\%} & \textbf{-50.00\%} & \textbf{99.10\%} \\
+\makecell[l]{\textbf{Consumer Reviews}\\\textit{(Informal)}} & 12.80\% & \textbf{7.20\%} & \textbf{-43.75\%} & \textbf{96.40\%} \\
+\addlinespace[2pt]
+\makecell[l]{\textbf{Formal News}\\\textit{(Informburo)}} & 4.20\% & \textbf{2.40\%} & \textbf{-42.86\%} & \textbf{98.80\%} \\
+\addlinespace[2pt]
+\makecell[l]{\textbf{Wikipedia}\\\textit{(Academic)}} & 3.60\% & \textbf{1.80\%} & \textbf{-50.00\%} & \textbf{99.10\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
