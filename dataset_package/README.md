@@ -70,7 +70,7 @@ configs:
 from datasets import load_dataset
 
 # Load the KazAI-Detect benchmark
-dataset = load_dataset("dauletanekesh/kazakh-ai-detect")
+dataset = load_dataset("nKa1i/kazakh-ai-detect")
 
 # Inspect a sample
 print(dataset['test'][0])
