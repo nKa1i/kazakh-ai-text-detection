@@ -26,6 +26,8 @@ dataset_info:
 configs:
 - config_name: default
   data_files:
+  - split: train
+    path: data/train.csv
   - split: test
     path: data/test.csv
   - split: ood_test
@@ -34,7 +36,7 @@ configs:
 
 # 🇰🇿 KazAI-Detect: Kazakh AI-Generated Text Detection Benchmark
 
-**KazAI-Detect** is the first multi-domain benchmark dataset designed specifically for evaluating and detecting AI-generated text in the Kazakh language.
+**KazAI-Detect** is the first comprehensive multi-domain benchmark dataset designed specifically for training and evaluating AI-generated text detectors in the Kazakh language.
 
 ## 📌 Dataset Overview
 
@@ -44,7 +46,7 @@ configs:
   1. *Consumer Reviews* (sourced from authentic KazSAnDRA user reviews)
   2. *Formal News* (Informburo, Egemen Qazaqstan)
   3. *Academic & Encyclopedic* (Kazakh Wikipedia)
-* **Synthetic Generation:** AI counterparts generated using **Sherkala-7B** (Kazakh-adapted LLaMA) with domain-aligned prompts matching register, vocabulary, and length.
+* **Synthetic Generation:** Machine text generated using **Sherkala-7B** (Kazakh-adapted LLaMA) with domain-aligned prompts matching register, vocabulary, and length.
 
 ---
 
@@ -58,8 +60,9 @@ configs:
 ### Data Splits
 | Split | Description | Samples |
 | :--- | :--- | :---: |
-| `test` | In-domain held-out consumer reviews | 67 |
-| `ood_test` | Out-of-Distribution multi-domain benchmark (Reviews, News, Wikipedia) | 1,317 |
+| `train` | Balanced training split (Human KazSAnDRA + Sherkala-7B AI) | **8,848** |
+| `test` | In-domain held-out consumer reviews | **4,000** |
+| `ood_test` | Out-of-Distribution multi-domain benchmark (Reviews, News, Wikipedia) | **1,317** |
 
 ---
 
@@ -69,11 +72,11 @@ configs:
 ```python
 from datasets import load_dataset
 
-# Load the KazAI-Detect benchmark
+# Load the full KazAI-Detect benchmark (train, test, ood_test)
 dataset = load_dataset("nKa1i/kazakh-ai-detect")
 
-# Inspect a sample
-print(dataset['test'][0])
+# Inspect a training sample
+print(dataset['train'][0])
 # {'text': 'Каспи маған өте қатты ұнайды...', 'domain': 'consumer_reviews', 'label': 0}
 ```
 
@@ -81,8 +84,8 @@ print(dataset['test'][0])
 ```python
 import pandas as pd
 
-df_test = pd.read_csv("https://raw.githubusercontent.com/dauletanekesh/kazakh-ai-text-detection/main/dataset_package/data/ood_test.csv")
-print(df_test.head())
+df_train = pd.read_csv("https://huggingface.co/datasets/nKa1i/kazakh-ai-detect/raw/main/data/train.csv")
+print(f"Loaded {len(df_train)} training samples.")
 ```
 
 ---

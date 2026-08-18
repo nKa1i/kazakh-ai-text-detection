@@ -50,7 +50,7 @@ class KazAIDetect(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         KazAIDetectConfig(
             name="default",
-            description="Full benchmark dataset including in-domain reviews and out-of-distribution test sets.",
+            description="Full benchmark dataset including training, in-domain reviews test, and out-of-distribution test sets.",
         )
     ]
 
@@ -74,19 +74,33 @@ class KazAIDetect(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = os.path.join(os.path.dirname(__file__), "data")
+        train_path = os.path.join(data_dir, "train.csv")
         test_path = os.path.join(data_dir, "test.csv")
         ood_path = os.path.join(data_dir, "ood_test.csv")
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": test_path},
-            ),
-            datasets.SplitGenerator(
-                name="ood_test",
-                gen_kwargs={"filepath": ood_path},
-            ),
-        ]
+        splits = []
+        if os.path.exists(train_path):
+            splits.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": train_path},
+                )
+            )
+        if os.path.exists(test_path):
+            splits.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": test_path},
+                )
+            )
+        if os.path.exists(ood_path):
+            splits.append(
+                datasets.SplitGenerator(
+                    name="ood_test",
+                    gen_kwargs={"filepath": ood_path},
+                )
+            )
+        return splits
 
     def _generate_examples(self, filepath):
         if not os.path.exists(filepath):
