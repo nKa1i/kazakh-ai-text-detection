@@ -113,8 +113,8 @@ Table \ref{tab:table1} presents the benchmark performance across all models on t
 \label{tab:table1}
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{llccccc}
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llccccc}
 \toprule
 \makecell[l]{Model\\Architecture} & Mode & \makecell{Overall\\Acc (\%)} & \makecell{F1-Score\\(\%)} & \makecell{Acc\\(Short)} & \makecell{Acc\\(Long)} & \makecell{FPs\\(Short)} \\
 \midrule
@@ -127,7 +127,7 @@ KazBERT & FST & 94.56\% & 94.63\% & 93.34\% & 95.59\% & 65 \\
 \textbf{KazRoBERTa} & \textbf{Pure} & \textbf{96.10\%} & \textbf{96.15\%} & \textbf{95.05\%} & \textbf{96.98\%} & \textbf{53} \\
 \textbf{KazRoBERTa} & \textbf{Hybrid FST} & \textbf{96.32\%} & \textbf{96.32\%} & \textbf{95.40\%} & \textbf{97.10\%} & \textbf{30} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 \begin{figure}[H]
@@ -153,16 +153,16 @@ Table \ref{tab:table_inflation} presents the measured token inflation before and
 \label{tab:table_inflation}
 \centering
 \small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{lcccc}
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc}
 \toprule
-\makecell[l]{Model\\Architecture} & \makecell{Raw Text\\($T/W$)} & \makecell{Hybrid FST\\($T/W$)} & \makecell{Inflation\\Reduction} & \makecell{Significance\\($p$-value)} \\
+\makecell[l]{Model Architecture} & \makecell{Raw Text ($T/W$)} & \makecell{Hybrid FST ($T/W$)} & \makecell{Inflation Reduction} & \makecell{Significance ($p$-value)} \\
 \midrule
 \textbf{mBERT (WordPiece)} & 3.476 & \textbf{2.202} & \textbf{-36.65\%} & $p < 0.000001$ \\
 \textbf{XLM-RoBERTa (SentencePiece)} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 0.000001$ \\
 \textbf{KazRoBERTa (BPE)} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 0.000001$ \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 As shown in Table \ref{tab:table_inflation}, unsegmented Kazakh text severely fragments in multilingual tokenizers (3.476 tokens/word for mBERT). FST pre-segmentation acts as a universal morphological normalizer: regardless of initial vocabulary size, FST forces all tokenizers to converge to the natural \textbf{Kazakh Morphemic Limit of 2.202 tokens/word}. For KazRoBERTa, whose 52,000 BPE vocabulary contains dedicated representations for separated suffixes, this normalization eliminates subword noise and directly reduces false positives.
@@ -175,7 +175,7 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 \label{tab:table2}
 \centering
 \small
-\begin{tabular}{p{11.8cm}}
+\begin{tabular*}{\textwidth}{@{}p{\textwidth}@{}}
 \toprule
 \textbf{True Negative (TN)} \\
 \smallskip
@@ -205,7 +205,7 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 \textbf{Predictions:} Pure: Human (15.3\%) \hfill FST: Human (12.8\%) \\
 \textbf{Analysis:} A short, generic phrase lacking complex syntactic markers, providing minimal stylistic context for detection. \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 To analyze the underlying token attribution, Table \ref{tab:table3} compares sequence classification weights for the short human review \textit{``жылдам аударымдары үшін рахмет''} under both Pure and FST modes.
@@ -215,8 +215,8 @@ To analyze the underlying token attribution, Table \ref{tab:table3} compares seq
 \label{tab:table3}
 \centering
 \small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{lclclc}
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lclclc}
 \toprule
 \multicolumn{3}{c}{Pure Model (Pred: AI, 84.6\%)} & \multicolumn{3}{c}{FST Model (Pred: Human, 91.7\%)} \\
 \midrule
@@ -229,7 +229,7 @@ To analyze the underlying token attribution, Table \ref{tab:table3} compares seq
 үшін & +0.02 & Human & үшін & +0.02 & Human \\
 рахмет & +0.18 & Human & рахмет & +0.15 & Human \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 As shown in Table \ref{tab:table3}, the Pure model assigns large negative attributions (totaling -1.55) to fragmented subwords (\textit{``ауда''}, \textit{``ры''}, \textit{``мда''}, \textit{``ри''}). FST pre-segmentation isolates the stem and suffixes (\textit{``аудар -ым -дар -ы''}), which receive positive human attributions (+0.73), directly resolving the false positive.
@@ -246,8 +246,8 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \label{tab:table4}
 \centering
 \small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{lcccc}
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc}
 \toprule
 Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \makecell{Relative\\Reduction} & Significance \\
 \midrule
@@ -255,27 +255,27 @@ Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \
 \textbf{Accuracy (\%)} & 96.10 [95.45, 96.70] & 96.32 [95.70, 96.90] & +0.22\% & $p = 0.4810$ \\
 \textbf{\makecell[l]{Short False\\Positives}} & 52.88 [39.00, 68.00] & 30.00 [20.00, 41.00] & \textbf{43.21\% [28.57\%, 57.14\%]} & \textbf{\makecell{$\chi^2 = 21.04$\\$p < 10^{-5}$}} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 \subsection{Out-of-Distribution (OOD) Domain Generalization}
 To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample multi-genre test set across Consumer Reviews, Formal News, and Academic Wikipedia (Table \ref{tab:table_ood}).
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Out-of-Distribution (OOD) Cross-Domain Performance and False Positive Reduction}
 \label{tab:table_ood}
 \centering
 \small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{lcccc}
+\setlength{\tabcolsep}{0pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc}
 \toprule
-\makecell[l]{Domain Genre /\\Register} & \makecell{Pure\\FPR (\%)} & \makecell{Hybrid FST\\FPR (\%)} & \makecell{Relative FP\\Reduction} & \makecell{Overall Acc\\(FST)} \\
+\makecell[l]{Domain Genre / Register} & \makecell{Pure FPR (\%)} & \makecell{Hybrid FST FPR (\%)} & \makecell{Relative FP Reduction} & \makecell{Overall Acc (FST)} \\
 \midrule
 \textbf{Consumer Reviews (Informal)} & 12.80\% & \textbf{7.20\%} & \textbf{-43.75\%} & \textbf{96.40\%} \\
 \textbf{Formal News (Informburo)} & 4.20\% & \textbf{2.40\%} & \textbf{-42.86\%} & \textbf{98.80\%} \\
 \textbf{Wikipedia (Academic)} & 3.60\% & \textbf{1.80\%} & \textbf{-50.00\%} & \textbf{99.10\%} \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
 As shown in Table \ref{tab:table_ood}, KazRoBERTa + Hybrid FST maintains high accuracy across all genres (96.40\% to 99.10\%), cutting false positives by 42.86\% to 50.00\% across formal and informal registers.
