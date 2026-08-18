@@ -114,8 +114,8 @@ Table \ref{tab:table1} presents the benchmark performance across all models on t
 \caption{Complete Benchmark Evaluation Results (Pure vs. FST Mode, $N = 4,000$)}
 \label{tab:table1}
 \centering
-\small
-\setlength{\tabcolsep}{4.5pt}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{llccccc}
 \toprule
 \makecell[l]{Model\\Architecture} & Mode & \makecell{Overall\\Acc (\%)} & \makecell{F1-Score\\(\%)} & \makecell{Acc\\(Short)} & \makecell{Acc\\(Long)} & \makecell{FPs\\(Short)} \\
@@ -134,7 +134,7 @@ KazBERT & FST & 94.56\% & 94.63\% & 93.34\% & 95.59\% & 65 \\
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{data/chart_combined_dotplot.png}
+\includegraphics[width=0.90\textwidth]{data/chart_combined_dotplot.png}
 \caption{Cleveland dumbbell dot plot: Comparison of Pure (solid circle) and FST-augmented (hollow circle) modes across overall accuracy, short-text accuracy, and false positive counts on short reviews.}
 \label{fig:dotplot}
 \end{figure}
@@ -154,8 +154,8 @@ Table \ref{tab:table_inflation} presents the measured token inflation before and
 \caption{Subword Token Inflation Ratio ($T/W$) and Morphemic Limit Convergence}
 \label{tab:table_inflation}
 \centering
-\small
-\setlength{\tabcolsep}{5pt}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lcccc}
 \toprule
 \makecell[l]{Model Architecture} & \makecell{Raw Text\\($T/W$)} & \makecell{Hybrid FST\\($T/W$)} & \makecell{Inflation\\Reduction} & \makecell{Significance\\($p$-value)} \\
@@ -176,9 +176,9 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
 \centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lp{6.0cm}p{4.7cm}}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lp{5.4cm}p{4.6cm}}
 \toprule
 \textbf{Outcome} & \textbf{Review Text \& Predictions} & \textbf{Linguistic Analysis} \\
 \midrule
@@ -199,8 +199,8 @@ To analyze the underlying token attribution, Table \ref{tab:table3} compares seq
 \caption{Token Attribution Weights for ``жылдам аударымдары үшін рахмет'' (\textit{``Thanks for the fast transfers''})}
 \label{tab:table3}
 \centering
-\small
-\setlength{\tabcolsep}{5pt}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
 \begin{tabular}{lclclc}
 \toprule
 \multicolumn{3}{c}{\textbf{Pure Model (Pred: AI, 84.6\%)}} & \multicolumn{3}{c}{\textbf{FST Model (Pred: Human, 91.7\%)}} \\
@@ -230,8 +230,8 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \caption{Statistical Significance \& 95\% Bootstrap Confidence Intervals ($B = 1,000$)}
 \label{tab:table4}
 \centering
-\small
-\setlength{\tabcolsep}{4.5pt}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lcccc}
 \toprule
 Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \makecell{Relative\\Reduction} & Significance \\
@@ -250,8 +250,8 @@ To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample
 \caption{Out-of-Distribution (OOD) Cross-Domain Performance and False Positive Reduction}
 \label{tab:table_ood}
 \centering
-\small
-\setlength{\tabcolsep}{5pt}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lcccc}
 \toprule
 \makecell[l]{Domain Genre /\\Register} & \makecell{Pure\\FPR (\%)} & \makecell{Hybrid FST\\FPR (\%)} & \makecell{Relative FP\\Reduction} & \makecell{Overall Acc\\(FST)} \\
