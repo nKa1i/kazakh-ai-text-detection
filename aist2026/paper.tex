@@ -10,6 +10,8 @@
 \usepackage{placeins}
 \usepackage{float}
 
+\raggedbottom
+
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 % Optimize float placement parameters to keep tables tightly placed with text
@@ -109,10 +111,11 @@ All models were fine-tuned for 3 epochs using the AdamW optimizer (learning rate
 \section{Evaluation Results}
 Table \ref{tab:table1} presents the benchmark performance across all models on the 4,000-sample test set.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Complete Benchmark Evaluation Results (Pure vs. FST Mode, $N = 4,000$)}
 \label{tab:table1}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llccccc}
 \toprule
@@ -131,9 +134,9 @@ KazBERT & FST & 94.56\% & 94.63\% & 93.34\% & 95.59\% & 65 \\
 }
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{data/chart_combined_dotplot.png}
+\includegraphics[width=0.92\textwidth]{data/chart_combined_dotplot.png}
 \caption{Cleveland dumbbell dot plot: Comparison of Pure (solid circle) and FST-augmented (hollow circle) modes across overall accuracy, short-text accuracy, and false positive counts on short reviews.}
 \label{fig:dotplot}
 \end{figure}
@@ -149,10 +152,11 @@ T/W = \frac{\mbox{Total Generated Subword Tokens}}{\mbox{Total Whitespace-Separa
 \end{equation}
 Table \ref{tab:table_inflation} presents the measured token inflation before and after FST segmentation across tokenizers.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Subword Token Inflation Ratio ($T/W$) and Morphemic Limit Convergence}
 \label{tab:table_inflation}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
@@ -169,42 +173,25 @@ Table \ref{tab:table_inflation} presents the measured token inflation before and
 As shown in Table \ref{tab:table_inflation}, unsegmented Kazakh text severely fragments in multilingual tokenizers (3.476 tokens/word for mBERT). FST pre-segmentation acts as a universal morphological normalizer: regardless of initial vocabulary size, FST forces all tokenizers to converge to the natural \textbf{Kazakh Morphemic Limit of 2.202 tokens/word}. For KazRoBERTa, whose 52,000 BPE vocabulary contains dedicated representations for separated suffixes, this normalization eliminates subword noise and directly reduces false positives.
 
 \subsection{Qualitative Analysis and Token Attribution}
-Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBERTa.
+Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBERTa across four diagnostic categories.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{p{11.8cm}}
+\begin{tabular}{lp{6.2cm}p{4.8cm}}
 \toprule
-\textbf{True Negative (TN)} \\
-\smallskip
-\textbf{Original Review:} Каспи маған өте қатты ұнайды, кез келген уақытта ақша аудара аласың. \\
-\textbf{Translation:} \textit{``I like Kaspi very much, you can transfer money at any time.''} \\
-\textbf{Predictions:} Pure: Human (4.2\%) \hfill FST: Human (2.1\%) \\
-\textbf{Analysis:} Contains natural colloquial vocabulary and casual syntax typical of human consumer feedback. \\
+\textbf{Outcome} & \textbf{Review Text \& Prediction Probabilities} & \textbf{Linguistic Analysis} \\
 \midrule
-\textbf{True Positive (TP)} \\
-\smallskip
-\textbf{Original Review:} Бұл мобильді қосымша транзакцияларды жылдам және қауіпсіз орындауға мүмкіндік береді. \\
-\textbf{Translation:} \textit{``This mobile application enables executing transactions quickly and securely.''} \\
-\textbf{Predictions:} Pure: AI (98.4\%) \hfill FST: AI (99.1\%) \\
-\textbf{Analysis:} Features formal vocabulary and strict academic syntax without contractions, characteristic of LLM text. \\
+\textbf{TN} & \textit{Каспи маған өте қатты ұнайды...} (\textit{``I like Kaspi very much...''}) \newline \textbf{Pred:} Pure: Human (4.2\%) \textbar\ FST: Human (2.1\%) & Informal vocabulary and casual syntax typical of human consumer feedback. \\
 \midrule
-\textbf{False Positive (FP) $\rightarrow$ Corrected to True Negative (TN)} \\
-\smallskip
-\textbf{Original Review:} жылдам аударымдары үшін рахмет \\
-\textbf{Translation:} \textit{``Thanks for the fast transfers.''} \\
-\textbf{Predictions:} Pure: AI (84.6\%) \hfill FST: Human (8.3\%) \\
-\textbf{Analysis:} The Pure model splits the agglutinated word \textit{``аударымдары''} into rare subwords (\textit{``ауда''} + \textit{``ры''} + \textit{``мда''} + \textit{``ри''}), mimicking low-frequency anomalies that trigger an AI prediction. FST separates the suffixes (\textit{``аудар -ым -дар -ы''}), enabling correct classification. \\
+\textbf{TP} & \textit{Бұл мобильді қосымша транзакцияларды...} (\textit{``This mobile app enables...''}) \newline \textbf{Pred:} Pure: AI (98.4\%) \textbar\ FST: AI (99.1\%) & Formal terminology and strict academic syntax without colloquial contractions. \\
 \midrule
-\textbf{False Negative (FN)} \\
-\smallskip
-\textbf{Original Review:} рахмет, бәрі жақсы жұмыс істейді. \\
-\textbf{Translation:} \textit{``Thanks, everything works well.''} \\
-\textbf{Predictions:} Pure: Human (15.3\%) \hfill FST: Human (12.8\%) \\
-\textbf{Analysis:} A short, generic phrase lacking complex syntactic markers, providing minimal stylistic context for detection. \\
+\textbf{FP $\rightarrow$ TN} & \textit{жылдам аударымдары үшін рахмет} (\textit{``Thanks for the fast transfers''}) \newline \textbf{Pred:} Pure: AI (84.6\%) \textbar\ \textbf{FST: Human (8.3\%)} & Subword fragmentation (\textit{ауда-ры-мда-ри}) triggers Pure FP; FST restores stem (\textit{аудар -ым -дар -ы}). \\
+\midrule
+\textbf{FN} & \textit{рахмет, бәрі жақсы жұмыс істейді.} (\textit{``Thanks, everything works well.''}) \newline \textbf{Pred:} Pure: Human (15.3\%) \textbar\ FST: Human (12.8\%) & Short, generic phrase lacking complex syntactic markers for stylistic discrimination. \\
 \bottomrule
 \end{tabular}
 }
@@ -212,10 +199,11 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 
 To analyze the underlying token attribution, Table \ref{tab:table3} compares sequence classification weights for the short human review \textit{``жылдам аударымдары үшін рахмет''} under both Pure and FST modes.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Token Attribution Weights for ``жылдам аударымдары үшін рахмет'' (\textit{``Thanks for the fast transfers''})}
 \label{tab:table3}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lclclc}
 \toprule
@@ -243,10 +231,11 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \item \textbf{Bootstrap Resampling ($B = 1,000$ iterations):} Table \ref{tab:table4} reports empirical 95\% Confidence Intervals (CI).
 \end{enumerate}
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Statistical Significance \& 95\% Bootstrap Confidence Intervals ($B = 1,000$)}
 \label{tab:table4}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
@@ -263,10 +252,11 @@ Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \
 \subsection{Out-of-Distribution (OOD) Domain Generalization}
 To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample multi-genre test set across Consumer Reviews, Formal News, and Academic Wikipedia (Table \ref{tab:table_ood}).
 
-\begin{table}[H]
+\begin{table}[htbp]
 \caption{Out-of-Distribution (OOD) Cross-Domain Performance and False Positive Reduction}
 \label{tab:table_ood}
 \centering
+\small
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
@@ -282,6 +272,8 @@ To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample
 
 As shown in Table \ref{tab:table_ood}, KazRoBERTa + Hybrid FST maintains high accuracy across all genres (96.40\% to 99.10\%), cutting false positives by 42.86\% to 50.00\% across formal and informal registers.
 
+\FloatBarrier
+
 \section{Conclusion \& Deployment Recommendations}
 This paper presented a multi-domain benchmark study for AI-generated text detection in Kazakh. We demonstrated that while monolingual pretraining provides superior baseline accuracy, rule-based Hybrid FST morphological segmentation serves as an effective regularizer that eliminates subword token inflation and reduces short-text false positive accusations by 43.21\% for KazRoBERTa.
 
@@ -293,6 +285,8 @@ We outline the following deployment recommendations:
 
 \subsubsection*{Disclosure of Interests.}
 The authors have no competing interests to declare.
+
+\FloatBarrier
 
 \begin{thebibliography}{14}
 \bibitem{1}
