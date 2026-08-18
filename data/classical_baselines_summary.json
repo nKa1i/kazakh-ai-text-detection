@@ -1,0 +1,20 @@
+{
+  "TF-IDF + Logistic Regression": {
+    "accuracy_pct": 52.38,
+    "f1_score_pct": 61.54,
+    "precision_pct": 47.06,
+    "recall_pct": 88.89
+  },
+  "TF-IDF + Support Vector Machine (SVM)": {
+    "accuracy_pct": 38.1,
+    "f1_score_pct": 31.58,
+    "precision_pct": 30.0,
+    "recall_pct": 33.33
+  },
+  "TF-IDF + Naive Bayes (MultinomialNB)": {
+    "accuracy_pct": 52.38,
+    "f1_score_pct": 61.54,
+    "precision_pct": 47.06,
+    "recall_pct": 88.89
+  }
+}

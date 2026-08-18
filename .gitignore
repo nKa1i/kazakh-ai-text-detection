@@ -36,7 +36,9 @@ __pycache__/
 .superpowers/
 .superpowers
 CC-Session-Logs/
+docs/
 docs/superpowers/
+agent_engine/
 notebook_analysis.txt
 0.3.9
 

@@ -25,7 +25,7 @@ It contains authentic human texts (from KazSAnDRA consumer reviews, formal news,
 paired with synthetic machine-generated texts produced by Kazakh-adapted LLMs (such as Sherkala-7B).
 """
 
-_HOMEPAGE = "https://github.com/dauletanekesh/kazakh-ai-text-detection"
+_HOMEPAGE = "https://github.com/nKa1i/kazakh-ai-text-detection"
 _LICENSE = "MIT"
 _CITATION = """\
 @inproceedings{anekesh2026detecting,

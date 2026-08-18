@@ -402,4 +402,7 @@ def compile_markdown_to_latex(md_path, tex_path):
     print(f"Successfully compiled LaTeX document to: {tex_path}")
 
 if __name__ == '__main__':
-    compile_markdown_to_latex('paper_draft.md', 'paper.tex')
+    base_dir = os.path.dirname(__file__)
+    md_file = os.path.join(base_dir, 'paper_draft.md')
+    tex_file = os.path.join(base_dir, 'paper.tex')
+    compile_markdown_to_latex(md_file, tex_file)

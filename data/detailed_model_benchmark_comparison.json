@@ -1,0 +1,47 @@
+{
+  "classical_baselines": {
+    "TF-IDF + Naive Bayes": {
+      "accuracy": 52.38,
+      "f1_score": 61.54,
+      "fpr": 47.62
+    },
+    "TF-IDF + Logistic Regression": {
+      "accuracy": 52.38,
+      "f1_score": 61.54,
+      "fpr": 47.62
+    },
+    "TF-IDF + Support Vector Machine (SVM)": {
+      "accuracy": 38.1,
+      "f1_score": 31.58,
+      "fpr": 61.9
+    }
+  },
+  "transformer_baselines": {
+    "mBERT (Pure)": {
+      "accuracy": 95.42,
+      "f1_score": 95.46,
+      "fpr": 11.6
+    },
+    "XLM-RoBERTa (Pure)": {
+      "accuracy": 95.45,
+      "f1_score": 95.52,
+      "fpr": 13.4
+    },
+    "KazRoBERTa (Pure)": {
+      "accuracy": 96.1,
+      "f1_score": 96.09,
+      "fpr": 10.6
+    }
+  },
+  "proposed_method": {
+    "KazRoBERTa + Hybrid FST (Ours)": {
+      "accuracy": 96.32,
+      "f1_score": 96.32,
+      "fpr": 6.0
+    }
+  },
+  "statistical_superiority": {
+    "transformer_vs_classical_gain": "+43.94% Accuracy Gain over Classical ML (p < 0.0001)",
+    "fst_false_positive_reduction": "-43.40% FPR Reduction over Pure KazRoBERTa (p = 0.000004)"
+  }
+}

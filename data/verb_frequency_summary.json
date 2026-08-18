@@ -1,0 +1,48 @@
+{
+  "total_sentences_analyzed": 67,
+  "total_words_analyzed": 443,
+  "total_verbs_detected": 58,
+  "verb_word_percentage": 13.09,
+  "avg_verbs_per_sentence": 0.87,
+  "sentences_containing_verbs_count": 28,
+  "sentences_containing_verbs_percentage": 41.79,
+  "real_sentence_examples": [
+    {
+      "original_sentence": "30 минут күтіп тұрмын код жібермейді",
+      "fst_segmented_sentence": "30 минут күтіп тұр -мын код жіберме -йді",
+      "detected_verbs": [
+        "жібермейді"
+      ]
+    },
+    {
+      "original_sentence": "Каспи деген кайф қоее",
+      "fst_segmented_sentence": "Каспи деген кайф қоее",
+      "detected_verbs": [
+        "деген"
+      ]
+    },
+    {
+      "original_sentence": "өте зор екен каспи керек емес деп жүрсем буфетке барып қалтаңа миллион тиын сиғыза алмай жүрсем күшті болды ғой аллаға мың да бір шүкір осы каспи пайда боланына!!!😀",
+      "fst_segmented_sentence": "өте зор екен каспи керек емес деп жүрсе -м буфет -ке барып қалтаңа миллион тиын сиғыза алмай жүрсе -м күш -ті бол -ды ғой алла -ға мың да бір шүкір осы каспи пай -да боланына!!!😀",
+      "detected_verbs": [
+        "екен",
+        "болды"
+      ]
+    },
+    {
+      "original_sentence": "Ақ бола берді",
+      "fst_segmented_sentence": "Ақ бола бер -ді",
+      "detected_verbs": [
+        "берді"
+      ]
+    },
+    {
+      "original_sentence": "маған өте қатты үнады керемет 👍🏻👍🏻👍🏻",
+      "fst_segmented_sentence": "маған өте қат -ты үна -ды керемет 👍🏻👍🏻👍🏻",
+      "detected_verbs": [
+        "маған",
+        "үнады"
+      ]
+    }
+  ]
+}
