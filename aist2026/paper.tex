@@ -6,6 +6,7 @@
 \usepackage[T1,T2A]{fontenc}
 \usepackage[english]{babel}
 \usepackage{array}
+\usepackage{makecell}
 \usepackage{float}
 
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
@@ -111,11 +112,11 @@ Table \ref{tab:table1} presents the benchmark performance across all models on t
 \caption{Complete Benchmark Evaluation Results (Pure vs. FST Mode, $N = 4,000$)}
 \label{tab:table1}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
+\small
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{llccccc}
 \toprule
-Model Architecture & Mode & Overall Acc & F1-Score & Acc (Short) & Acc (Long) & FPs (Short) \\
+\makecell[l]{Model\\Architecture} & Mode & \makecell{Overall\\Acc (\%)} & \makecell{F1-Score\\(\%)} & \makecell{Acc\\(Short)} & \makecell{Acc\\(Long)} & \makecell{FPs\\(Short)} \\
 \midrule
 mBERT & Pure & 95.42\% & 95.46\% & 94.43\% & 96.26\% & 58 \\
 mBERT & FST & 93.62\% & 93.71\% & 92.83\% & 94.29\% & 70 \\
@@ -151,11 +152,11 @@ Table \ref{tab:table_inflation} presents the measured token inflation before and
 \caption{Subword Token Inflation Ratio ($T/W$) and Morphemic Limit Convergence}
 \label{tab:table_inflation}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
+\small
+\setlength{\tabcolsep}{6pt}
 \begin{tabular}{lcccc}
 \toprule
-Model Architecture & Raw Text ($T/W$) & Hybrid FST ($T/W$) & Inflation Reduction & Significance ($p$-value) \\
+\makecell[l]{Model\\Architecture} & \makecell{Raw Text\\($T/W$)} & \makecell{Hybrid FST\\($T/W$)} & \makecell{Inflation\\Reduction} & \makecell{Significance\\($p$-value)} \\
 \midrule
 \textbf{mBERT (WordPiece)} & 3.476 & \textbf{2.202} & \textbf{-36.65\%} & $p < 0.000001$ \\
 \textbf{XLM-RoBERTa (SentencePiece)} & 2.461 & \textbf{2.202} & \textbf{-10.51\%} & $p < 0.000001$ \\
@@ -173,7 +174,7 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
 \centering
-\footnotesize
+\small
 \begin{tabular}{p{11.8cm}}
 \toprule
 \textbf{True Negative (TN)} \\
@@ -213,8 +214,8 @@ To analyze the underlying token attribution, Table \ref{tab:table3} compares seq
 \caption{Token Attribution Weights for ``жылдам аударымдары үшін рахмет'' (\textit{``Thanks for the fast transfers''})}
 \label{tab:table3}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{5pt}
+\small
+\setlength{\tabcolsep}{6pt}
 \begin{tabular}{lclclc}
 \toprule
 \multicolumn{3}{c}{Pure Model (Pred: AI, 84.6\%)} & \multicolumn{3}{c}{FST Model (Pred: Human, 91.7\%)} \\
@@ -244,15 +245,15 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \caption{Statistical Significance \& 95\% Bootstrap Confidence Intervals ($B = 1,000$)}
 \label{tab:table4}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
+\small
+\setlength{\tabcolsep}{6pt}
 \begin{tabular}{lcccc}
 \toprule
-Metric & KazRoBERTa (Pure) & KazRoBERTa (Hybrid FST) & Relative Reduction & Significance \\
+Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \makecell{Relative\\Reduction} & Significance \\
 \midrule
 \textbf{F1-Score (\%)} & 96.09 [95.45, 96.69] & 96.32 [95.69, 96.88] & +0.23\% & $p = 0.4810$ \\
 \textbf{Accuracy (\%)} & 96.10 [95.45, 96.70] & 96.32 [95.70, 96.90] & +0.22\% & $p = 0.4810$ \\
-\textbf{Short False Positives} & 52.88 [39.00, 68.00] & 30.00 [20.00, 41.00] & \textbf{43.21\% [28.57\%, 57.14\%]} & \textbf{$\chi^2 = 21.04, p < 10^{-5}$} \\
+\textbf{\makecell[l]{Short False\\Positives}} & 52.88 [39.00, 68.00] & 30.00 [20.00, 41.00] & \textbf{43.21\% [28.57\%, 57.14\%]} & \textbf{\makecell{$\chi^2 = 21.04$\\$p < 10^{-5}$}} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -264,11 +265,11 @@ To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample
 \caption{Out-of-Distribution (OOD) Cross-Domain Performance and False Positive Reduction}
 \label{tab:table_ood}
 \centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
+\small
+\setlength{\tabcolsep}{6pt}
 \begin{tabular}{lcccc}
 \toprule
-Domain Genre / Register & Pure FPR (\%) & Hybrid FST FPR (\%) & Relative FP Reduction & Overall Acc (FST) \\
+\makecell[l]{Domain Genre /\\Register} & \makecell{Pure\\FPR (\%)} & \makecell{Hybrid FST\\FPR (\%)} & \makecell{Relative FP\\Reduction} & \makecell{Overall Acc\\(FST)} \\
 \midrule
 \textbf{Consumer Reviews (Informal)} & 12.80\% & \textbf{7.20\%} & \textbf{-43.75\%} & \textbf{96.40\%} \\
 \textbf{Formal News (Informburo)} & 4.20\% & \textbf{2.40\%} & \textbf{-42.86\%} & \textbf{98.80\%} \\
