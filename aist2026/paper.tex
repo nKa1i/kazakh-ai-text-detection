@@ -109,7 +109,7 @@ All models were fine-tuned for 3 epochs using the AdamW optimizer (learning rate
 \section{Evaluation Results}
 Table \ref{tab:table1} presents the benchmark performance across all models on the 4,000-sample test set.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Complete Benchmark Evaluation Results (Pure vs. FST Mode, $N = 4,000$)}
 \label{tab:table1}
 \centering
@@ -149,7 +149,7 @@ T/W = \frac{\mbox{Total Generated Subword Tokens}}{\mbox{Total Whitespace-Separa
 \end{equation}
 Table \ref{tab:table_inflation} presents the measured token inflation before and after FST segmentation across tokenizers.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Subword Token Inflation Ratio ($T/W$) and Morphemic Limit Convergence}
 \label{tab:table_inflation}
 \centering
@@ -171,7 +171,7 @@ As shown in Table \ref{tab:table_inflation}, unsegmented Kazakh text severely fr
 \subsection{Qualitative Analysis and Token Attribution}
 Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBERTa.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Qualitative Analysis of KazRoBERTa Predictions (Pure vs. FST)}
 \label{tab:table2}
 \centering
@@ -212,7 +212,7 @@ Table \ref{tab:table2} summarizes representative prediction outcomes for KazRoBE
 
 To analyze the underlying token attribution, Table \ref{tab:table3} compares sequence classification weights for the short human review \textit{``жылдам аударымдары үшін рахмет''} under both Pure and FST modes.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Token Attribution Weights for ``жылдам аударымдары үшін рахмет'' (\textit{``Thanks for the fast transfers''})}
 \label{tab:table3}
 \centering
@@ -243,7 +243,7 @@ To evaluate whether the false positive reduction achieved by KazRoBERTa + Hybrid
 \item \textbf{Bootstrap Resampling ($B = 1,000$ iterations):} Table \ref{tab:table4} reports empirical 95\% Confidence Intervals (CI).
 \end{enumerate}
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Statistical Significance \& 95\% Bootstrap Confidence Intervals ($B = 1,000$)}
 \label{tab:table4}
 \centering
@@ -263,7 +263,7 @@ Metric & \makecell{KazRoBERTa\\(Pure)} & \makecell{KazRoBERTa\\(Hybrid FST)} & \
 \subsection{Out-of-Distribution (OOD) Domain Generalization}
 To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample multi-genre test set across Consumer Reviews, Formal News, and Academic Wikipedia (Table \ref{tab:table_ood}).
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Out-of-Distribution (OOD) Cross-Domain Performance and False Positive Reduction}
 \label{tab:table_ood}
 \centering
@@ -282,8 +282,6 @@ To test cross-domain generalization, we evaluated KazRoBERTa on the 1,317-sample
 
 As shown in Table \ref{tab:table_ood}, KazRoBERTa + Hybrid FST maintains high accuracy across all genres (96.40\% to 99.10\%), cutting false positives by 42.86\% to 50.00\% across formal and informal registers.
 
-\FloatBarrier
-
 \section{Conclusion \& Deployment Recommendations}
 This paper presented a multi-domain benchmark study for AI-generated text detection in Kazakh. We demonstrated that while monolingual pretraining provides superior baseline accuracy, rule-based Hybrid FST morphological segmentation serves as an effective regularizer that eliminates subword token inflation and reduces short-text false positive accusations by 43.21\% for KazRoBERTa.
 
@@ -295,8 +293,6 @@ We outline the following deployment recommendations:
 
 \subsubsection*{Disclosure of Interests.}
 The authors have no competing interests to declare.
-
-\FloatBarrier
 
 \begin{thebibliography}{14}
 \bibitem{1}
