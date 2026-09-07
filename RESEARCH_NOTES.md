@@ -29,9 +29,31 @@ This document tracks key insights, methodologies, and actionable adaptations fro
 
 ---
 
-## 2. Paper 2: MAGE (ACL 2024) — *[Upcoming]*
+## 2. Paper 2: MAGE (ACL 2024)
 * **Title:** *MAGE: Machine-generated Text Detection in the Wild*
-* **Focus:** Experimental split design for Seen vs. Unseen LLMs, Out-of-Domain (OOD) transfer, and evaluation protocols without data contamination.
+* **Authors:** Yafang Li, Qinjian Li, Leyang Cui, Lingpeng Kong et al.
+* **Official Code/Data:** [github.com/yafuly/MAGE](https://github.com/yafuly/MAGE)
+
+### Core Takeaway
+* Avoid the common scientific pitfall of random train/test splitting (which leaks generator and domain signatures into the test set).
+* Formulate robust evaluation using a clean 2x2 matrix across **Model (Seen vs. Unseen)** and **Domain (Seen vs. Unseen)**.
+
+### MAGE Evaluation Protocol Matrix
+| Setting | Model (Generator) | Domain (Genre) | What It Evaluates |
+| :--- | :---: | :---: | :--- |
+| **1. In-Distribution (ID)** | Seen | Seen | Baseline memorization capability |
+| **2. OOD-Model** | Unseen | Seen | Zero-shot transfer to unseen LLMs |
+| **3. OOD-Domain** | Seen | Unseen | Cross-genre generalization (e.g., Reviews $\rightarrow$ News) |
+| **4. OOD-Wild (Hardest)** | Unseen | Unseen | Real-world wild deployment |
+
+### Actionable Adaptation for Kazakh
+* **Training Set:** KazSAnDRA Reviews (Human) + Sherkala-7B Reviews (AI).
+* **Test Splits:**
+  1. *ID:* Sherkala-7B Reviews
+  2. *OOD-Model:* Qwen-2.5-7B Reviews & LLaMA-3.1-8B Reviews
+  3. *OOD-Domain:* Sherkala-7B News (*Informburo*) & Wikipedia
+  4. *OOD-Wild:* Qwen-2.5-7B News & Wikipedia
+* **Significance:** Directly proves that **Morphology-Aware KazRoBERTa** resists domain/model shift better than vanilla KazRoBERTa under strict, leak-free evaluation.
 
 ---
 
