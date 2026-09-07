@@ -57,9 +57,25 @@ This document tracks key insights, methodologies, and actionable adaptations fro
 
 ---
 
-## 3. Paper 3: Binoculars (ICML 2024) — *[Upcoming]*
+## 3. Paper 3: Binoculars (ICML 2024)
 * **Title:** *Spotting LLMs With Binoculars: Zero-Shot Detection of Machine-Generated Text*
-* **Focus:** Training-free zero-shot cross-perplexity baseline and calibration for low-resource languages.
+* **Authors:** Abhimanyu Hans, Avi Schwarzschild, Valeriia Cherepanova, Tom Goldstein et al. (UMD)
+* **Official Code:** [github.com/ahans30/Binoculars](https://github.com/ahans30/Binoculars)
+
+### Core Takeaway
+* Training-free (zero-shot) AI detection that avoids classifier overfitting.
+* Overcomes the core flaw of raw Perplexity (which falsely flags formal human text) by computing the ratio between **Perplexity** and **Cross-Perplexity** using two related LLMs ($M_1$ Observer, $M_2$ Performer):
+  $$\text{Binoculars Score}(x) = \frac{\log \text{PPL}_{M_1}(x)}{\log \text{PPL}_{M_1, M_2}^{\text{cross}}(x)}$$
+* Achieves extremely low false positive rates ($\text{FPR} < 0.01\%$) on English benchmarks without needing any labeled training data.
+
+### Actionable Adaptation for Kazakh
+1. **Strong Zero-Shot Baseline:**
+   * Instantiate Binoculars for Kazakh using a base & instruct pair: e.g., `Qwen-2.5-7B` (Observer) and `Qwen-2.5-7B-Instruct` (Performer).
+   * Benchmark Binoculars against our supervised `KazRoBERTa (Pure vs. FST)` models.
+2. **Scientific Contribution (Low-Resource Bias Analysis):**
+   * Demonstrate how subword token inflation ($T/W$) in agglutinative Kazakh destabilizes perplexity ratios, producing higher false-positive rates on short texts compared to English.
+3. **Optional Score Calibration:**
+   * Explore threshold calibration or ensemble fusion: combining Binoculars probability features with KazRoBERTa morphological representations.
 
 ---
 
