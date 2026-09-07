@@ -79,14 +79,46 @@ This document tracks key insights, methodologies, and actionable adaptations fro
 
 ---
 
-## 4. Paper 4: MultiSocial / GenAIDetect (2025) — *[Upcoming]*
+## 4. Paper 4: MultiSocial (ACL 2025) & GenAIDetect (2025)
 * **Title:** *MultiSocial: Multilingual Benchmark of Machine-Generated Text Detection of Social-Media Texts*
-* **Focus:** Social media short-text detection, register shift, and low-resource multilingual evaluation.
+* **Authors:** Denis Macko, Jakub Kopál, Róbert Móro, Ivan Srba et al. (KInIT)
+* **Venue:** ACL 2025
+* **Related Task:** *GenAI Content Detection Task 1: Multilingual Machine-Generated Text Detection* (COLING 2025)
+
+### Core Takeaway
+* Highlights the critical gap between academic benchmarks (tested on long, clean, formal text) and real-world threats on **social media / consumer platforms** (short, noisy, informal, code-switched text).
+* Identified that **short text length ($\le 50$ words)** is the primary factor causing detector accuracy to plummet and false positive rates to explode.
+
+### Actionable Adaptation for Kazakh
+1. **Domain & Register Alignment:**
+   * Directly justifies the use of our authentic **KazSAnDRA** consumer reviews (Appstore, Bookstore, Mapping, Market).
+2. **Solving the Short-Text False Positive Challenge:**
+   * In our baseline, short reviews ($\le 60$ chars) produced the highest false positive count (53 cases). Our Hybrid FST reduced this by 43.21% ($p < 10^{-5}$).
+   * We position our work as the first dedicated study tackling the MultiSocial challenge for **Central Asian agglutinative languages**.
+3. **Handling Code-Switching:**
+   * Replicate the real-world Kazakh social media setting by explicitly segmenting Russian/foreign commercial loanwords with Kazakh inflections (*доставкасы $\rightarrow$ доставка -сы*).
 
 ---
 
-## 5. Implementation Roadmap (Quick Reference)
-* [ ] **Phase 1: Literature Synthesis** — Review and distill the 4 core papers (In progress).
+## 5. Architectural Synthesis: How the 4 Papers Connect
+
+```
+[ MultiSocial (ACL 2025) ] ──▶ Real-world domain: Short reviews, informal register, false positive reduction
+              ▲
+              │
+[ RAID (ACL 2024) ] ────────▶ Robustness: Multi-LLM (Qwen, LLaMA) & Kazakh perturbations (typos, paraphrasing)
+              ▲
+              │
+[ MAGE (ACL 2024) ] ────────▶ Experimental integrity: Strict ID, OOD-Model, OOD-Domain, OOD-Wild splits
+              ▲
+              │
+[ Binoculars (ICML 2024) ] ──▶ Zero-shot comparison: Cross-perplexity baseline & low-resource bias analysis
+```
+
+---
+
+## 6. Implementation Roadmap (Quick Reference)
+* [x] **Phase 1: Literature Synthesis** — Review and distill the 4 core papers (Completed).
 * [ ] **Phase 2: Benchmark Expansion** — Generate multi-LLM Kazakh synthetic data (Qwen-2.5, LLaMA-3.1) and apply Kazakh perturbation scripts.
 * [ ] **Phase 3: Model Architecture** — Build explicit Morphology Encoder + KazRoBERTa Fusion.
 * [ ] **Phase 4: Robust Training** — Implement supervised contrastive learning across original & perturbed pairs.
