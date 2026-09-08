@@ -1,0 +1,227 @@
+{
+  "experiment": "Zero-Shot Cross-Generator Stress-Test (KazRoBERTa Pure vs. FST)",
+  "dataset": "KazSAnDRA (1,000 Human) vs. Qwen-2.5-7B-Instruct (1,000 AI)",
+  "total_samples": 2000,
+  "pure_model": {
+    "accuracy": 36.75,
+    "f1": 26.92,
+    "precision": 31.87,
+    "recall": 23.3,
+    "tn": 502,
+    "fp": 498,
+    "fn": 767,
+    "tp": 233,
+    "fpr": 49.8,
+    "fnr": 76.7
+  },
+  "pure_model_testtime_fst": {
+    "accuracy": 52.7,
+    "f1": 12.41,
+    "precision": 83.75,
+    "recall": 6.7,
+    "tn": 987,
+    "fp": 13,
+    "fn": 933,
+    "tp": 67,
+    "fpr": 1.3,
+    "fnr": 93.3
+  },
+  "fst_trained_model": {
+    "accuracy": 50.45,
+    "f1": 1.78,
+    "precision": 100.0,
+    "recall": 0.9,
+    "tn": 1000,
+    "fp": 0,
+    "fn": 991,
+    "tp": 9,
+    "fpr": 0.0,
+    "fnr": 99.1
+  },
+  "length_stratification": {
+    "short": {
+      "total_samples": 600,
+      "pure": {
+        "accuracy": 57.0,
+        "f1": 35.18,
+        "precision": 71.43,
+        "recall": 23.33,
+        "tn": 272,
+        "fp": 28,
+        "fn": 230,
+        "tp": 70,
+        "fpr": 9.33,
+        "fnr": 76.67
+      },
+      "fst": {
+        "accuracy": 51.0,
+        "f1": 3.92,
+        "precision": 100.0,
+        "recall": 2.0,
+        "tn": 300,
+        "fp": 0,
+        "fn": 294,
+        "tp": 6,
+        "fpr": 0.0,
+        "fnr": 98.0
+      },
+      "pure_testtime_fst": {
+        "accuracy": 54.33,
+        "f1": 22.16,
+        "precision": 75.0,
+        "recall": 13.0,
+        "tn": 287,
+        "fp": 13,
+        "fn": 261,
+        "tp": 39,
+        "fpr": 4.33,
+        "fnr": 87.0
+      }
+    },
+    "medium": {
+      "total_samples": 900,
+      "pure": {
+        "accuracy": 27.0,
+        "f1": 28.35,
+        "precision": 27.84,
+        "recall": 28.89,
+        "tn": 113,
+        "fp": 337,
+        "fn": 320,
+        "tp": 130,
+        "fpr": 74.89,
+        "fnr": 71.11
+      },
+      "fst": {
+        "accuracy": 50.33,
+        "f1": 1.32,
+        "precision": 100.0,
+        "recall": 0.67,
+        "tn": 450,
+        "fp": 0,
+        "fn": 447,
+        "tp": 3,
+        "fpr": 0.0,
+        "fnr": 99.33
+      },
+      "pure_testtime_fst": {
+        "accuracy": 53.11,
+        "f1": 11.72,
+        "precision": 100.0,
+        "recall": 6.22,
+        "tn": 450,
+        "fp": 0,
+        "fn": 422,
+        "tp": 28,
+        "fpr": 0.0,
+        "fnr": 93.78
+      }
+    },
+    "long": {
+      "total_samples": 500,
+      "pure": {
+        "accuracy": 30.0,
+        "f1": 15.87,
+        "precision": 19.88,
+        "recall": 13.2,
+        "tn": 117,
+        "fp": 133,
+        "fn": 217,
+        "tp": 33,
+        "fpr": 53.2,
+        "fnr": 86.8
+      },
+      "fst": {
+        "accuracy": 50.0,
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "tn": 250,
+        "fp": 0,
+        "fn": 250,
+        "tp": 0,
+        "fpr": 0.0,
+        "fnr": 100.0
+      },
+      "pure_testtime_fst": {
+        "accuracy": 50.0,
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "tn": 250,
+        "fp": 0,
+        "fn": 250,
+        "tp": 0,
+        "fpr": 0.0,
+        "fnr": 100.0
+      }
+    }
+  },
+  "mcnemar_short_text_fp": {
+    "short_human_count": 300,
+    "pure_short_fp": 28,
+    "fst_short_fp": 0,
+    "pure_fp_rate": 9.33,
+    "fst_fp_rate": 0.0,
+    "fp_reduction_cases": 28,
+    "relative_fp_reduction_percent": 100.0,
+    "chi2_statistic": 26.0357,
+    "p_value": 3.351596306607733e-07,
+    "is_statistically_significant": true
+  },
+  "bootstrap_ci_95": {
+    "pure": {
+      "accuracy": {
+        "mean": 36.75,
+        "ci_lower": 34.8,
+        "ci_upper": 38.85
+      },
+      "f1": {
+        "mean": 26.9,
+        "ci_lower": 24.31,
+        "ci_upper": 29.6
+      },
+      "short_fp_count": {
+        "mean": 28.37,
+        "ci_lower": 19.0,
+        "ci_upper": 40.0
+      }
+    },
+    "fst": {
+      "accuracy": {
+        "mean": 50.44,
+        "ci_lower": 48.35,
+        "ci_upper": 52.6
+      },
+      "f1": {
+        "mean": 1.79,
+        "ci_lower": 0.79,
+        "ci_upper": 2.96
+      },
+      "short_fp_count": {
+        "mean": 0.0,
+        "ci_lower": 0.0,
+        "ci_upper": 0.0
+      }
+    },
+    "relative_fp_reduction_percent": {
+      "mean": 100.0,
+      "ci_lower": 100.0,
+      "ci_upper": 100.0
+    }
+  },
+  "paper1_in_distribution_reference": {
+    "pure_accuracy": 96.1,
+    "pure_f1": 96.09,
+    "pure_short_fpr": 10.6,
+    "fst_accuracy": 96.32,
+    "fst_f1": 96.32,
+    "fst_short_fpr": 6.0
+  },
+  "cross_generator_transfer_delta": {
+    "pure_transfer_drop_accuracy": -59.35,
+    "pure_transfer_drop_f1": -69.17,
+    "fst_transfer_drop_accuracy": -45.87,
+    "fst_transfer_drop_f1": -94.54
+  }
+}
