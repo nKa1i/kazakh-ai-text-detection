@@ -6,6 +6,7 @@ import json
 def prepare_and_push():
     print("Preparing Kaggle Kernel Package...")
     os.makedirs("kaggle_runner", exist_ok=True)
+    os.environ["PYTHONUTF8"] = "1"
     
     # 1. Update kernel-metadata.json for standalone script execution
     metadata = {
@@ -38,6 +39,8 @@ def prepare_and_push():
             ["kaggle", "kernels", "push", "-p", "kaggle_runner"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=True
         )
         print("Output:", res.stdout)
