@@ -161,6 +161,9 @@ def main():
             print(f"Falling back to torch.float16 across dual T4s: {e}")
     else:
         device_kwargs["device_map"] = "cpu"
+
+    print("Loading model weights...")
+    model = AutoModelForCausalLM.from_pretrained(model_id, **device_kwargs)
     gen_pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
     print(f"Model loaded successfully! Starting generation for {len(human_seeds)} paired samples...")
