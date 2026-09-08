@@ -470,7 +470,7 @@ git commit -m "feat: implement MorphoContrastiveDetector dual-stream architectur
 - Consumes: Ground-truth `y_true`, predictions `y_pred`, probabilities `y_prob`, lengths `lengths`.
 - Produces: Complete dictionary containing ROC-AUC, EER, Youden's J optimal threshold, Accuracy, F1, Length-Stratified FPR/FNR, and McNemar test.
 
-- [ ] **Step 1: Write the failing unit test for metrics_evaluator**
+- [x] **Step 1: Write the failing unit test for metrics_evaluator**
 
 Create `tests/test_metrics_evaluator.py`:
 ```python
@@ -496,12 +496,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_metrics_evaluator.py`  
 Expected: `ModuleNotFoundError: No module named 'scripts.metrics_evaluator'`
 
-- [ ] **Step 3: Implement metrics_evaluator**
+- [x] **Step 3: Implement metrics_evaluator**
 
 Create `scripts/metrics_evaluator.py`:
 ```python
@@ -579,12 +579,12 @@ def compute_comprehensive_metrics(y_true: np.ndarray, y_prob: np.ndarray, length
     return summary
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_metrics_evaluator.py`  
 Expected: `Ran 1 test in ... OK`
 
-- [ ] **Step 5: Commit Task 4**
+- [x] **Step 5: Commit Task 4**
 
 ```bash
 git add scripts/metrics_evaluator.py tests/test_metrics_evaluator.py
