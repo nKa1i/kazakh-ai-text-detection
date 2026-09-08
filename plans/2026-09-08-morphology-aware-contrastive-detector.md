@@ -603,7 +603,7 @@ git commit -m "feat: implement ROC-AUC and threshold calibration metrics evaluat
 - Consumes: `df_train` (KazSAnDRA + Sherkala), `df_test` (KazSAnDRA + Qwen-2.5-7B).
 - Produces: Trained model weights, predictions CSV, and comparative benchmark report.
 
-- [ ] **Step 1: Write integration test for dataset formatting and dual-view batching**
+- [x] **Step 1: Write integration test for dataset formatting and dual-view batching**
 
 Create `tests/test_training_pipeline.py`:
 ```python
@@ -622,12 +622,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it passes**
+- [x] **Step 2: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_training_pipeline.py`  
 Expected: `Ran 1 test in ... OK`
 
-- [ ] **Step 3: Implement training script**
+- [x] **Step 3: Implement training script**
 
 Create `scripts/train_morpho_contrastive.py`:
 - Integrates data loading (`nKa1i/kazakh-ai-detect` train split).
@@ -635,7 +635,7 @@ Create `scripts/train_morpho_contrastive.py`:
 - Implements `evaluate_model` with `compute_comprehensive_metrics`.
 - Saves all artifacts and metrics to `data/`.
 
-- [ ] **Step 4: Commit Task 5**
+- [x] **Step 4: Commit Task 5**
 
 ```bash
 git add scripts/train_morpho_contrastive.py tests/test_training_pipeline.py
