@@ -106,6 +106,7 @@ class MorphemeEncoder(_BaseModule):
 
         if HAS_TORCH:
             self.embedding = nn.Embedding(self.vocab_size, self.embed_dim)
+            self.pos_embedding = nn.Embedding(256, self.embed_dim)
             encoder_layer = nn.TransformerEncoderLayer(
                 d_model=self.embed_dim,
                 nhead=self.nhead,
@@ -116,6 +117,7 @@ class MorphemeEncoder(_BaseModule):
             self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=self.num_layers)
         else:
             self.embedding = None
+            self.pos_embedding = None
             self.transformer = None
 
     def forward(self, morpheme_ids, attention_mask=None):
@@ -133,14 +135,14 @@ class MorphemeEncoder(_BaseModule):
             batch_size = len(morpheme_ids) if hasattr(morpheme_ids, "__len__") else 1
             return _DummyTensor((batch_size, self.embed_dim))
 
-        emb = self.embedding(morpheme_ids)
+        seq_len = morpheme_ids.shape[1]
+        positions = torch.arange(seq_len, device=morpheme_ids.device).unsqueeze(0).expand(morpheme_ids.shape[0], -1)
+        emb = self.embedding(morpheme_ids) + self.pos_embedding(positions)
         if attention_mask is not None:
             src_key_padding_mask = (attention_mask == 0)
             out = self.transformer(emb, src_key_padding_mask=src_key_padding_mask)
             mask_expanded = attention_mask.unsqueeze(-1).float()
-            sum_out = torch.sum(out * mask_expanded, dim=1)
-            lengths = torch.clamp(mask_expanded.sum(dim=1), min=1e-8)
-            h_morph = sum_out / lengths
+            h_morph = torch.sum(out * mask_expanded, dim=1) / torch.clamp(mask_expanded.sum(dim=1), min=1e-8)
         else:
             out = self.transformer(emb)
             h_morph = torch.mean(out, dim=1)
@@ -289,7 +291,12 @@ class MorphoContrastiveDetector(_BaseModule):
             h_sem = roberta_out[:, 0, :]
 
         # Stream 2: Explicit Morphology Representation
-        h_morph = self.morph_encoder(morpheme_ids)
+        if hasattr(morpheme_ids, "ne"):
+            pad_id = getattr(self.morph_encoder, "pad_token_id", 0)
+            morph_mask = morpheme_ids.ne(pad_id).long()
+        else:
+            morph_mask = None
+        h_morph = self.morph_encoder(morpheme_ids, attention_mask=morph_mask)
 
         # Dynamic Gated Fusion
         combined = torch.cat([h_sem, h_morph], dim=-1)
