@@ -1,0 +1,30 @@
+{
+  "human": {
+    "sample_count": 1000,
+    "overall_ttr": 0.0448,
+    "distinct_1": 0.0448,
+    "distinct_2": 0.0541,
+    "avg_tw": 4.798,
+    "stratified_tw": {
+      "short": 4.035,
+      "medium": 5.112,
+      "long": 5.149
+    },
+    "loanword_frequency": 75,
+    "loanwords_per_100_words": 0.91
+  },
+  "qwen_2.5_7b": {
+    "sample_count": 1000,
+    "overall_ttr": 0.2675,
+    "distinct_1": 0.2675,
+    "distinct_2": 0.7364,
+    "avg_tw": 4.555,
+    "stratified_tw": {
+      "short": 4.64,
+      "medium": 4.607,
+      "long": 4.36
+    },
+    "loanword_frequency": 1337,
+    "loanwords_per_100_words": 6.38
+  }
+}
