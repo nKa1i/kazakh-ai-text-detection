@@ -163,7 +163,7 @@ git commit -m "feat: implement closed-vocabulary MorphemeTokenizer for FST affix
 - Consumes: Latent feature vectors $\mathbf{z} \in \mathbb{R}^{B \times d}$, ground-truth labels $\mathbf{y} \in \{0, 1\}^B$.
 - Produces: `SupConLoss(temperature=0.07)` class computing the normalized contrastive loss with positive mask pooling.
 
-- [ ] **Step 1: Write the failing unit test for SupConLoss**
+- [x] **Step 1: Write the failing unit test for SupConLoss**
 
 Create `tests/test_supcon_loss.py`:
 ```python
@@ -207,12 +207,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_supcon_loss.py`  
 Expected: `ModuleNotFoundError: No module named 'models.losses'`
 
-- [ ] **Step 3: Implement SupConLoss**
+- [x] **Step 3: Implement SupConLoss**
 
 Create `models/losses.py`:
 ```python
@@ -267,12 +267,12 @@ class SupConLoss(nn.Module):
         return loss
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_supcon_loss.py`  
 Expected: `Ran 2 tests in ... OK`
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add models/losses.py tests/test_supcon_loss.py
