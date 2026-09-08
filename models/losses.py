@@ -164,3 +164,44 @@ class SupConLoss(_BaseLoss):
     if not HAS_TORCH:
         def __call__(self, *args, **kwargs):
             return self.forward(*args, **kwargs)
+
+
+class InvarianceLoss(_BaseLoss):
+    """
+    Adversarial Invariance Representation Loss:
+        L_inv = (1 / B) sum_{i=1}^B (1 - cos(z_i, z_i^{adv}))
+
+    Penalizes latent shifts in the projection representation z induced by
+    adversarial perturbations (orthographic, morphological, colloquial, code-switching).
+    """
+
+    def __init__(self, reduction: str = "mean"):
+        if HAS_TORCH:
+            super().__init__()
+        self.reduction = reduction
+
+    def forward(self, z_clean, z_adv):
+        """
+        Args:
+            z_clean (torch.Tensor): Latent projection representations of clean samples [B, D].
+            z_adv (torch.Tensor): Latent projection representations of perturbed samples [B, D].
+
+        Returns:
+            torch.Tensor: Scalar invariance loss.
+        """
+        if not HAS_TORCH or z_clean is None or z_adv is None:
+            return _DummyLoss(0.0)
+
+        cos_sim = F.cosine_similarity(z_clean, z_adv, dim=-1)
+        loss = 1.0 - cos_sim
+
+        if self.reduction == "mean":
+            return loss.mean()
+        elif self.reduction == "sum":
+            return loss.sum()
+        return loss
+
+    if not HAS_TORCH:
+        def __call__(self, *args, **kwargs):
+            return self.forward(*args, **kwargs)
+
