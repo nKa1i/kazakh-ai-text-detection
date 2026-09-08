@@ -51,7 +51,7 @@ c:\Users\Roza\Desktop\projects\kazakh-ai-text-detection/
 - Consumes: `dataset_package/data/train.csv` (human reviews where `label == '0'`)
 - Produces: `data/seed_human_reviews_1k.json` with list of dicts: `[{"id": int, "text": str, "char_length": int, "length_bracket": "short"|"medium"|"long"}]`
 
-- [ ] **Step 1: Write failing test for stratified seed extraction**
+- [x] **Step 1: Write the failing test for stratified seed extraction**
 
 ```python
 # tests/test_seed_extraction.py
@@ -77,12 +77,12 @@ def test_extract_stratified_human_reviews(tmp_path):
     assert long_count > 0
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_seed_extraction.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'scripts.extract_seed_human_data'`
 
-- [ ] **Step 3: Implement `scripts/extract_seed_human_data.py`**
+- [x] **Step 3: Implement `scripts/extract_seed_human_data.py`**
 
 ```python
 # scripts/extract_seed_human_data.py
@@ -148,12 +148,12 @@ if __name__ == "__main__":
     print(f"Extracted {len(data)} stratified human reviews into data/seed_human_reviews_1k.json")
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/test_seed_extraction.py -v`
 Expected: PASS
 
-- [ ] **Step 5: Execute extraction to generate `data/seed_human_reviews_1k.json` and commit**
+- [x] **Step 5: Execute extraction to generate `data/seed_human_reviews_1k.json` and commit**
 
 Run: `python scripts/extract_seed_human_data.py`
 Expected: 1,000 samples generated.
@@ -172,7 +172,7 @@ Commit: `git add scripts/extract_seed_human_data.py tests/test_seed_extraction.p
 - Consumes: `data/seed_human_reviews_1k.json`
 - Produces: Formatted prompts matching seed review characteristics, and generation output `data/kazakh_aigc_diagnostic_4k.json`
 
-- [ ] **Step 1: Write failing test for prompt builder**
+- [x] **Step 1: Write failing test for prompt builder**
 
 ```python
 # tests/test_prompt_builder.py
@@ -191,12 +191,12 @@ def test_build_generation_prompt():
     assert isinstance(prompt, str)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_prompt_builder.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'scripts.prompt_builder'`
 
-- [ ] **Step 3: Implement `scripts/prompt_builder.py`**
+- [x] **Step 3: Implement `scripts/prompt_builder.py`**
 
 ```python
 # scripts/prompt_builder.py
@@ -221,11 +221,11 @@ def build_generation_prompt(seed_entry: dict) -> str:
     return system_instruction
 ```
 
-- [ ] **Step 4: Implement `scripts/generate_multi_llm.py`**
+- [x] **Step 4: Implement `scripts/generate_multi_llm.py`**
 
 Provide GPU batch generation logic compatible with Kaggle (using Hugging Face `pipeline` or `AutoModelForCausalLM` with 4-bit quantization).
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run: `pytest tests/test_prompt_builder.py -v`
 Expected: PASS
@@ -244,7 +244,7 @@ Commit: `git add scripts/prompt_builder.py scripts/generate_multi_llm.py tests/t
 - Consumes: Sample text strings, `data/code_switched_loanword_lexicon.json`
 - Produces: Dictionary containing $T/W$ ratios, TTR, Distinct-1/2, loanword frequencies, length-stratified statistics.
 
-- [ ] **Step 1: Write failing test for diagnostic calculations**
+- [x] **Step 1: Write failing test for diagnostic calculations**
 
 ```python
 # tests/test_linguistic_diagnostics.py
@@ -272,21 +272,21 @@ def test_loanword_detection():
     assert len(loanwords) >= 1
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/test_linguistic_diagnostics.py -v`
 Expected: FAIL
 
-- [ ] **Step 3: Implement `scripts/compute_linguistic_diagnostics.py`**
+- [x] **Step 3: Implement `scripts/compute_linguistic_diagnostics.py`**
 
 Implement `calculate_token_inflation`, `calculate_lexical_diversity`, `detect_code_switched_loanwords`, and overall dataset profiling aggregating by `generator` and `length_bracket`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/test_linguistic_diagnostics.py -v`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add scripts/compute_linguistic_diagnostics.py tests/test_linguistic_diagnostics.py && git commit -m "feat: implement 6-factor linguistic diagnostic calculation engine"`
 
@@ -302,9 +302,9 @@ Run: `git add scripts/compute_linguistic_diagnostics.py tests/test_linguistic_di
 - Consumes: Multi-LLM test dataset, fine-tuned KazRoBERTa model checkpoint (or mock if running offline)
 - Produces: Accuracy, F1, FPR, FNR across `human`, `sherkala_7b`, `qwen_2.5_7b`, `llama_3.1_8b` broken down by length bracket.
 
-- [ ] **Step 1: Implement `scripts/evaluate_zero_shot_transfer.py` with length stratification and confusion metrics**
-- [ ] **Step 2: Run verification on mock samples**
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Implement `scripts/evaluate_zero_shot_transfer.py` with length stratification and confusion metrics**
+- [x] **Step 2: Run verification on mock samples**
+- [x] **Step 3: Commit**
 
 Run: `git add scripts/evaluate_zero_shot_transfer.py && git commit -m "feat: implement zero-shot transfer and length-stratified evaluation engine"`
 
@@ -321,10 +321,10 @@ Run: `git add scripts/evaluate_zero_shot_transfer.py && git commit -m "feat: imp
 - Consumes: All diagnostic scripts and datasets
 - Produces: Standalone, GPU-executable Kaggle kernel ready for `kaggle kernels push`
 
-- [ ] **Step 1: Package all components into `kaggle_runner/diagnostic_kernel.py`**
-- [ ] **Step 2: Set up `kaggle_runner/kernel-metadata.json` with GPU acceleration enabled (`"enable_gpu": "true"`)**
-- [ ] **Step 3: Test local compilation of kernel script**
-- [ ] **Step 4: Commit**
+- [x] **Step 1: Package all components into `kaggle_runner/diagnostic_kernel.py`**
+- [x] **Step 2: Set up `kaggle_runner/kernel-metadata.json` with GPU acceleration enabled (`"enable_gpu": "true"`)**
+- [x] **Step 3: Test local compilation of kernel script**
+- [x] **Step 4: Commit**
 
 Run: `git add kaggle_runner/ scripts/push_to_kaggle.py && git commit -m "feat: package full diagnostic benchmark pipeline into Kaggle GPU runner"`
 
