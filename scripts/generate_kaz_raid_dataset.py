@@ -14,7 +14,9 @@ import argparse
 import json
 import os
 import sys
+import zlib
 from pathlib import Path
+
 from typing import Any, Dict, List, Optional
 
 # Ensure project root is in sys.path
@@ -74,10 +76,11 @@ def generate_benchmark_splits(
                 r = dict(rec)
                 orig_text = rec.get("text", "")
                 r["original_text"] = orig_text
-                # Unique deterministic seed per sample
+                # Unique process-invariant deterministic seed per sample
                 rec_id = str(rec.get("id", ""))
-                sample_seed = (seed + abs(hash(rec_id))) % (2**31 - 1)
+                sample_seed = (seed + zlib.crc32(rec_id.encode("utf-8"))) % (2**31 - 1)
                 r["text"] = op.perturb(orig_text, rate=rate, seed=sample_seed)
+
                 r["condition"] = cond_key
                 r["attack_name"] = op_name
                 r["perturbation_rate"] = float(rate)

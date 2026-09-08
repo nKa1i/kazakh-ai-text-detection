@@ -775,7 +775,11 @@ def compute_metrics(y_true, y_prob, threshold=0.5):
         fnr_arr = 1.0 - tpr_arr
         eer_idx = np.nanargmin(np.absolute(fnr_arr - fpr_arr))
         eer = float((fpr_arr[eer_idx] + fnr_arr[eer_idx]) / 2.0)
+        eer_thresh = float(thresh_arr[eer_idx])
+        # Use EER threshold if Youden's J threshold is near-zero or degenerate
+        calibrated_thresh = eer_thresh if opt_thresh <= 1e-4 else opt_thresh
     except Exception:
+        calibrated_thresh = 0.5
         opt_thresh = 0.5
         eer = 0.5
 
@@ -785,7 +789,7 @@ def compute_metrics(y_true, y_prob, threshold=0.5):
         "precision": round(prec, 2),
         "recall": round(rec, 2),
         "roc_auc": round(auc, 4),
-        "optimal_threshold": round(opt_thresh, 4),
+        "optimal_threshold": float(calibrated_thresh),
         "eer": round(eer, 4)
     }
 
@@ -851,8 +855,9 @@ for op_name, op in operators.items():
         for r in test_records:
             rc = dict(r)
             rec_id = str(r.get("id", ""))
-            s_seed = (42 + abs(hash(rec_id))) % (2**31 - 1)
+            s_seed = (42 + zlib.crc32(rec_id.encode("utf-8"))) % (2**31 - 1)
             rc["text"] = op.perturb(r["text"], rate=rate, seed=s_seed)
+
             cond_list.append(rc)
         condition_splits[cond_key] = cond_list
 print(f"Generated {len(condition_splits)} conditions ({len(condition_splits) * len(test_records)} total instances).")

@@ -270,7 +270,23 @@ def generate_kaz_raid_markdown_table(benchmark_results: Dict[str, Any]) -> str:
                 f"| `{tier}` | {ts.get('mean_auc', 0.0):.4f} | {ts.get('mean_asr', 0.0)*100:.2f}% | {ts.get('mean_delta_auc', 0.0):.4f} |"
             )
 
+    # Add Length Stratification
+    if "length_stratified" in clean:
+        lines.append("")
+        lines.append("#### RAID-Compliant Length-Stratified Granularity (Clean Baseline)")
+        lines.append("| Bracket | Character Length | Total | Accuracy (%) | FPR (%) | FNR (%) |")
+        lines.append("| :--- | :---: | :---: | :---: | :---: | :---: |")
+        ls = clean["length_stratified"]
+        for b_name in ["short", "medium", "long"]:
+            if b_name in ls:
+                b = ls[b_name]
+                r_str = "<= 60" if b_name == "short" else ("61-85" if b_name == "medium" else "> 85")
+                lines.append(
+                    f"| `{b_name.capitalize()}` | {r_str} | {b.get('total', 0)} | {b.get('accuracy', 0.0):.2f}% | {b.get('fpr', 0.0):.2f}% | {b.get('fnr', 0.0):.2f}% |"
+                )
+
     return "\n".join(lines)
+
 
 
 def main():
