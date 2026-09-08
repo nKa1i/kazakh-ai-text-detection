@@ -655,11 +655,11 @@ git commit -m "feat: implement multi-task contrastive training pipeline"
 - Consumes: Dual Tesla T4 GPUs on Kaggle (`gpu_t4_x2`).
 - Produces: Complete 5-model ablation matrix, ROC-AUC curves, and publication report in `data/morpho_contrastive_paper_report.md`.
 
-- [ ] **Step 1: Write kernel generator script** `scripts/prepare_morpho_kernel.py` embedding `MorphoContrastiveDetector`, `MorphemeTokenizer`, and `kazakh_aigc_paired_2k.json`.
-- [ ] **Step 2: Compile-check generated kernel** with `python -m py_compile kaggle_runner/diagnostic_kernel.py`.
-- [ ] **Step 3: Push to Kaggle and monitor execution** (`dauletanekesh/kazakh-gpu-runner-nb`).
-- [ ] **Step 4: Download results and verify ROC-AUC / OOD recovery**.
-- [ ] **Step 5: Commit Task 6 artifacts and paper report**.
+- [x] **Step 1: Write kernel generator script** `scripts/prepare_morpho_kernel.py` embedding `MorphoContrastiveDetector`, `MorphemeTokenizer`, and `kazakh_aigc_paired_2k.json`.
+- [x] **Step 2: Compile-check generated kernel** with `python -m py_compile kaggle_runner/diagnostic_kernel.py`.
+- [x] **Step 3: Push to Kaggle and monitor execution** (`dauletanekesh/kazakh-gpu-runner-nb`).
+- [x] **Step 4: Download results and verify ROC-AUC / OOD recovery**.
+- [x] **Step 5: Commit Task 6 artifacts and paper report**.
 
 ```bash
 git add kaggle_runner/ specs/ data/

@@ -1,0 +1,359 @@
+{
+  "experiment": "5-Stage Ablation Matrix: Morphology-Aware Supervised Contrastive Detector",
+  "target_hardware": "Kaggle GPU NVIDIA Tesla T4",
+  "train_split": "nKa1i/kazakh-ai-detect (7,963 train / 885 validation)",
+  "test_split": "KazSAnDRA (1,000 Human) vs Qwen-2.5-7B-Instruct (1,000 AI) (2,000 paired total)",
+  "models": {
+    "Model 1 (KazRoBERTa Pure)": {
+      "description": "Pretrained KazRoBERTa baseline evaluated on raw text",
+      "metrics": {
+        "accuracy": 36.75,
+        "f1": 26.92,
+        "precision": 31.87,
+        "recall": 23.3,
+        "roc_auc": 0.388,
+        "optimal_threshold": 0.0003,
+        "eer": 0.642,
+        "tn": 502,
+        "fp": 498,
+        "fn": 767,
+        "tp": 233,
+        "fpr": 49.8,
+        "fnr": 76.7,
+        "length_stratification": {
+          "short": {
+            "total": 372,
+            "accuracy": 78.76,
+            "fp": 28,
+            "fn": 51,
+            "fpr": 9.33,
+            "fnr": 70.83
+          },
+          "medium": {
+            "total": 610,
+            "accuracy": 25.74,
+            "fp": 337,
+            "fn": 116,
+            "fpr": 74.89,
+            "fnr": 72.5
+          },
+          "long": {
+            "total": 1018,
+            "accuracy": 28.0,
+            "fp": 133,
+            "fn": 600,
+            "fpr": 53.2,
+            "fnr": 78.12
+          }
+        }
+      },
+      "efficiency": {
+        "latency_ms_per_sample": 0.5,
+        "throughput_samples_per_sec": 2001.7
+      }
+    },
+    "Model 2 (KazRoBERTa Hybrid FST)": {
+      "description": "Fine-tuned KazRoBERTa on FST text, evaluated on FST inputs (CE only)",
+      "metrics": {
+        "accuracy": 50.1,
+        "f1": 0.4,
+        "precision": 100.0,
+        "recall": 0.2,
+        "roc_auc": 0.8014,
+        "optimal_threshold": 0.0,
+        "eer": 0.275,
+        "tn": 1000,
+        "fp": 0,
+        "fn": 998,
+        "tp": 2,
+        "fpr": 0.0,
+        "fnr": 99.8,
+        "length_stratification": {
+          "short": {
+            "total": 372,
+            "accuracy": 80.65,
+            "fp": 0,
+            "fn": 72,
+            "fpr": 0.0,
+            "fnr": 100.0
+          },
+          "medium": {
+            "total": 610,
+            "accuracy": 74.1,
+            "fp": 0,
+            "fn": 158,
+            "fpr": 0.0,
+            "fnr": 98.75
+          },
+          "long": {
+            "total": 1018,
+            "accuracy": 24.56,
+            "fp": 0,
+            "fn": 768,
+            "fpr": 0.0,
+            "fnr": 100.0
+          }
+        }
+      },
+      "efficiency": {
+        "latency_ms_per_sample": 0.676,
+        "throughput_samples_per_sec": 1478.28
+      }
+    },
+    "Model 3 (KazRoBERTa + SupCon Single-Stream)": {
+      "description": "Single-stream KazRoBERTa trained with CE + SupCon (lambda=0.5) on raw text",
+      "metrics": {
+        "accuracy": 51.25,
+        "f1": 4.88,
+        "precision": 100.0,
+        "recall": 2.5,
+        "roc_auc": 0.986,
+        "optimal_threshold": 0.0004,
+        "eer": 0.083,
+        "tn": 1000,
+        "fp": 0,
+        "fn": 975,
+        "tp": 25,
+        "fpr": 0.0,
+        "fnr": 97.5,
+        "length_stratification": {
+          "short": {
+            "total": 372,
+            "accuracy": 80.65,
+            "fp": 0,
+            "fn": 72,
+            "fpr": 0.0,
+            "fnr": 100.0
+          },
+          "medium": {
+            "total": 610,
+            "accuracy": 75.41,
+            "fp": 0,
+            "fn": 150,
+            "fpr": 0.0,
+            "fnr": 93.75
+          },
+          "long": {
+            "total": 1018,
+            "accuracy": 26.03,
+            "fp": 0,
+            "fn": 753,
+            "fpr": 0.0,
+            "fnr": 98.05
+          }
+        }
+      },
+      "efficiency": {
+        "latency_ms_per_sample": 0.61,
+        "throughput_samples_per_sec": 1640.42
+      }
+    },
+    "Model 4 (Dual-Stream KazRoBERTa CE-Only)": {
+      "description": "Dual-stream RoBERTa + MorphemeEncoder with gated fusion trained with CE only (lambda=0.0)",
+      "metrics": {
+        "accuracy": 54.95,
+        "f1": 18.02,
+        "precision": 100.0,
+        "recall": 9.9,
+        "roc_auc": 0.9902,
+        "optimal_threshold": 0.0001,
+        "eer": 0.049,
+        "tn": 1000,
+        "fp": 0,
+        "fn": 901,
+        "tp": 99,
+        "fpr": 0.0,
+        "fnr": 90.1,
+        "length_stratification": {
+          "short": {
+            "total": 372,
+            "accuracy": 81.18,
+            "fp": 0,
+            "fn": 70,
+            "fpr": 0.0,
+            "fnr": 97.22
+          },
+          "medium": {
+            "total": 610,
+            "accuracy": 77.21,
+            "fp": 0,
+            "fn": 139,
+            "fpr": 0.0,
+            "fnr": 86.88
+          },
+          "long": {
+            "total": 1018,
+            "accuracy": 32.02,
+            "fp": 0,
+            "fn": 692,
+            "fpr": 0.0,
+            "fnr": 90.1
+          }
+        }
+      },
+      "efficiency": {
+        "latency_ms_per_sample": 0.988,
+        "throughput_samples_per_sec": 1011.66
+      }
+    },
+    "Model 5 (Morpho-SupCon Full Method)": {
+      "description": "Complete dual-stream architecture trained with CE + SupCon (lambda=0.5)",
+      "metrics": {
+        "accuracy": 55.95,
+        "f1": 21.27,
+        "precision": 100.0,
+        "recall": 11.9,
+        "roc_auc": 0.996,
+        "optimal_threshold": 0.0002,
+        "eer": 0.031,
+        "tn": 1000,
+        "fp": 0,
+        "fn": 881,
+        "tp": 119,
+        "fpr": 0.0,
+        "fnr": 88.1,
+        "length_stratification": {
+          "short": {
+            "total": 372,
+            "accuracy": 81.18,
+            "fp": 0,
+            "fn": 70,
+            "fpr": 0.0,
+            "fnr": 97.22
+          },
+          "medium": {
+            "total": 610,
+            "accuracy": 77.87,
+            "fp": 0,
+            "fn": 135,
+            "fpr": 0.0,
+            "fnr": 84.38
+          },
+          "long": {
+            "total": 1018,
+            "accuracy": 33.6,
+            "fp": 0,
+            "fn": 676,
+            "fpr": 0.0,
+            "fnr": 88.02
+          }
+        }
+      },
+      "efficiency": {
+        "latency_ms_per_sample": 1.009,
+        "throughput_samples_per_sec": 990.86
+      }
+    }
+  },
+  "mcnemar_hypothesis_testing": {
+    "short_human_sample_count": 300,
+    "short_false_positives": {
+      "Model 1": 28,
+      "Model 2": 0,
+      "Model 3": 0,
+      "Model 4": 0,
+      "Model 5": 0
+    },
+    "short_fpr_percent": {
+      "Model 1": 9.33,
+      "Model 2": 0.0,
+      "Model 3": 0.0,
+      "Model 4": 0.0,
+      "Model 5": 0.0
+    },
+    "mcnemar_model5_vs_model1": {
+      "contingency_matrix": [
+        [
+          272,
+          0
+        ],
+        [
+          28,
+          0
+        ]
+      ],
+      "chi2_statistic": 26.0357,
+      "p_value": 0.0,
+      "is_significant": true,
+      "is_statistically_significant": true,
+      "n_baseline_only_correct": 0,
+      "n_proposed_only_correct": 28,
+      "absolute_fp_reduction": 28,
+      "relative_fp_reduction_percent": 100.0
+    },
+    "mcnemar_model5_vs_model2": {
+      "contingency_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "chi2_statistic": 0.0,
+      "p_value": 1.0,
+      "is_significant": false,
+      "is_statistically_significant": false,
+      "n_baseline_only_correct": 0,
+      "n_proposed_only_correct": 0,
+      "absolute_fp_reduction": 0,
+      "relative_fp_reduction_percent": 0.0
+    },
+    "mcnemar_model5_vs_model3": {
+      "contingency_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "chi2_statistic": 0.0,
+      "p_value": 1.0,
+      "is_significant": false,
+      "is_statistically_significant": false,
+      "n_baseline_only_correct": 0,
+      "n_proposed_only_correct": 0,
+      "absolute_fp_reduction": 0,
+      "relative_fp_reduction_percent": 0.0
+    },
+    "mcnemar_model5_vs_model4": {
+      "contingency_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "chi2_statistic": 0.0,
+      "p_value": 1.0,
+      "is_significant": false,
+      "is_statistically_significant": false,
+      "n_baseline_only_correct": 0,
+      "n_proposed_only_correct": 0,
+      "absolute_fp_reduction": 0,
+      "relative_fp_reduction_percent": 0.0
+    }
+  },
+  "ablation_summary": {
+    "baseline_m1_acc": 36.75,
+    "baseline_m1_f1": 26.92,
+    "baseline_m1_auc": 0.388,
+    "full_m5_acc": 55.95,
+    "full_m5_f1": 21.27,
+    "full_m5_auc": 0.996,
+    "delta_acc": 19.2,
+    "delta_f1": -5.65,
+    "delta_auc": 0.608,
+    "short_fpr_m1": 9.33,
+    "short_fpr_m5": 0.0,
+    "short_fpr_reduction_percent": 100.0
+  }
+}
