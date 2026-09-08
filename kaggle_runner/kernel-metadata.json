@@ -4,7 +4,7 @@
   "code_file": "diagnostic_kernel.py",
   "language": "python",
   "kernel_type": "script",
-  "is_private": true,
+  "is_private": "true",
   "enable_gpu": true,
   "enable_tpu": false,
   "enable_internet": true,
