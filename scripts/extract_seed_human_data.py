@@ -35,6 +35,8 @@ def extract_stratified_human_reviews(
                 bracket = categorize_length(char_len)
                 entry = {
                     "text": text,
+                    "label": 0,
+                    "generator": "human",
                     "char_length": char_len,
                     "length_bracket": bracket,
                     "domain": row.get("domain", "consumer_reviews")

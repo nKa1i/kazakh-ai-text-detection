@@ -1,0 +1,16 @@
+{
+  "human": {
+    "sample_count": 1000,
+    "overall_ttr": 0.0448,
+    "distinct_1": 0.0448,
+    "distinct_2": 0.0541,
+    "avg_tw": 2.183,
+    "stratified_tw": {
+      "short": 1.89,
+      "medium": 2.258,
+      "long": 2.398
+    },
+    "loanword_frequency": 80,
+    "loanwords_per_100_words": 0.97
+  }
+}
