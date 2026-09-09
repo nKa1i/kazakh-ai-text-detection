@@ -1,0 +1,717 @@
+{
+  "experiment": "Kaz-MAGE: 2x2 Cross-Domain & Multi-Generator Benchmark",
+  "protocol": "ACL 2024 MAGE Protocol (Seen vs Unseen Domain x Seen vs Unseen Generator)",
+  "target_hardware": "Kaggle Dual Tesla T4 GPUs",
+  "dataset_size": 6000,
+  "train_split": "nKa1i/kazakh-ai-detect (7963 train / 885 val)",
+  "models": {
+    "Model 1 (KazRoBERTa Pure)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 0.7621,
+          "optimal_threshold": 0.9857,
+          "accuracy": 0.752,
+          "f1": 0.7485,
+          "macro_f1": 0.7485,
+          "precision": 0.8298,
+          "recall": 0.634,
+          "ci_lower": 0.7413,
+          "ci_upper": 0.7847,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 0.9537,
+          "optimal_threshold": 0.9904,
+          "accuracy": 0.9055,
+          "f1": 0.9054,
+          "macro_f1": 0.9054,
+          "precision": 0.8822,
+          "recall": 0.936,
+          "ci_lower": 0.9456,
+          "ci_upper": 0.9621,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.664,
+          "optimal_threshold": 0.997,
+          "accuracy": 0.6915,
+          "f1": 0.6696,
+          "macro_f1": 0.6696,
+          "precision": 0.8948,
+          "recall": 0.434,
+          "ci_lower": 0.6387,
+          "ci_upper": 0.6874,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.881,
+          "optimal_threshold": 0.9817,
+          "accuracy": 0.8485,
+          "f1": 0.8483,
+          "macro_f1": 0.8483,
+          "precision": 0.8242,
+          "recall": 0.886,
+          "ci_lower": 0.8647,
+          "ci_upper": 0.8981,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": -0.1916,
+        "delta_auc_domain": 0.0981,
+        "delta_auc_wild": -0.1189,
+        "q1_auc": 0.7621,
+        "q2_auc": 0.9537,
+        "q3_auc": 0.664,
+        "q4_auc": 0.881
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {},
+        "mean_gate_by_quadrant": {},
+        "delta_gate_news": null,
+        "delta_gate_wiki": null,
+        "delta_gate_wikipedia": null,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 0.8579,
+          "optimal_threshold": 0.9853,
+          "accuracy": 0.814,
+          "f1": 0.8032,
+          "macro_f1": 0.8032,
+          "precision": 0.9236,
+          "recall": 0.786,
+          "ci_lower": 0.8448,
+          "ci_upper": 0.8706,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.9621,
+          "optimal_threshold": 0.9978,
+          "accuracy": 0.9087,
+          "f1": 0.9011,
+          "macro_f1": 0.9011,
+          "precision": 0.9716,
+          "recall": 0.889,
+          "ci_lower": 0.9523,
+          "ci_upper": 0.9707,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.785,
+          "optimal_threshold": 0.058,
+          "accuracy": 0.7913,
+          "f1": 0.77,
+          "macro_f1": 0.77,
+          "precision": 0.8589,
+          "recall": 0.822,
+          "ci_lower": 0.7621,
+          "ci_upper": 0.806,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 2 (KazRoBERTa Hybrid FST)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 0.9625,
+          "optimal_threshold": 0.0018,
+          "accuracy": 0.9005,
+          "f1": 0.8998,
+          "macro_f1": 0.8998,
+          "precision": 0.9785,
+          "recall": 0.819,
+          "ci_lower": 0.956,
+          "ci_upper": 0.9689,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 0.9964,
+          "optimal_threshold": 0.0056,
+          "accuracy": 0.971,
+          "f1": 0.971,
+          "macro_f1": 0.971,
+          "precision": 1.0,
+          "recall": 0.942,
+          "ci_lower": 0.9951,
+          "ci_upper": 0.9975,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.5118,
+          "optimal_threshold": 0.0003,
+          "accuracy": 0.549,
+          "f1": 0.4425,
+          "macro_f1": 0.4425,
+          "precision": 0.8889,
+          "recall": 0.112,
+          "ci_lower": 0.4842,
+          "ci_upper": 0.535,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.9505,
+          "optimal_threshold": 0.0002,
+          "accuracy": 0.872,
+          "f1": 0.872,
+          "macro_f1": 0.872,
+          "precision": 0.8735,
+          "recall": 0.87,
+          "ci_lower": 0.9418,
+          "ci_upper": 0.958,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": -0.0339,
+        "delta_auc_domain": 0.4507,
+        "delta_auc_wild": 0.012,
+        "q1_auc": 0.9625,
+        "q2_auc": 0.9964,
+        "q3_auc": 0.5118,
+        "q4_auc": 0.9505
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {},
+        "mean_gate_by_quadrant": {},
+        "delta_gate_news": null,
+        "delta_gate_wiki": null,
+        "delta_gate_wikipedia": null,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 0.9794,
+          "optimal_threshold": 0.0022,
+          "accuracy": 0.914,
+          "f1": 0.9082,
+          "macro_f1": 0.9082,
+          "precision": 0.996,
+          "recall": 0.8745,
+          "ci_lower": 0.9753,
+          "ci_upper": 0.9828,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.73,
+          "optimal_threshold": 0.0003,
+          "accuracy": 0.65,
+          "f1": 0.65,
+          "macro_f1": 0.65,
+          "precision": 0.9684,
+          "recall": 0.491,
+          "ci_lower": 0.705,
+          "ci_upper": 0.7538,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.7554,
+          "optimal_threshold": 0.0002,
+          "accuracy": 0.6953,
+          "f1": 0.6879,
+          "macro_f1": 0.6879,
+          "precision": 0.8714,
+          "recall": 0.637,
+          "ci_lower": 0.7335,
+          "ci_upper": 0.7793,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 3 (KazRoBERTa + SupCon Single-Stream)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.46,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.7699,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.626,
+          "optimal_threshold": 0.0015,
+          "accuracy": 0.6115,
+          "f1": 0.6098,
+          "macro_f1": 0.6098,
+          "precision": 0.6286,
+          "recall": 0.545,
+          "ci_lower": 0.5991,
+          "ci_upper": 0.65,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.9731,
+          "optimal_threshold": 0.0025,
+          "accuracy": 0.9145,
+          "f1": 0.9145,
+          "macro_f1": 0.9145,
+          "precision": 0.8982,
+          "recall": 0.935,
+          "ci_lower": 0.9675,
+          "ci_upper": 0.9781,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.0,
+        "delta_auc_domain": 0.374,
+        "delta_auc_wild": 0.0269,
+        "q1_auc": 1.0,
+        "q2_auc": 1.0,
+        "q3_auc": 0.626,
+        "q4_auc": 0.9731
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {},
+        "mean_gate_by_quadrant": {},
+        "delta_gate_news": null,
+        "delta_gate_wiki": null,
+        "delta_gate_wikipedia": null,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.46,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.7573,
+          "optimal_threshold": 0.0025,
+          "accuracy": 0.716,
+          "f1": 0.708,
+          "macro_f1": 0.708,
+          "precision": 0.8837,
+          "recall": 0.661,
+          "ci_lower": 0.7326,
+          "ci_upper": 0.7807,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.8721,
+          "optimal_threshold": 0.0011,
+          "accuracy": 0.8033,
+          "f1": 0.7812,
+          "macro_f1": 0.7812,
+          "precision": 0.8608,
+          "recall": 0.841,
+          "ci_lower": 0.8547,
+          "ci_upper": 0.8897,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 4 (Dual-Stream CE-Only)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.009,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.081,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.5979,
+          "optimal_threshold": 0.0008,
+          "accuracy": 0.5965,
+          "f1": 0.5925,
+          "macro_f1": 0.5925,
+          "precision": 0.6202,
+          "recall": 0.498,
+          "ci_lower": 0.5729,
+          "ci_upper": 0.6211,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.8142,
+          "optimal_threshold": 0.0007,
+          "accuracy": 0.7305,
+          "f1": 0.7283,
+          "macro_f1": 0.7283,
+          "precision": 0.6952,
+          "recall": 0.821,
+          "ci_lower": 0.7961,
+          "ci_upper": 0.8317,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.0,
+        "delta_auc_domain": 0.4021,
+        "delta_auc_wild": 0.1858,
+        "q1_auc": 1.0,
+        "q2_auc": 1.0,
+        "q3_auc": 0.5979,
+        "q4_auc": 0.8142
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {
+          "consumer_reviews": 0.5258,
+          "news": 0.5167,
+          "wikipedia": 0.5183
+        },
+        "mean_gate_by_quadrant": {
+          "human_consumer_reviews": 0.5158,
+          "Q1": 0.5307,
+          "Q2": 0.5308,
+          "human_news": 0.5164,
+          "Q3": 0.5168,
+          "Q4": 0.5184,
+          "human_wikipedia": 0.5181
+        },
+        "delta_gate_news": -0.0091,
+        "delta_gate_wiki": -0.0075,
+        "delta_gate_wikipedia": -0.0075,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.009,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.6363,
+          "optimal_threshold": 0.0013,
+          "accuracy": 0.558,
+          "f1": 0.5578,
+          "macro_f1": 0.5578,
+          "precision": 0.8624,
+          "recall": 0.401,
+          "ci_lower": 0.6073,
+          "ci_upper": 0.6641,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.8149,
+          "optimal_threshold": 0.0004,
+          "accuracy": 0.8107,
+          "f1": 0.7631,
+          "macro_f1": 0.7631,
+          "precision": 0.8055,
+          "recall": 0.944,
+          "ci_lower": 0.7921,
+          "ci_upper": 0.8391,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 5 (Morpho-SupCon Full Architecture)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.0652,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.5395,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.6143,
+          "optimal_threshold": 0.0022,
+          "accuracy": 0.6115,
+          "f1": 0.6051,
+          "macro_f1": 0.6051,
+          "precision": 0.6497,
+          "recall": 0.484,
+          "ci_lower": 0.5895,
+          "ci_upper": 0.6375,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.8811,
+          "optimal_threshold": 0.0024,
+          "accuracy": 0.797,
+          "f1": 0.7969,
+          "macro_f1": 0.7969,
+          "precision": 0.7834,
+          "recall": 0.821,
+          "ci_lower": 0.8668,
+          "ci_upper": 0.8946,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.0,
+        "delta_auc_domain": 0.3857,
+        "delta_auc_wild": 0.1189,
+        "q1_auc": 1.0,
+        "q2_auc": 1.0,
+        "q3_auc": 0.6143,
+        "q4_auc": 0.8811
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {
+          "consumer_reviews": 0.5114,
+          "news": 0.5037,
+          "wikipedia": 0.5056
+        },
+        "mean_gate_by_quadrant": {
+          "human_consumer_reviews": 0.503,
+          "Q1": 0.5156,
+          "Q2": 0.5156,
+          "human_news": 0.5035,
+          "Q3": 0.5041,
+          "Q4": 0.5053,
+          "human_wikipedia": 0.5057
+        },
+        "delta_gate_news": -0.0077,
+        "delta_gate_wiki": -0.0058,
+        "delta_gate_wikipedia": -0.0058,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.0652,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.6893,
+          "optimal_threshold": 0.0026,
+          "accuracy": 0.6673,
+          "f1": 0.6524,
+          "macro_f1": 0.6524,
+          "precision": 0.8089,
+          "recall": 0.656,
+          "ci_lower": 0.661,
+          "ci_upper": 0.7158,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.8525,
+          "optimal_threshold": 0.0011,
+          "accuracy": 0.8373,
+          "f1": 0.8014,
+          "macro_f1": 0.8014,
+          "precision": 0.8322,
+          "recall": 0.947,
+          "ci_lower": 0.8325,
+          "ci_upper": 0.8736,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 5-Adv (Invariant Contrastive Defense)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.6052,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.9957,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.6449,
+          "optimal_threshold": 0.0003,
+          "accuracy": 0.628,
+          "f1": 0.6151,
+          "macro_f1": 0.6151,
+          "precision": 0.7019,
+          "recall": 0.445,
+          "ci_lower": 0.6205,
+          "ci_upper": 0.6682,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.9114,
+          "optimal_threshold": 0.0003,
+          "accuracy": 0.824,
+          "f1": 0.8238,
+          "macro_f1": 0.8238,
+          "precision": 0.8039,
+          "recall": 0.857,
+          "ci_lower": 0.8995,
+          "ci_upper": 0.9221,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.0,
+        "delta_auc_domain": 0.3551,
+        "delta_auc_wild": 0.0886,
+        "q1_auc": 1.0,
+        "q2_auc": 1.0,
+        "q3_auc": 0.6449,
+        "q4_auc": 0.9114
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {
+          "consumer_reviews": 0.4895,
+          "news": 0.4758,
+          "wikipedia": 0.4769
+        },
+        "mean_gate_by_quadrant": {
+          "human_consumer_reviews": 0.4735,
+          "Q1": 0.4975,
+          "Q2": 0.4976,
+          "human_news": 0.4753,
+          "Q3": 0.4758,
+          "Q4": 0.4774,
+          "human_wikipedia": 0.4763
+        },
+        "delta_gate_news": -0.0137,
+        "delta_gate_wiki": -0.0126,
+        "delta_gate_wikipedia": -0.0126,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.6052,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.717,
+          "optimal_threshold": 0.0003,
+          "accuracy": 0.7067,
+          "f1": 0.6902,
+          "macro_f1": 0.6902,
+          "precision": 0.831,
+          "recall": 0.703,
+          "ci_lower": 0.6896,
+          "ci_upper": 0.7421,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.8585,
+          "optimal_threshold": 0.0002,
+          "accuracy": 0.8407,
+          "f1": 0.8061,
+          "macro_f1": 0.8061,
+          "precision": 0.8358,
+          "recall": 0.947,
+          "ci_lower": 0.8387,
+          "ci_upper": 0.8788,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    }
+  }
+}
