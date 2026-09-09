@@ -34,7 +34,7 @@
   - `audit_dataset_isolation(train_path: str, eval_path: str) -> dict` returning `{"overlap_count": 0, "is_clean": True}`
   - Standard JSON schema matching `KazMageSample`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_multi_domain_data.py
@@ -89,12 +89,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_multi_domain_data.py`
 Expected: FAIL with "No module named 'scripts.generate_multi_domain_train_dataset'"
 
-- [ ] **Step 3: Implement `scripts/generate_multi_domain_train_dataset.py`**
+- [x] **Step 3: Implement `scripts/generate_multi_domain_train_dataset.py`**
 
 Implement:
 - Curated human news and Wikipedia articles with zero overlap with `data/kaz_mage_eval_6k.json`.
@@ -103,17 +103,17 @@ Implement:
 - CLI supporting `--output`, `--eval_benchmark`, `--samples_per_domain`.
 - Generate the full `data/kaz_multi_domain_train_6k.json` ($6{,}000$ instances).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_multi_domain_data.py`
 Expected: PASS
 
-- [ ] **Step 5: Run full dataset generation & verification**
+- [x] **Step 5: Run full dataset generation & verification**
 
 Run: `python scripts/generate_multi_domain_train_dataset.py --output data/kaz_multi_domain_train_6k.json --eval_benchmark data/kaz_mage_eval_6k.json`
 Expected: $6{,}000$ samples generated, $0$ overlaps confirmed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/generate_multi_domain_train_dataset.py tests/test_multi_domain_data.py data/kaz_multi_domain_train_6k.json
@@ -134,7 +134,7 @@ git commit -m "feat: implement multi-domain training dataset generator with SHA-
   - `DomainStratifiedBatchSampler(domains, labels, batch_size=32, shuffle=True, seed=42)`
   - Yields batch indices containing equal parts Reviews, News, and Wikipedia.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_domain_stratified_sampler.py
@@ -162,21 +162,21 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_domain_stratified_sampler.py`
 Expected: FAIL with "No module named 'kaz_mage.sampler'"
 
-- [ ] **Step 3: Implement `kaz_mage/sampler.py`**
+- [x] **Step 3: Implement `kaz_mage/sampler.py`**
 
 Implement `DomainStratifiedBatchSampler` supporting PyTorch `Sampler` interface (and fallback if PyTorch is absent).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_domain_stratified_sampler.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add kaz_mage/sampler.py kaz_mage/__init__.py tests/test_domain_stratified_sampler.py
@@ -196,7 +196,7 @@ git commit -m "feat: implement DomainStratifiedBatchSampler for tri-domain balan
   - `train_multi_domain(train_path, model, tokenizer, morpheme_tok, epochs=3, batch_size=32, lr_backbone=2e-5, lr_morph=1e-4, lambda_supcon=0.5, dry_run=False)`
   - Supports `--dry_run` for local fast test execution without GPU.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_train_multi_domain.py
@@ -237,21 +237,21 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_train_multi_domain.py`
 Expected: FAIL with "No module named 'scripts.train_multi_domain'"
 
-- [ ] **Step 3: Implement `scripts/train_multi_domain.py`**
+- [x] **Step 3: Implement `scripts/train_multi_domain.py`**
 
 Implement training loop using `MorphoContrastiveDetector`, `DomainStratifiedBatchSampler`, and multi-task loss $\mathcal{L}_{\text{CE}} + 0.5 \mathcal{L}_{\text{SupCon}}$.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_train_multi_domain.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/train_multi_domain.py tests/test_train_multi_domain.py
@@ -275,7 +275,7 @@ git commit -m "feat: implement multi-domain contrastive training pipeline"
 3. Train `Model 5-MultiDomain` and evaluate across all 4 quadrants on the held-out $6{,}000$-sample test set.
 4. Download output reports and verify Q3 ROC-AUC $\ge 0.9500$.
 
-- [ ] **Step 1: Write test for kernel build**
+- [x] **Step 1: Write test for kernel build**
 
 ```python
 # tests/test_multi_domain_kernel_build.py
@@ -296,19 +296,19 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_multi_domain_kernel_build.py`
 Expected: FAIL
 
-- [ ] **Step 3: Implement `scripts/prepare_multi_domain_kernel.py`**
+- [x] **Step 3: Implement `scripts/prepare_multi_domain_kernel.py`**
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_multi_domain_kernel_build.py`
 Expected: PASS
 
-- [ ] **Step 5: Run remote execution on Kaggle Dual Tesla T4s**
+- [x] **Step 5: Run remote execution on Kaggle Dual Tesla T4s**
 
 Run:
 1. `python scripts/prepare_multi_domain_kernel.py`
@@ -316,7 +316,7 @@ Run:
 3. Monitor execution until completion.
 4. Download output files to `data/`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/prepare_multi_domain_kernel.py tests/test_multi_domain_kernel_build.py data/kaz_multi_domain_*
@@ -327,12 +327,12 @@ git commit -m "feat: complete multi-domain contrastive training and empirical be
 
 ### Task 5: Whole-Branch Code Review, Regression Verification, and Merge
 
-- [ ] **Step 1: Run complete test suite**
+- [x] **Step 1: Run complete test suite**
 Run all tests:
 `python -m unittest discover -s tests -p "test_*.py"`
 Expected: All tests pass.
 
-- [ ] **Step 2: Dispatch whole-branch code reviewer subagent**
+- [x] **Step 2: Dispatch whole-branch code reviewer subagent**
 Verify adherence to spec, zero data leakage, and zero modifications to `aist2026/paper.tex`.
 
 - [ ] **Step 3: Merge `feat/kaz-multi-domain-training` into `main`**
@@ -341,3 +341,4 @@ Verify adherence to spec, zero data leakage, and zero modifications to `aist2026
 git checkout main
 git merge --no-ff feat/kaz-multi-domain-training -m "Merge branch 'feat/kaz-multi-domain-training' into main"
 ```
+
