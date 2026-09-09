@@ -111,6 +111,20 @@ class TestUiHighlighting(unittest.TestCase):
         self.assertIn("Морфологиялық талдау деректері жоқ.", rendered)
         self.assertIn("text-muted", rendered)
 
+    def test_none_probability_handling_in_heatmap(self):
+        rendered = render_document_heatmap([{"index": 0, "text": "Сәлем.", "ai_probability": None}])
+        self.assertIn("lvl-human", rendered)
+        self.assertIn("Сәлем.", rendered)
+        self.assertIn("0.0% AI", rendered)
+
+    def test_none_gate_value_in_dynamic_gate_bar(self):
+        bar_html = render_dynamic_gate_bar(None)
+        self.assertIn("50.0%", bar_html)
+        self.assertIn("gate-stream-bert", bar_html)
+        self.assertIn("gate-stream-fst", bar_html)
+        self.assertIn("Семантикалық Контекст (BERT): 50.0%", bar_html)
+        self.assertIn("Морфологиялық FST (Тіл Құрылымы): 50.0%", bar_html)
+
     def test_css_rules_present(self):
         self.assertIn(".kaz-sentence", HEATMAP_CSS)
         self.assertIn(".lvl-human", HEATMAP_CSS)
@@ -118,6 +132,7 @@ class TestUiHighlighting(unittest.TestCase):
         self.assertIn(".lvl-ai", HEATMAP_CSS)
         self.assertIn(".gate-bar-container", HEATMAP_CSS)
         self.assertIn(".fst-table", HEATMAP_CSS)
+        self.assertIn("white-space: pre-wrap;", HEATMAP_CSS)
 
 if __name__ == "__main__":
     unittest.main()

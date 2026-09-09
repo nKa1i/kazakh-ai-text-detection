@@ -24,6 +24,7 @@ HEATMAP_CSS = """
     max-height: 520px;
     overflow-y: auto;
     word-wrap: break-word;
+    white-space: pre-wrap;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #111827;
 }
@@ -225,7 +226,8 @@ def render_document_heatmap(
     for idx, item in enumerate(sentences_data):
         sentence_idx = item.get("index", idx)
         raw_text = str(item.get("text", ""))
-        ai_prob = float(item.get("ai_probability", 0.0))
+        val = item.get("ai_probability")
+        ai_prob = float(val) if val is not None else 0.0
         gate = item.get("gate_value", None)
 
         # Classification tier determination
@@ -262,19 +264,20 @@ def render_document_heatmap(
     return f'<div class="kaz-heatmap-container">{inner_content}</div>'
 
 
-def render_dynamic_gate_bar(gate_value: float) -> str:
+def render_dynamic_gate_bar(gate_value: Optional[float] = None) -> str:
     """
     Renders a dual-colored split progress bar indicating dynamic gate allocation
     between the Context Stream (BERT) and Morpheme Stream (FST).
 
     Args:
-        gate_value: Float in [0, 1] representing context stream weight.
+        gate_value: Float in [0, 1] representing context stream weight, or None for neutral fusion (0.5).
 
     Returns:
         HTML string displaying the responsive split bar.
     """
     # Defensive clamping
-    g = max(0.0, min(1.0, float(gate_value)))
+    g_val = 0.5 if gate_value is None else float(gate_value)
+    g = max(0.0, min(1.0, g_val))
     bert_pct = g * 100.0
     fst_pct = (1.0 - g) * 100.0
 
