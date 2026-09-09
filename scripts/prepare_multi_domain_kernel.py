@@ -113,12 +113,23 @@ def build_multi_domain_kernel(
             eval_data = json.load(f)
         print(f"Loaded {len(eval_data)} full evaluation samples from {eval_data_path}.")
 
-    # Compress datasets using zlib level 9
-    raw_train_bytes = json.dumps(train_data, ensure_ascii=False).encode("utf-8")
+    # Compress datasets using compact tuple serialization to stay within Kaggle 1MB script limit
+    # Train: 3,000 balanced samples [text, label, domain]
+    by_dom = {}
+    for x in train_data:
+        by_dom.setdefault(x.get("domain", ""), []).append(x)
+    compact_train = []
+    for d in ["consumer_reviews", "news", "wikipedia"]:
+        compact_train.extend([[x["text"], int(x["label"]), x["domain"]] for x in by_dom.get(d, [])[:1000]])
+    if not compact_train:
+        compact_train = [[x["text"], int(x["label"]), x.get("domain", "")] for x in train_data]
+    raw_train_bytes = json.dumps(compact_train, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     comp_train_bytes = zlib.compress(raw_train_bytes, level=9)
     b64_train_str = base64.b64encode(comp_train_bytes).decode("ascii")
 
-    raw_eval_bytes = json.dumps(eval_data, ensure_ascii=False).encode("utf-8")
+    # Eval: full 6,000 samples [id, text, label, domain, generator, quadrant]
+    compact_eval = [[x.get("id", ""), x["text"], int(x["label"]), x.get("domain", ""), x.get("generator", ""), x.get("quadrant", "")] for x in eval_data]
+    raw_eval_bytes = json.dumps(compact_eval, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     comp_eval_bytes = zlib.compress(raw_eval_bytes, level=9)
     b64_eval_str = base64.b64encode(comp_eval_bytes).decode("ascii")
 
@@ -1243,12 +1254,26 @@ print("\n" + "-" * 60)
 print("Decompressing Embedded Datasets...")
 b64_train = """__MULTI_DOMAIN_TRAIN_B64__"""
 train_bytes = zlib.decompress(base64.b64decode(b64_train))
-train_records: List[Dict[str, Any]] = json.loads(train_bytes.decode("utf-8"))
+raw_train_loaded = json.loads(train_bytes.decode("utf-8"))
+if raw_train_loaded and isinstance(raw_train_loaded[0], list):
+    train_records: List[Dict[str, Any]] = [
+        {"text": x[0], "label": x[1], "domain": x[2], "generator": "Sherkala-7B" if x[1] == 1 else "human"}
+        for x in raw_train_loaded
+    ]
+else:
+    train_records: List[Dict[str, Any]] = raw_train_loaded
 print(f"Loaded {len(train_records)} training samples.")
 
 b64_eval = """__MAGE_EVAL_DATA_B64__"""
 eval_bytes = zlib.decompress(base64.b64decode(b64_eval))
-eval_records: List[Dict[str, Any]] = json.loads(eval_bytes.decode("utf-8"))
+raw_eval_loaded = json.loads(eval_bytes.decode("utf-8"))
+if raw_eval_loaded and isinstance(raw_eval_loaded[0], list):
+    eval_records: List[Dict[str, Any]] = [
+        {"id": x[0], "text": x[1], "label": x[2], "domain": x[3], "generator": x[4], "quadrant": x[5]}
+        for x in raw_eval_loaded
+    ]
+else:
+    eval_records: List[Dict[str, Any]] = raw_eval_loaded
 print(f"Loaded {len(eval_records)} held-out evaluation samples.")
 
 # Domain breakdown check
