@@ -38,8 +38,14 @@ class SentencePreservingChunker:
     # Quotes with terminal punctuation followed by dialogue attribution or lowercase letter
     _QUOTE_ATTRIB = re.compile(
         r'([.!?…]+)\s*'
-        r'(?=[»”"\'’]\s*(?:[—–\-―]\s*)?(?:деді|деп|айтты|сұрады|жауап|бұйырды|мәлімдеді|жазды|үн|қосты|[a-zа-яәіңғүұқөһ]))',
-        re.IGNORECASE | re.UNICODE
+        r'(?=[»”"\'’]\s*(?:[—–\-―]\s*)?(?:(?i:деді|деп|айтты|сұрады|жауап|бұйырды|мәлімдеді|жазды|үн|қосты)|[a-zа-яәіңғүұқөһ]))',
+        re.UNICODE
+    )
+
+    # Paragraph separator: double newline or more, with optional whitespace in between
+    _PARAGRAPH_SEP = re.compile(
+        r'\r?\n\s*\n+',
+        re.UNICODE
     )
 
     # Sentence boundary regex: terminal punctuation optionally followed by closing quotes/brackets,
@@ -62,41 +68,35 @@ class SentencePreservingChunker:
         self.max_words = max_words
         self.overlap_sentences = max(0, overlap_sentences)
 
-    def split_sentences(self, text: str) -> List[Tuple[str, int, int]]:
+    def _split_paragraph(self, para_text: str, base_offset: int) -> List[Tuple[str, int, int]]:
         """
-        Segment Kazakh text into sentences with exact character offsets.
-
-        Applies abbreviation and quote protections to prevent incorrect splitting
-        at abbreviation periods (т.б., ж., ғғ., etc.) and inside direct speech quotations.
-
-        Returns:
-            List of (sentence_text, start_char, end_char) where text[start_char:end_char] == sentence_text.
+        Split a single paragraph into sentences with exact character offsets.
         """
-        if not text or not text.strip():
+        if not para_text or not para_text.strip():
             return []
 
         # Create a character-by-character mask of identical length
         # Using a dummy non-terminator character preserves exact character indexing
-        masked = list(text)
+        masked = list(para_text)
 
         # 1. Mask multi-dot abbreviations
-        for m in self._ABBR_MULTI.finditer(text):
+        for m in self._ABBR_MULTI.finditer(para_text):
             for idx in range(m.start(), m.end()):
-                if text[idx] == '.':
+                if para_text[idx] == '.':
                     masked[idx] = '\u0000'
 
         # 2. Mask single-word abbreviations
-        for m in self._ABBR_SINGLE.finditer(text):
+        for m in self._ABBR_SINGLE.finditer(para_text):
             for idx in range(m.start(), m.end()):
-                if text[idx] == '.':
+                if para_text[idx] == '.':
                     masked[idx] = '\u0000'
 
         # 3. Mask digit followed by period
-        for m in self._DIGIT_DOT.finditer(text):
+        for m in self._DIGIT_DOT.finditer(para_text):
             masked[m.start()] = '\u0000'
 
         # 4. Mask terminal punctuation inside quotes followed by dialogue attribution
-        for m in self._QUOTE_ATTRIB.finditer(text):
+        for m in self._QUOTE_ATTRIB.finditer(para_text):
             for idx in range(m.start(1), m.end(1)):
                 masked[idx] = '\u0000'
 
@@ -108,26 +108,56 @@ class SentencePreservingChunker:
             end_punct = m.end()
 
             # Advance cursor over leading whitespace
-            while cursor < end_punct and text[cursor].isspace():
+            while cursor < end_punct and para_text[cursor].isspace():
                 cursor += 1
 
             if cursor < end_punct:
-                sent_text = text[cursor:end_punct]
-                sentences.append((sent_text, cursor, end_punct))
+                sent_text = para_text[cursor:end_punct]
+                sentences.append((sent_text, base_offset + cursor, base_offset + end_punct))
                 cursor = end_punct
 
         # Handle any trailing text after the last sentence terminator
-        while cursor < len(text) and text[cursor].isspace():
+        while cursor < len(para_text) and para_text[cursor].isspace():
             cursor += 1
 
-        if cursor < len(text):
-            # Trim any trailing whitespace from the document end
-            end_char = len(text)
-            while end_char > cursor and text[end_char - 1].isspace():
+        if cursor < len(para_text):
+            # Trim any trailing whitespace from the paragraph end
+            end_char = len(para_text)
+            while end_char > cursor and para_text[end_char - 1].isspace():
                 end_char -= 1
             if end_char > cursor:
-                sent_text = text[cursor:end_char]
-                sentences.append((sent_text, cursor, end_char))
+                sent_text = para_text[cursor:end_char]
+                sentences.append((sent_text, base_offset + cursor, base_offset + end_char))
+
+        return sentences
+
+    def split_sentences(self, text: str) -> List[Tuple[str, int, int]]:
+        """
+        Segment Kazakh text into sentences with exact character offsets.
+
+        Applies abbreviation and quote protections to prevent incorrect splitting
+        at abbreviation periods (т.б., ж., ғғ., etc.) and inside direct speech quotations,
+        while strictly enforcing paragraph breaks (\\n\\s*\\n+) as explicit sentence boundaries.
+
+        Returns:
+            List of (sentence_text, start_char, end_char) where text[start_char:end_char] == sentence_text.
+        """
+        if not text or not text.strip():
+            return []
+
+        sentences: List[Tuple[str, int, int]] = []
+        para_start = 0
+
+        for m in self._PARAGRAPH_SEP.finditer(text):
+            para_end = m.start()
+            if para_end > para_start:
+                para_text = text[para_start:para_end]
+                sentences.extend(self._split_paragraph(para_text, para_start))
+            para_start = m.end()
+
+        if para_start < len(text):
+            para_text = text[para_start:]
+            sentences.extend(self._split_paragraph(para_text, para_start))
 
         return sentences
 

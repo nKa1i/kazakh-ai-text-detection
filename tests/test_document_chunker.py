@@ -80,6 +80,45 @@ class TestSentencePreservingChunker(unittest.TestCase):
         self.assertEqual(chunker.chunk_document(""), [])
         self.assertEqual(chunker.chunk_document("   \n\n\t  "), [])
 
+    def test_kazakh_quotes_without_attribution(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        text = "«Бұл өте жақсы бастама!» Жаңа жылда жаңа жұмыстар күтілуде."
+        sentences = chunker.split_sentences(text)
+        self.assertEqual(len(sentences), 2)
+        self.assertEqual(sentences[0][0], "«Бұл өте жақсы бастама!»")
+        self.assertEqual(sentences[1][0], "Жаңа жылда жаңа жұмыстар күтілуде.")
+        for s_text, s_start, s_end in sentences:
+            self.assertEqual(text[s_start:s_end], s_text)
+
+    def test_paragraph_breaks_with_headings_and_abbreviations(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        text = "1. Кіріспе\n\nБұл алғашқы бөлім.\n\nҚұжаттар т.б.\n\nКелесі бөлім."
+        sentences = chunker.split_sentences(text)
+        self.assertEqual(len(sentences), 4)
+        self.assertEqual(sentences[0][0], "1. Кіріспе")
+        self.assertEqual(sentences[1][0], "Бұл алғашқы бөлім.")
+        self.assertEqual(sentences[2][0], "Құжаттар т.б.")
+        self.assertEqual(sentences[3][0], "Келесі бөлім.")
+        for s_text, s_start, s_end in sentences:
+            self.assertEqual(text[s_start:s_end], s_text)
+
+    def test_single_sentence_document_chunking(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        text = "Бұл жалғыз сөйлем."
+        chunks = chunker.chunk_document(text)
+        self.assertEqual(len(chunks), 1)
+        chunk = chunks[0]
+        self.assertEqual(chunk.index, 0)
+        self.assertEqual(chunk.text, "Бұл жалғыз сөйлем.")
+        self.assertEqual(chunk.start_char, 0)
+        self.assertEqual(chunk.end_char, len(text))
+        self.assertEqual(chunk.sentence_count, 1)
+        self.assertEqual(chunk.word_count, 3)
+        self.assertEqual(text[chunk.start_char:chunk.end_char], chunk.text)
+
 
 if __name__ == "__main__":
     unittest.main()
