@@ -80,27 +80,29 @@ This specification defines **Step 2**: a sentence-preserving sliding window chun
    Linguistic segmentation engine:
    - Splits document into paragraphs along `\n+`.
    - Splits paragraphs into sentences using regex boundary matching while preserving Kazakh abbreviations:
-     - `т.б.` (*тағы басқалар*)
-     - `ж.б.` (*және басқалар*)
-     - `ғ.` (*ғасыр*)
-     - `ж.` (*жыл*)
+     - `т.б.` (*тағы басқалар*), `ж.б.` (*және басқалар*)
+     - `ғ.` (*ғасыр*), `ғғ.` (*ғасырлар*)
+     - `ж.` (*жыл*), `жж.` (*жылдар*)
      - `қ.` (*қала*)
      - `мыс.` (*мысалы*)
      - `проф.` (*профессор*), `акад.` (*академик*)
+   - Handles Kazakh quote conventions (`«...»`, `“...”`, `"..."`) so terminal punctuation inside quotes does not create severed dangling quote fragments.
+   - Calculates exact character offsets (`start_char`, `end_char`) directly mapped to the original, unstripped source document to guarantee zero drift during UI highlighting.
    - Groups sentences into chunks up to `max_words` (default: 200 words, hard max: 220 words).
    - Slides forward with `overlap_sentences` (default: 1 sentence overlap between consecutive chunks).
+   - Handles empty text, whitespace-only, or single-word inputs gracefully with defensive fallbacks.
    - Guarantees: **Zero severed words or agglutinative suffixes**.
 
 3. **`DocumentAggregator`** (`kaz_mage/aggregator.py`):
    Aggregation and calibration logic:
-   - Computes Top-$K$ worst-chunk probability.
+   - Computes Top-$K$ worst-chunk probability with safe bounds ($M=1$ and empty-document safety).
    - Computes volume-weighted AI content ratio.
    - Maps scores to the three-tier categorical verdict.
 
 4. **`DocumentDetector`** (`models/document_detector.py`):
    High-level facade class wrapping `MorphoContrastiveDetector`:
-   - `predict_document(text: str, top_k: int = 2) -> DocumentAnalysisResult`
-   - Handles batching to ensure $M$ chunks are evaluated in a single GPU/CPU forward pass.
+   - `predict_document(text: str, top_k: int = 2, batch_size: int = 16) -> DocumentAnalysisResult`
+   - Handles defensive micro-batching (`batch_size = 16` or `32`) to prevent GPU Out-Of-Memory (OOM) errors on large documents ($10{,}000+$ words / $100+$ chunks).
 
 ---
 
