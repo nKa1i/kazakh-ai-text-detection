@@ -37,5 +37,50 @@ class TestDocumentDataStructures(unittest.TestCase):
         self.assertEqual(len(d["chunks"]), 1)
         self.assertEqual(d["worst_chunk"]["ai_probability"], 0.999)
 
+
+class TestSentencePreservingChunker(unittest.TestCase):
+    def test_kazakh_abbreviations_protection(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        text = "Бұл 2024 ж. болған оқиға. Онда т.б. мәселелер мен 15 ғғ. мұралары қаралды."
+        sentences = chunker.split_sentences(text)
+        # Should be exactly 2 sentences, NOT split at "ж.", "т.б.", or "ғғ."
+        self.assertEqual(len(sentences), 2)
+        self.assertIn("2024 ж.", sentences[0][0])
+        self.assertIn("т.б.", sentences[1][0])
+        # Offsets
+        for s_text, s_start, s_end in sentences:
+            self.assertEqual(text[s_start:s_end], s_text)
+
+    def test_kazakh_quotes_protection(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        text = "«Бұл өте маңызды жоба!» деді министр. Ол жұмыстың сәтті аяқталғанын айтты."
+        sentences = chunker.split_sentences(text)
+        self.assertEqual(len(sentences), 2)
+        self.assertTrue(sentences[0][0].startswith("«Бұл"))
+        for s_text, s_start, s_end in sentences:
+            self.assertEqual(text[s_start:s_end], s_text)
+
+    def test_chunking_word_budget_and_overlap(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker(max_words=30, overlap_sentences=1)
+        sents = [f"Бұл құжаттың {i}-ші сөйлемі болып табылады және мағыналы ақпарат береді." for i in range(5)]
+        doc = " ".join(sents)
+        chunks = chunker.chunk_document(doc)
+        self.assertGreater(len(chunks), 1)
+        for c in chunks:
+            self.assertLessEqual(c.word_count, 45)
+            # Exact offset verification
+            self.assertEqual(doc[c.start_char : c.end_char], c.text)
+
+    def test_empty_and_whitespace_inputs(self):
+        from kaz_mage.chunker import SentencePreservingChunker
+        chunker = SentencePreservingChunker()
+        self.assertEqual(chunker.chunk_document(""), [])
+        self.assertEqual(chunker.chunk_document("   \n\n\t  "), [])
+
+
 if __name__ == "__main__":
     unittest.main()
+
