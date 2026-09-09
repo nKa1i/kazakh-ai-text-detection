@@ -1,0 +1,257 @@
+{
+  "experiment": "Kaz-MultiDomain: Tri-Domain Contrastive Training Benchmark",
+  "protocol": "ACL 2024 MAGE Protocol (Seen vs Unseen Domain x Seen vs Unseen Generator)",
+  "target_hardware": "Kaggle Dual Tesla T4 GPUs",
+  "train_dataset_size": 3000,
+  "eval_dataset_size": 6000,
+  "models": {
+    "Model 5 (Review-Only Baseline)": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 0.9771,
+          "optimal_threshold": 0.8906,
+          "accuracy": 0.9345,
+          "f1": 0.9344,
+          "macro_f1": 0.9344,
+          "precision": 0.9791,
+          "recall": 0.888,
+          "ci_lower": 0.972,
+          "ci_upper": 0.982,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 0.7045,
+          "optimal_threshold": 0.8881,
+          "accuracy": 0.7215,
+          "f1": 0.7014,
+          "macro_f1": 0.7014,
+          "precision": 0.9605,
+          "recall": 0.462,
+          "ci_lower": 0.6799,
+          "ci_upper": 0.7296,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.5762,
+          "optimal_threshold": 0.2474,
+          "accuracy": 0.5735,
+          "f1": 0.5725,
+          "macro_f1": 0.5725,
+          "precision": 0.567,
+          "recall": 0.622,
+          "ci_lower": 0.5513,
+          "ci_upper": 0.6014,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 0.3695,
+          "optimal_threshold": 0.067,
+          "accuracy": 0.5075,
+          "f1": 0.3652,
+          "macro_f1": 0.3652,
+          "precision": 0.5039,
+          "recall": 0.981,
+          "ci_lower": 0.3443,
+          "ci_upper": 0.3946,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.2726,
+        "delta_auc_domain": 0.4009,
+        "delta_auc_wild": 0.6076,
+        "q1_auc": 0.9771,
+        "q2_auc": 0.7045,
+        "q3_auc": 0.5762,
+        "q4_auc": 0.3695
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {
+          "consumer_reviews": 0.5088,
+          "news": 0.5093,
+          "wikipedia": 0.5107
+        },
+        "mean_gate_by_quadrant": {
+          "human_consumer_reviews": 0.5101,
+          "Q1": 0.5079,
+          "Q2": 0.5083,
+          "human_news": 0.509,
+          "Q3": 0.5093,
+          "Q4": 0.5102,
+          "human_wikipedia": 0.5119
+        },
+        "delta_gate_news": 0.0005,
+        "delta_gate_wiki": 0.0019,
+        "delta_gate_wikipedia": 0.0019,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 0.8408,
+          "optimal_threshold": 0.8881,
+          "accuracy": 0.777,
+          "f1": 0.7736,
+          "macro_f1": 0.7736,
+          "precision": 0.9861,
+          "recall": 0.675,
+          "ci_lower": 0.8271,
+          "ci_upper": 0.8551,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 0.2257,
+          "optimal_threshold": 1.0,
+          "accuracy": 0.3333,
+          "f1": 0.25,
+          "macro_f1": 0.25,
+          "precision": 0.0,
+          "recall": 0.0,
+          "ci_lower": 0.2036,
+          "ci_upper": 0.249,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 0.7244,
+          "optimal_threshold": 0.2609,
+          "accuracy": 0.6833,
+          "f1": 0.6795,
+          "macro_f1": 0.6795,
+          "precision": 0.8947,
+          "recall": 0.595,
+          "ci_lower": 0.6994,
+          "ci_upper": 0.7483,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    },
+    "Model 5-MultiDomain": {
+      "quadrants": {
+        "Q1": {
+          "roc_auc": 0.9997,
+          "optimal_threshold": 0.998,
+          "accuracy": 0.997,
+          "f1": 0.997,
+          "macro_f1": 0.997,
+          "precision": 0.994,
+          "recall": 1.0,
+          "ci_lower": 0.9994,
+          "ci_upper": 0.9999,
+          "n_samples": 2000
+        },
+        "Q2": {
+          "roc_auc": 0.9253,
+          "optimal_threshold": 0.9975,
+          "accuracy": 0.902,
+          "f1": 0.9012,
+          "macro_f1": 0.9012,
+          "precision": 0.9926,
+          "recall": 0.81,
+          "ci_lower": 0.9125,
+          "ci_upper": 0.9369,
+          "n_samples": 2000
+        },
+        "Q3": {
+          "roc_auc": 0.998,
+          "optimal_threshold": 0.999,
+          "accuracy": 0.9745,
+          "f1": 0.9745,
+          "macro_f1": 0.9745,
+          "precision": 0.9769,
+          "recall": 0.972,
+          "ci_lower": 0.9971,
+          "ci_upper": 0.9987,
+          "n_samples": 2000
+        },
+        "Q4": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.9997,
+          "accuracy": 0.9995,
+          "f1": 0.9995,
+          "macro_f1": 0.9995,
+          "precision": 0.999,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 2000
+        }
+      },
+      "degradation": {
+        "delta_auc_generator": 0.0744,
+        "delta_auc_domain": 0.0017,
+        "delta_auc_wild": -0.0003,
+        "q1_auc": 0.9997,
+        "q2_auc": 0.9253,
+        "q3_auc": 0.998,
+        "q4_auc": 1.0
+      },
+      "gate_dynamics": {
+        "mean_gate_by_domain": {
+          "consumer_reviews": 0.5194,
+          "news": 0.5232,
+          "wikipedia": 0.5222
+        },
+        "mean_gate_by_quadrant": {
+          "human_consumer_reviews": 0.5196,
+          "Q1": 0.5189,
+          "Q2": 0.5197,
+          "human_news": 0.5213,
+          "Q3": 0.5239,
+          "Q4": 0.5248,
+          "human_wikipedia": 0.5176
+        },
+        "delta_gate_news": 0.0038,
+        "delta_gate_wiki": 0.0028,
+        "delta_gate_wikipedia": 0.0028,
+        "sample_counts_by_domain": {
+          "consumer_reviews": 3000,
+          "news": 1500,
+          "wikipedia": 1500
+        }
+      },
+      "domains": {
+        "consumer_reviews": {
+          "roc_auc": 0.9625,
+          "optimal_threshold": 0.9975,
+          "accuracy": 0.9347,
+          "f1": 0.9294,
+          "macro_f1": 0.9294,
+          "precision": 0.9967,
+          "recall": 0.905,
+          "ci_lower": 0.9562,
+          "ci_upper": 0.968,
+          "n_samples": 3000
+        },
+        "news": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.9997,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 1500
+        },
+        "wikipedia": {
+          "roc_auc": 1.0,
+          "optimal_threshold": 0.997,
+          "accuracy": 1.0,
+          "f1": 1.0,
+          "macro_f1": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "ci_lower": 1.0,
+          "ci_upper": 1.0,
+          "n_samples": 1500
+        }
+      },
+      "total_samples": 6000
+    }
+  }
+}
