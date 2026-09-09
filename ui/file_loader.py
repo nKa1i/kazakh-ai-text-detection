@@ -8,6 +8,7 @@ Supports .txt, .docx, and .pdf formats with:
 """
 
 import os
+import re
 from typing import Any, Optional, Tuple
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -153,10 +154,15 @@ def load_document_file(
     if err is not None:
         return "", err
 
-    # Word limit capping (prevent memory bombs)
-    words = text.split()
-    if len(words) > MAX_WORD_LIMIT:
-        truncated_text = " ".join(words[:MAX_WORD_LIMIT])
-        return truncated_text, TRUNCATION_WARNING
+    # Word limit capping (prevent memory bombs while preserving original formatting)
+    match_count = 0
+    end_offset = None
+    for m in re.finditer(r"\S+", text):
+        match_count += 1
+        if match_count == MAX_WORD_LIMIT:
+            end_offset = m.end()
+        elif match_count > MAX_WORD_LIMIT:
+            truncated_text = text[:end_offset]
+            return truncated_text, TRUNCATION_WARNING
 
     return text, None

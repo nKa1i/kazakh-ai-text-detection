@@ -2,8 +2,17 @@ import os
 import tempfile
 import unittest
 from unittest.mock import patch
-import docx
-from pypdf import PdfWriter
+try:
+    import docx
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+
+try:
+    from pypdf import PdfWriter
+    HAS_PYPDF = True
+except ImportError:
+    HAS_PYPDF = False
 
 from ui.file_loader import load_document_file
 
@@ -42,6 +51,34 @@ class TestUiFileLoader(unittest.TestCase):
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
+
+    def test_load_txt_latin1_fallback(self):
+        """Loads text encoded in Latin-1 cleanly without error."""
+        # Standard latin-1 content (Café au lait)
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False, mode="wb") as f:
+            f.write(b"Caf\xe9 au lait")
+            tmp_path = f.name
+        try:
+            text, err = load_document_file(tmp_path)
+            self.assertIsNone(err)
+            self.assertTrue(len(text) > 0)
+            self.assertIn("Caf", text)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+        # Byte 0x98 is undefined in CP1251 and invalid in UTF-8, forcing fallback to Latin-1
+        sample_bytes = b"Caf\xe9 \x98"
+        with tempfile.NamedTemporaryFile(suffix=".txt", delete=False, mode="wb") as f:
+            f.write(sample_bytes)
+            tmp_path2 = f.name
+        try:
+            text, err = load_document_file(tmp_path2)
+            self.assertIsNone(err)
+            self.assertEqual(text, sample_bytes.decode("latin-1"))
+        finally:
+            if os.path.exists(tmp_path2):
+                os.remove(tmp_path2)
 
     def test_file_size_limit(self):
         """Rejects files larger than 10MB without loading into memory."""
@@ -104,9 +141,10 @@ class TestUiFileLoader(unittest.TestCase):
                 os.remove(tmp_path)
 
     def test_word_limit_capping(self):
-        """Safely truncates documents exceeding 25,000 words."""
-        # 26,000 words
-        long_content = " ".join(["сөз"] * 26000)
+        """Safely truncates documents exceeding 25,000 words while preserving paragraph structure."""
+        # 26,000 words across multiple paragraphs
+        paragraphs = ["Параграф " + "сөз " * 499 for _ in range(52)]
+        long_content = "\n\n".join(paragraphs)
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False, mode="w", encoding="utf-8") as f:
             f.write(long_content)
             tmp_path = f.name
@@ -116,6 +154,8 @@ class TestUiFileLoader(unittest.TestCase):
             self.assertIn("25 000", err)
             words = text.split()
             self.assertEqual(len(words), 25000)
+            self.assertIn("\n\n", text)
+            self.assertTrue(text.startswith("Параграф сөз"))
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -134,6 +174,7 @@ class TestUiFileLoader(unittest.TestCase):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    @unittest.skipUnless(HAS_DOCX, "python-docx not installed")
     def test_load_docx_file(self):
         """Creates and cleanly reads a .docx document."""
         doc = docx.Document()
@@ -151,6 +192,7 @@ class TestUiFileLoader(unittest.TestCase):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    @unittest.skipUnless(HAS_PYPDF, "pypdf not installed")
     def test_load_pdf_file(self):
         """Creates and cleanly reads a PDF document."""
         writer = PdfWriter()
