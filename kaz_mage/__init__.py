@@ -2,6 +2,7 @@ from .data import KazMageSample, load_mage_dataset, filter_quadrant, get_quadran
 from .sampler import DomainStratifiedBatchSampler
 from .document import DocumentChunk, DocumentAnalysisResult
 from .chunker import SentencePreservingChunker
+from .aggregator import DocumentAggregator
 
 __all__ = [
     "KazMageSample",
@@ -12,5 +13,6 @@ __all__ = [
     "DocumentChunk",
     "DocumentAnalysisResult",
     "SentencePreservingChunker",
+    "DocumentAggregator",
 ]
 
