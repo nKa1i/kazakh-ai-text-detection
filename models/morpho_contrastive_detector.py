@@ -139,7 +139,7 @@ class MorphemeEncoder(_BaseModule):
             return _DummyTensor((batch_size, self.embed_dim))
 
         seq_len = morpheme_ids.shape[1]
-        pos = torch.arange(seq_len, device=morpheme_ids.device).unsqueeze(0).clamp(max=511)
+        pos = torch.arange(seq_len, device=morpheme_ids.device).unsqueeze(0).clamp(max=self.max_pos - 1)
         emb = self.embedding(morpheme_ids) + self.pos_embedding(pos)
         if attention_mask is not None:
             src_key_padding_mask = (attention_mask == 0)
@@ -413,7 +413,7 @@ class MorphoContrastiveDetector(_BaseModule):
             morpheme_tokenizer = MorphemeTokenizer()
 
         enc = tokenizer(text, return_tensors="pt", truncation=True, max_length=256).to(device)
-        morph_tensor = morpheme_tokenizer.batch_encode([text], max_length=64).to(device)
+        morph_tensor = morpheme_tokenizer.batch_encode([text], max_length=256).to(device)
 
         with torch.no_grad():
             out = self.forward(
