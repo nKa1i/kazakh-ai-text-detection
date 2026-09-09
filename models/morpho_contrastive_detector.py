@@ -30,9 +30,10 @@ except ImportError:
     HAS_TRANSFORMERS = False
 
 try:
-    from .losses import SupConLoss
+    from .losses import InvarianceLoss, SupConLoss
 except ImportError:
-    from models.losses import SupConLoss
+    from models.losses import InvarianceLoss, SupConLoss
+
 
 
 class _DummyLoss:
@@ -176,6 +177,7 @@ class MorphoContrastiveDetector(_BaseModule):
         embed_dim: int = 768,
         proj_dim: int = 128,
         lambda_supcon: float = 0.5,
+        lambda_inv: float = 0.5,
         temperature: float = 0.07,
         dropout_rate: float = 0.2,
         roberta_model=None
@@ -187,6 +189,7 @@ class MorphoContrastiveDetector(_BaseModule):
         self.embed_dim = int(embed_dim)
         self.proj_dim = int(proj_dim)
         self.lambda_supcon = float(lambda_supcon)
+        self.lambda_inv = float(lambda_inv)
         self.temperature = float(temperature)
         self.dropout_rate = float(dropout_rate)
 
@@ -220,6 +223,7 @@ class MorphoContrastiveDetector(_BaseModule):
             )
 
             self.supcon_loss_fn = SupConLoss(temperature=self.temperature)
+            self.inv_loss_fn = InvarianceLoss()
             self.ce_loss_fn = nn.CrossEntropyLoss()
         else:
             self.roberta = None
@@ -231,6 +235,7 @@ class MorphoContrastiveDetector(_BaseModule):
             self.classifier = None
             self.projection_head = None
             self.supcon_loss_fn = SupConLoss(temperature=self.temperature)
+            self.inv_loss_fn = InvarianceLoss()
             self.ce_loss_fn = None
 
     def forward(
@@ -238,7 +243,10 @@ class MorphoContrastiveDetector(_BaseModule):
         input_ids=None,
         attention_mask=None,
         morpheme_ids=None,
-        labels=None
+        labels=None,
+        adv_input_ids=None,
+        adv_attention_mask=None,
+        adv_morpheme_ids=None
     ) -> dict:
         """
         Forward pass computing dual representations, gated fusion, logits, projection, and loss.
@@ -248,6 +256,9 @@ class MorphoContrastiveDetector(_BaseModule):
             attention_mask (Tensor, optional): [B, L_text] attention mask.
             morpheme_ids (Tensor): [B, L_morph] FST morpheme token IDs.
             labels (Tensor, optional): [B] Ground truth binary labels (0=human, 1=ai).
+            adv_input_ids (Tensor, optional): [B, L_adv] Perturbed KazRoBERTa token IDs.
+            adv_attention_mask (Tensor, optional): [B, L_adv] Perturbed attention mask.
+            adv_morpheme_ids (Tensor, optional): [B, L_adv_morph] Perturbed FST morpheme token IDs.
 
         Returns:
             dict containing:
@@ -255,9 +266,13 @@ class MorphoContrastiveDetector(_BaseModule):
                 "proj": [B, proj_dim] L2-normalized projection representation
                 "gate": [B, embed_dim] semantic gate activation weights
                 "h_fused": [B, embed_dim] fused latent representation
-                "loss": (optional) combined CE + SupCon loss
+                "loss": (optional) combined CE + SupCon + Inv loss
                 "ce_loss": (optional) cross-entropy loss
                 "supcon_loss": (optional) supervised contrastive loss
+                "inv_loss": (optional) adversarial invariance loss
+                "proj_adv": (optional) perturbed projection representation
+                "gate_adv": (optional) perturbed gate activation weights
+                "gate_diff": (optional) gate activation shift (gate_adv - gate)
         """
         if not HAS_TORCH:
             batch_size = len(input_ids) if hasattr(input_ids, "__len__") else 1
@@ -272,6 +287,11 @@ class MorphoContrastiveDetector(_BaseModule):
                 "gate": gate,
                 "h_fused": h_fused
             }
+            if adv_input_ids is not None:
+                res["proj_adv"] = _DummyTensor((batch_size, self.proj_dim))
+                res["gate_adv"] = _DummyTensor((batch_size, self.embed_dim), fill_val=0.5)
+                res["gate_diff"] = _DummyTensor((batch_size, self.embed_dim), fill_val=0.0)
+                res["inv_loss"] = _DummyLoss(0.0)
             if labels is not None:
                 res["loss"] = _DummyLoss(0.0)
                 res["ce_loss"] = _DummyLoss(0.0)
@@ -315,13 +335,51 @@ class MorphoContrastiveDetector(_BaseModule):
         }
 
         # Multi-Task Loss Computation
+        total_loss = None
         if labels is not None:
             ce_loss = self.ce_loss_fn(logits, labels)
             supcon_loss = self.supcon_loss_fn(proj, labels)
             total_loss = ce_loss + self.lambda_supcon * supcon_loss
-            result["loss"] = total_loss
             result["ce_loss"] = ce_loss
             result["supcon_loss"] = supcon_loss
+
+        # Adversarial Stream & Invariance Loss
+        if adv_input_ids is not None and adv_morpheme_ids is not None:
+            if adv_attention_mask is None:
+                adv_attention_mask = (adv_input_ids != 0).long()
+            adv_roberta_out = self.roberta(input_ids=adv_input_ids, attention_mask=adv_attention_mask)
+            if hasattr(adv_roberta_out, "last_hidden_state"):
+                h_sem_adv = adv_roberta_out.last_hidden_state[:, 0, :]
+            elif isinstance(adv_roberta_out, (tuple, list)):
+                h_sem_adv = adv_roberta_out[0][:, 0, :]
+            else:
+                h_sem_adv = adv_roberta_out[:, 0, :]
+
+            if hasattr(adv_morpheme_ids, "ne"):
+                pad_id = getattr(self.morph_encoder, "pad_token_id", 0)
+                adv_morph_mask = adv_morpheme_ids.ne(pad_id).long()
+            else:
+                adv_morph_mask = None
+            h_morph_adv = self.morph_encoder(adv_morpheme_ids, attention_mask=adv_morph_mask)
+
+            combined_adv = torch.cat([h_sem_adv, h_morph_adv], dim=-1)
+            gate_adv = torch.sigmoid(self.gate_fc(combined_adv))
+            h_fused_adv = gate_adv * h_sem_adv + (1.0 - gate_adv) * h_morph_adv
+            proj_adv = F.normalize(self.projection_head(h_fused_adv), p=2, dim=-1)
+
+            inv_loss = self.inv_loss_fn(proj, proj_adv)
+            gate_diff = gate_adv - gate
+
+            result["proj_adv"] = proj_adv
+            result["gate_adv"] = gate_adv
+            result["gate_diff"] = gate_diff
+            result["inv_loss"] = inv_loss
+
+            if total_loss is not None:
+                total_loss = total_loss + self.lambda_inv * inv_loss
+
+        if total_loss is not None:
+            result["loss"] = total_loss
 
         return result
 
