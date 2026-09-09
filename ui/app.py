@@ -18,6 +18,11 @@ import re
 import argparse
 from typing import List, Dict, Any, Optional, Tuple, Union
 
+# Ensure project root is in sys.path for direct CLI script execution
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 import gradio as gr
 
 from kaz_mage.chunker import SentencePreservingChunker

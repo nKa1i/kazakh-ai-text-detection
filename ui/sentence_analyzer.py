@@ -10,8 +10,15 @@ grammatical affixes (cases, plurals, possessives, verbal tenses, and personal ag
 using the AdvancedKazakhFSTAnalyzer.
 """
 
+import os
+import sys
 from typing import List, Dict, Any, Optional, Union, Tuple
 import re
+
+# Ensure project root is in sys.path for direct CLI script execution
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 from kaz_mage.chunker import SentencePreservingChunker
 from kaz_mage.document import DocumentAnalysisResult, DocumentChunk
