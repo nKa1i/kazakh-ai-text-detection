@@ -111,7 +111,7 @@ class MorphemeTokenizer:
         tokens = self.tokenize_text(text)
         return [self.vocab.get(t, self.unk_token_id) for t in tokens]
 
-    def batch_encode(self, texts: list[str], max_length: int = 64):
+    def batch_encode(self, texts: list[str], max_length: int = 256):
         try:
             import torch
             has_torch = True
