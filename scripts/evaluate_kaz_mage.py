@@ -26,6 +26,7 @@ in environments where NumPy, SciPy, or Scikit-Learn are not installed.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
 import os
@@ -124,6 +125,7 @@ def _compute_roc_and_youden_pure(
     j_scores = [t - f for t, f in zip(tprs, fprs)]
     best_idx = max(range(len(j_scores)), key=lambda i: j_scores[i])
     optimal_threshold = thresholds[best_idx]
+    optimal_threshold = min(1.0, optimal_threshold)
 
     # Equal Error Rate (EER)
     eer_idx = min(range(len(fprs)), key=lambda i: abs(fprs[i] - (1.0 - tprs[i])))
@@ -561,7 +563,8 @@ def evaluate_quadrant_matrix(
         "degradation": degradation,
         "gate_dynamics": gate_dynamics,
         "domains": domain_results,
-        "total_samples": len(records)
+        "total_samples": len(records),
+        "records": records
     }
 
 
@@ -596,13 +599,19 @@ def evaluate_kaz_mage_matrix(
     if dataset and isinstance(dataset[0], dict) and ("y_prob" in dataset[0] or "prob" in dataset[0]):
         return evaluate_quadrant_matrix(list(dataset), bootstrap_ci=bootstrap_ci, n_bootstrap=n_bootstrap)
 
-    if not HAS_TORCH or model is None:
-        raise RuntimeError("PyTorch is required for model inference in evaluate_kaz_mage_matrix.")
+    if model is None:
+        raise ValueError("A model or mock model instance must be provided to evaluate_kaz_mage_matrix.")
 
-    if hasattr(model, "eval"):
+    if hasattr(model, "eval") and callable(model.eval):
         model.eval()
-    if hasattr(model, "to"):
+    if hasattr(model, "to") and callable(model.to):
         model.to(device)
+
+    _no_grad_ctx = (
+        torch.no_grad
+        if (HAS_TORCH and torch is not None and hasattr(torch, "no_grad"))
+        else contextlib.nullcontext
+    )
 
     for sample in dataset:
         text = str(_get_field(sample, "text", ""))
@@ -613,11 +622,31 @@ def evaluate_kaz_mage_matrix(
         prob = 0.5
         gate_val = None
 
-        with torch.no_grad():
+        with _no_grad_ctx():
+            predict_fn = None
             if hasattr(model, "predict_text") and callable(model.predict_text):
-                res = model.predict_text(text)
-                prob = float(res.get("ai_probability", 0.5))
-                gate_val = res.get("gate_value", None)
+                predict_fn = model.predict_text
+            elif hasattr(model, "predict") and callable(model.predict) and (
+                (tokenizer is None and morpheme_tok is None) or not hasattr(model, "forward")
+            ):
+                predict_fn = model.predict
+
+            if predict_fn is not None:
+                res = predict_fn(text)
+                if isinstance(res, dict):
+                    raw_p = res.get("ai_probability", res.get("probability", 0.5))
+                    prob = float(raw_p.item()) if hasattr(raw_p, "item") else float(raw_p)
+                    raw_g = res.get("gate_value", res.get("gate_semantic_weight", None))
+                    if raw_g is not None:
+                        if hasattr(raw_g, "mean"):
+                            mean_g = raw_g.mean()
+                            if hasattr(mean_g, "cpu"):
+                                mean_g = mean_g.cpu()
+                            gate_val = float(mean_g.item()) if hasattr(mean_g, "item") else float(mean_g)
+                        else:
+                            gate_val = float(raw_g)
+                else:
+                    prob = float(res.item()) if hasattr(res, "item") else float(res)
             else:
                 # Direct PyTorch forward execution
                 inputs = {}
@@ -632,22 +661,55 @@ def evaluate_kaz_mage_matrix(
                     inputs["morpheme_ids"] = morph_ids
 
                 out = model(**inputs) if inputs else model(text)
-                if hasattr(out, "logits"):
+                if isinstance(out, dict):
+                    logits = out["logits"]
+                    if "gate" in out and out["gate"] is not None:
+                        g = out["gate"]
+                        gate_val = float(g.mean().cpu().item()) if hasattr(g, "mean") else float(g)
+                    elif "gate_value" in out and out["gate_value"] is not None:
+                        g = out["gate_value"]
+                        gate_val = float(g.mean().cpu().item()) if hasattr(g, "mean") else float(g)
+                    elif "gate_semantic_weight" in out and out["gate_semantic_weight"] is not None:
+                        g = out["gate_semantic_weight"]
+                        gate_val = float(g.mean().cpu().item()) if hasattr(g, "mean") else float(g)
+                elif hasattr(out, "logits"):
                     logits = out.logits
+                    if hasattr(out, "gate") and out.gate is not None:
+                        g = out.gate
+                        gate_val = float(g.mean().cpu().item()) if hasattr(g, "mean") else float(g)
                 elif isinstance(out, (tuple, list)):
                     logits = out[0]
                     if len(out) > 1 and out[1] is not None:
                         gate_val = float(out[1].mean().cpu().item()) if hasattr(out[1], "mean") else float(out[1])
-                elif hasattr(out, "gate"):
-                    logits = out.logits
-                    gate_val = float(out.gate.mean().cpu().item())
                 else:
                     logits = out
 
-                if logits.shape[-1] == 2:
-                    prob = float(torch.softmax(logits, dim=-1)[:, 1].cpu().item())
+                if HAS_TORCH and torch is not None:
+                    if hasattr(logits, "shape") and logits.shape[-1] == 2:
+                        probs_t = torch.softmax(logits, dim=-1)
+                        prob = float((probs_t[..., 1] if probs_t.ndim > 1 else probs_t[1]).cpu().item())
+                    else:
+                        prob = float(torch.sigmoid(logits).squeeze().cpu().item())
                 else:
-                    prob = float(torch.sigmoid(logits).squeeze().cpu().item())
+                    # Pure Python fallback for mock objects / environments without PyTorch
+                    if hasattr(logits, "tolist"):
+                        l_vals = logits.tolist()
+                    elif isinstance(logits, (list, tuple)):
+                        l_vals = list(logits)
+                    else:
+                        l_vals = getattr(logits, "data", [0.0, 1.0])
+
+                    while isinstance(l_vals, list) and l_vals and isinstance(l_vals[0], list):
+                        l_vals = l_vals[0]
+
+                    if len(l_vals) == 2:
+                        m = max(float(l_vals[0]), float(l_vals[1]))
+                        e0 = math.exp(float(l_vals[0]) - m)
+                        e1 = math.exp(float(l_vals[1]) - m)
+                        prob = float(e1 / (e0 + e1))
+                    else:
+                        v = float(l_vals[0]) if l_vals else 0.0
+                        prob = float(1.0 / (1.0 + math.exp(-v)))
 
         records.append({
             "quadrant": quad,

@@ -6,7 +6,9 @@ from scripts.evaluate_kaz_mage import (
     compute_mage_metrics,
     calculate_domain_degradation,
     evaluate_quadrant_matrix,
+    evaluate_kaz_mage_matrix,
     generate_mage_markdown_report,
+    _compute_roc_and_youden_pure,
     main as cli_main
 )
 
@@ -157,6 +159,132 @@ class TestEvaluateKazMage(unittest.TestCase):
                 self.assertIn("Kaz-MAGE Benchmark Evaluation", md_text)
             finally:
                 sys.argv = orig_argv
+
+    def test_evaluate_kaz_mage_matrix_mock_model(self):
+        try:
+            import torch
+            def make_logits():
+                return torch.tensor([[0.2, 0.8]])
+            def make_gate():
+                return torch.tensor([0.65])
+        except ImportError:
+            class MockTensor:
+                def __init__(self, data):
+                    self.data = data
+                    if isinstance(data, list):
+                        if data and isinstance(data[0], list):
+                            self.shape = (len(data), len(data[0]))
+                            self.ndim = 2
+                        else:
+                            self.shape = (len(data),)
+                            self.ndim = 1
+                    else:
+                        self.shape = ()
+                        self.ndim = 0
+
+                def mean(self):
+                    return self
+
+                def cpu(self):
+                    return self
+
+                def item(self):
+                    if isinstance(self.data, list):
+                        if isinstance(self.data[0], list):
+                            return self.data[0][-1]
+                        return self.data[-1]
+                    return self.data
+
+                def tolist(self):
+                    return self.data
+
+                def __float__(self):
+                    return float(self.item())
+
+            def make_logits():
+                return MockTensor([[0.2, 0.8]])
+            def make_gate():
+                return MockTensor([0.65])
+
+        class MockDetector:
+            def eval(self):
+                pass
+            def to(self, device):
+                return self
+            def __call__(self, *args, **kwargs):
+                return {
+                    "logits": make_logits(),
+                    "gate": make_gate()
+                }
+
+        mock_model = MockDetector()
+        dataset = [
+            {"text": "Сәлем әлем", "label": 1, "quadrant": "Q1", "domain": "consumer_reviews"},
+            {"text": "Жақсы тауар", "label": 0, "quadrant": "Q1", "domain": "consumer_reviews"},
+        ]
+
+        results = evaluate_kaz_mage_matrix(
+            model=mock_model,
+            dataset=dataset,
+            bootstrap_ci=False
+        )
+
+        self.assertIn("records", results)
+        records = results["records"]
+        self.assertEqual(len(records), 2)
+
+        # Expected softmax probability for [0.2, 0.8]
+        import math
+        expected_prob = math.exp(0.8) / (math.exp(0.2) + math.exp(0.8))
+
+        rec0 = records[0]
+        self.assertEqual(rec0["quadrant"], "Q1")
+        self.assertEqual(rec0["y_true"], 1)
+        self.assertAlmostEqual(rec0["y_prob"], expected_prob, places=3)
+        self.assertAlmostEqual(rec0["gate"], 0.65, places=3)
+
+        rec1 = records[1]
+        self.assertEqual(rec1["quadrant"], "Q1")
+        self.assertEqual(rec1["y_true"], 0)
+        self.assertAlmostEqual(rec1["y_prob"], expected_prob, places=3)
+        self.assertAlmostEqual(rec1["gate"], 0.65, places=3)
+
+        # Gate dynamics verification
+        self.assertIn("gate_dynamics", results)
+        self.assertAlmostEqual(results["gate_dynamics"]["mean_gate_by_quadrant"]["Q1"], 0.65, places=3)
+        self.assertAlmostEqual(results["gate_dynamics"]["mean_gate_by_domain"]["consumer_reviews"], 0.65, places=3)
+
+    def test_evaluate_kaz_mage_matrix_predict_conventions(self):
+        class ModelWithPredict:
+            def predict(self, text):
+                return {
+                    "probability": 0.75,
+                    "gate_semantic_weight": 0.60
+                }
+
+        dataset = [
+            {"text": "Сынақ мәтіні", "label": 1, "quadrant": "Q1", "domain": "consumer_reviews"},
+            {"text": "Адам мәтіні", "label": 0, "quadrant": "Q1", "domain": "consumer_reviews"}
+        ]
+        res1 = evaluate_kaz_mage_matrix(model=ModelWithPredict(), dataset=dataset, bootstrap_ci=False)
+        self.assertAlmostEqual(res1["records"][0]["y_prob"], 0.75, places=3)
+        self.assertAlmostEqual(res1["records"][0]["gate"], 0.60, places=3)
+
+        class ModelWithPredictText:
+            def predict_text(self, text):
+                return {
+                    "ai_probability": 0.85,
+                    "gate_value": 0.70
+                }
+
+        res2 = evaluate_kaz_mage_matrix(model=ModelWithPredictText(), dataset=dataset, bootstrap_ci=False)
+        self.assertAlmostEqual(res2["records"][0]["y_prob"], 0.85, places=3)
+        self.assertAlmostEqual(res2["records"][0]["gate"], 0.70, places=3)
+
+    def test_youden_threshold_capped_at_one(self):
+        # Even if optimal index selects threshold > 1.0, it must be capped at 1.0
+        auc, thresh, eer = _compute_roc_and_youden_pure([0, 1], [0.5, 0.9])
+        self.assertLessEqual(thresh, 1.0)
 
 if __name__ == "__main__":
     unittest.main()
