@@ -80,6 +80,40 @@ def load_records(data_source: Union[str, List[Dict[str, Any]]]) -> List[Dict[str
         raise TypeError(f"Unsupported data source type: {type(data_source)}")
 
 
+class _DummyBackbone(nn.Module if HAS_TORCH else object):  # type: ignore[misc]
+    """
+    Dummy backbone used in fast dry-run mode and local unit testing.
+    Emulates RoBERTa hidden representations without downloading large checkpoints.
+    """
+
+    def __init__(self, hidden_size: int = 768) -> None:
+        if HAS_TORCH:
+            super().__init__()
+            self.linear = nn.Linear(hidden_size, hidden_size)
+
+    def forward(self, input_ids: Any = None, attention_mask: Any = None, **kwargs: Any) -> Any:
+        if not HAS_TORCH:
+            return None
+        b = (
+            input_ids.shape[0]
+            if input_ids is not None and hasattr(input_ids, "shape")
+            else (
+                kwargs.get("morpheme_ids").shape[0]
+                if "morpheme_ids" in kwargs and hasattr(kwargs["morpheme_ids"], "shape")
+                else 1
+            )
+        )
+        s = input_ids.shape[1] if input_ids is not None and hasattr(input_ids, "shape") and len(input_ids.shape) > 1 else 1
+        device = self.linear.weight.device if hasattr(self, "linear") and hasattr(self.linear, "weight") else "cpu"
+        lhs = self.linear(torch.zeros(b, s, 768, device=device))
+
+        class _BackboneOut:
+            def __init__(self, state: Any) -> None:
+                self.last_hidden_state = state
+
+        return _BackboneOut(lhs)
+
+
 # =============================================================================
 # 1. Multi-Domain Dataset
 # =============================================================================
@@ -345,8 +379,14 @@ def evaluate_validation(
         # Assume it is already a DataLoader
         dataloader = val_data
 
-    # Defensive pure-Python fallback when PyTorch is not available
-    if not HAS_TORCH or model is None or dataloader is None and records is not None and not hasattr(model, "eval"):
+    # Defensive fallback when PyTorch is not available, model is missing/invalid,
+    # or tokenizer & dataloader are None (e.g. fast dry-run validation simulation)
+    if (
+        (tokenizer is None and dataloader is None)
+        or not HAS_TORCH
+        or model is None
+        or not hasattr(model, "eval")
+    ):
         y_true = [int(r.get("label", 0)) for r in records] if records else [0, 1]
         # In dry-run fallback, assign high-confidence pseudo-probabilities
         y_prob = [0.85 if y == 1 else 0.15 for y in y_true]
@@ -386,6 +426,9 @@ def evaluate_validation(
         device = next(model.parameters()).device
     elif device is None:
         device = "cpu"
+
+    if HAS_TORCH and hasattr(model, "to") and device is not None:
+        model = model.to(device)
 
     all_y_true: List[int] = []
     all_y_prob: List[float] = []
@@ -461,6 +504,10 @@ def run_multi_domain_training(
     train_data: Optional[str] = None,
     eval_data: Optional[str] = None,
     model_name: str = "kz-transformers/kaz-roberta-conversational",
+    model: Optional[Any] = None,
+    tokenizer: Optional[Any] = None,
+    morpheme_tok: Optional[MorphemeTokenizer] = None,
+    device: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Main driver for multi-domain contrastive training.
@@ -482,52 +529,46 @@ def run_multi_domain_training(
     if effective_eval_path:
         eval_records = load_records(effective_eval_path)
 
-    morpheme_tokenizer = MorphemeTokenizer()
-    tokenizer: Optional[Any] = None
+    morpheme_tokenizer = morpheme_tok or MorphemeTokenizer()
 
     # 2. Setup Model & Tokenizer
-    if dry_run:
-        if HAS_TORCH:
-            class _DummyBackbone(nn.Module):
-                def __init__(self, hidden_size: int = 768) -> None:
-                    super().__init__()
-                    self.linear = nn.Linear(hidden_size, hidden_size)
-
-                def forward(self, input_ids: Any, attention_mask: Any = None) -> Any:
-                    b = input_ids.shape[0] if hasattr(input_ids, "shape") else 1
-                    s = input_ids.shape[1] if hasattr(input_ids, "shape") and len(input_ids.shape) > 1 else 1
-                    lhs = self.linear(torch.zeros(b, s, 768))
-
-                    class _BackboneOut:
-                        def __init__(self, state: Any) -> None:
-                            self.last_hidden_state = state
-
-                    return _BackboneOut(lhs)
-
-            model = MorphoContrastiveDetector(
-                roberta_model=_DummyBackbone(768),
-                morpheme_vocab_size=len(morpheme_tokenizer.vocab) + 10,
-                embed_dim=768,
-                proj_dim=128,
-                lambda_supcon=lambda_supcon,
-            )
+    if model is None:
+        if dry_run:
+            if HAS_TORCH:
+                model = MorphoContrastiveDetector(
+                    roberta_model=_DummyBackbone(768),
+                    morpheme_vocab_size=len(morpheme_tokenizer.vocab) + 10,
+                    embed_dim=768,
+                    proj_dim=128,
+                    lambda_supcon=lambda_supcon,
+                )
+            else:
+                model = MorphoContrastiveDetector(
+                    morpheme_vocab_size=len(morpheme_tokenizer.vocab) + 10,
+                    embed_dim=768,
+                    proj_dim=128,
+                    lambda_supcon=lambda_supcon,
+                )
         else:
+            if tokenizer is None and HAS_TRANSFORMERS:
+                tokenizer = AutoTokenizer.from_pretrained(model_name)
             model = MorphoContrastiveDetector(
+                roberta_model_name=model_name,
                 morpheme_vocab_size=len(morpheme_tokenizer.vocab) + 10,
                 embed_dim=768,
                 proj_dim=128,
                 lambda_supcon=lambda_supcon,
             )
-    else:
-        if HAS_TRANSFORMERS:
+    elif tokenizer is None and not dry_run and HAS_TRANSFORMERS:
+        try:
             tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = MorphoContrastiveDetector(
-            roberta_model_name=model_name,
-            morpheme_vocab_size=len(morpheme_tokenizer.vocab) + 10,
-            embed_dim=768,
-            proj_dim=128,
-            lambda_supcon=lambda_supcon,
-        )
+        except Exception:
+            tokenizer = None
+
+    # GPU Device Handling (Finding 2)
+    device = device or ("cuda" if HAS_TORCH and torch.cuda.is_available() else "cpu")
+    if HAS_TORCH and hasattr(model, "to"):
+        model = model.to(device)
 
     # 3. Setup Optimizer
     optimizer = None
@@ -575,7 +616,21 @@ def run_multi_domain_training(
             collate_fn=collator,
         )
 
-    # 5. Training Loop
+    # 5. Wire Linear Warmup Scheduler (Finding 4)
+    if not dry_run and HAS_TRANSFORMERS and optimizer is not None and get_linear_schedule_with_warmup is not None:
+        total_batches = (
+            len(train_loader)
+            if train_loader is not None and hasattr(train_loader, "__len__")
+            else max(1, len(train_records) // max(1, batch_size))
+        )
+        total_steps = int(epochs * total_batches)
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=int(0.1 * total_steps),
+            num_training_steps=total_steps,
+        )
+
+    # 6. Training Loop
     num_epochs = 1 if dry_run else int(epochs)
     epoch_results = []
 
@@ -588,6 +643,7 @@ def run_multi_domain_training(
             dataloader=train_loader,
             optimizer=optimizer,
             scheduler=scheduler,
+            device=device,
             lambda_supcon=lambda_supcon,
         )
         epoch_record = {"epoch": epoch, **metrics}
@@ -595,13 +651,14 @@ def run_multi_domain_training(
 
     last_epoch_loss = epoch_results[-1]["loss"] if epoch_results else 0.3500
 
-    # 6. Validation Evaluation
+    # 7. Validation Evaluation
     if eval_records is not None:
         eval_metrics = evaluate_validation(
             model=model,
             val_data=eval_records,
             tokenizer=tokenizer,
             morpheme_tokenizer=morpheme_tokenizer,
+            device=device,
             batch_size=batch_size,
             max_length=max_length,
             max_morph_length=max_morph_length,
@@ -615,7 +672,7 @@ def run_multi_domain_training(
 
     eval_auc = eval_metrics.get("roc_auc", 0.9500)
 
-    # 7. Package Summary Results
+    # 8. Package Summary Results
     results: Dict[str, Any] = {
         "train_loss": float(last_epoch_loss),
         "eval_auc": float(eval_auc),
@@ -635,6 +692,7 @@ def run_multi_domain_training(
             "seed": seed,
             "max_length": max_length,
             "max_morph_length": max_morph_length,
+            "device": str(device),
         },
         "output_dir": output_dir,
     }
@@ -660,6 +718,7 @@ def train_multi_domain(
     output_dir: str = "output/multi_domain",
     eval_path: Optional[str] = None,
     seed: int = 42,
+    device: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Compatibility interface matching the specification plan."""
     return run_multi_domain_training(
@@ -673,6 +732,10 @@ def train_multi_domain(
         lambda_supcon=lambda_supcon,
         dry_run=dry_run,
         seed=seed,
+        model=model,
+        tokenizer=tokenizer,
+        morpheme_tok=morpheme_tok,
+        device=device,
     )
 
 
@@ -760,6 +823,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=64,
         help="Maximum morpheme sequence length (default: 64).",
     )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default=None,
+        help="Device to run training on (e.g., 'cuda', 'cpu'). Defaults to CUDA if available.",
+    )
     return parser
 
 
@@ -779,9 +848,11 @@ def main() -> None:
         seed=args.seed,
         max_length=args.max_length,
         max_morph_length=args.max_morph_length,
+        device=args.device,
     )
     print(f"Training completed successfully! Results: {results}")
 
 
 if __name__ == "__main__":
     main()
+
