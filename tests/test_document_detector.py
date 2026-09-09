@@ -23,7 +23,6 @@ class DummyMorphoModel:
     def __call__(self, input_ids, attention_mask, morpheme_ids=None):
         b = input_ids.shape[0] if hasattr(input_ids, "shape") else len(input_ids)
         if HAS_TORCH and torch is not None:
-            # Return mock logits: default human, if b > 1 make last chunk AI
             logits = torch.zeros((b, 2))
             logits[:, 0] = 3.0
             logits[:, 1] = -3.0
@@ -48,7 +47,7 @@ class TestDocumentDetector(unittest.TestCase):
             morpheme_tokenizer=None,
             calibrated_threshold=0.9980,
         )
-        long_text = "\u049a\u0430\u0437\u0430\u049b\u0441\u0442\u0430\u043d\u043d\u044b\u04a3 \u0446\u0438\u0444\u0440\u043b\u044b\u049b \u0434\u0430\u043c\u0443\u044b \u0436\u043e\u0493\u0430\u0440\u044b \u049b\u0430\u0440\u049b\u044b\u043d\u043c\u0435\u043d \u0436\u04af\u0440\u0456\u043f \u0436\u0430\u0442\u044b\u0440. " * 30
+        long_text = "Қазақстанның цифрлық дамуы жоғары қарқынмен жүріп жатыр. " * 30
         res = detector.predict_document(long_text, batch_size=2)
         self.assertIn(res.verdict, ["Authentic Human", "Partially AI / Hybrid", "Machine-Generated"])
         self.assertGreater(res.total_chunks, 1)
@@ -67,9 +66,105 @@ class TestDocumentDetector(unittest.TestCase):
         self.assertEqual(res_empty.verdict, "Authentic Human")
         self.assertEqual(res_empty.total_chunks, 0)
 
-        res_short = detector.predict_document("\u0411\u04b1\u043b \u049b\u044b\u0441\u049b\u0430 \u043f\u0456\u043a\u0456\u0440.")
+        res_short = detector.predict_document("Бұл қысқа пікір.")
         self.assertEqual(res_short.total_chunks, 1)
         self.assertEqual(res_short.verdict, "Authentic Human")
+
+    def test_hybrid_document_synthesis(self):
+        class TextAwareMockModel:
+            def __init__(self, target_marker):
+                self.target_marker = target_marker
+                self.current_texts = []
+
+            def eval(self):
+                pass
+
+            def to(self, dev):
+                return self
+
+            def set_current_texts(self, texts):
+                self.current_texts = texts
+
+            def __call__(self, input_ids, attention_mask, morpheme_ids=None):
+                b = input_ids.shape[0] if hasattr(input_ids, "shape") else len(input_ids)
+                if HAS_TORCH and torch is not None:
+                    logits = torch.zeros((b, 2))
+                    for idx in range(b):
+                        txt = self.current_texts[idx] if idx < len(self.current_texts) else ""
+                        if self.target_marker in txt:
+                            logits[idx, 0] = -5.0
+                            logits[idx, 1] = 5.0
+                        else:
+                            logits[idx, 0] = 4.0
+                            logits[idx, 1] = -4.0
+                    return {"logits": logits, "gate": torch.full((b, 768), 0.52)}
+                else:
+                    logits = []
+                    for idx in range(b):
+                        txt = self.current_texts[idx] if idx < len(self.current_texts) else ""
+                        if self.target_marker in txt:
+                            logits.append([-5.0, 5.0])
+                        else:
+                            logits.append([4.0, -4.0])
+                    gate = [[0.52] * 768 for _ in range(b)]
+                    return {"logits": logits, "gate": gate}
+
+        marker = "ЖАСАНДЫ_ИНТЕЛЛЕКТ_ИНЖЕКЦИЯСЫ"
+        mock_model = TextAwareMockModel(marker)
+        # Hook to capture chunk texts as they pass through detector
+        detector = DocumentDetector(
+            model=mock_model,
+            raw_tokenizer=None,
+            morpheme_tokenizer=None,
+            calibrated_threshold=0.9980,
+            max_words=20,
+            overlap_sentences=1
+        )
+
+        orig_predict = detector.predict_document
+        def text_aware_predict(text, top_k=2, batch_size=16):
+            chunks = detector.chunker.chunk_document(text)
+            mock_model.set_current_texts([c.text for c in chunks])
+            return orig_predict(text, top_k=top_k, batch_size=batch_size)
+
+        para1 = "Астана қаласында халықаралық форум өтті. Оған көптеген сарапшылар мен ғалымдар қатысты. Басты тақырып экономикалық ынтымақтастық болды.\n\n"
+        para2 = "Елімізде жаңа технологиялық паркер мен зертханалар ашылуда. Бұл жастарға үлкен мүмкіндік береді. Ғылым мен өндіріс байланысы күшеюде.\n\n"
+        para3_injected = f"Бұл абзац {marker} арқылы жасалған. Онда генеративті модель құрастырған арнайы синтетикалық мәліметтер бар.\n\n"
+        para4 = "Қорытындылай келе, алдағы жылдары цифрландыру саласында тың серпіліс болады деп күтілуде. Халықаралық рейтингтер де осыны растайды."
+
+        hybrid_doc = para1 + para2 + para3_injected + para4
+        res = text_aware_predict(hybrid_doc, batch_size=10)
+
+        self.assertEqual(res.verdict, "Partially AI / Hybrid")
+        self.assertIsNotNone(res.worst_chunk)
+        self.assertIn(marker, res.worst_chunk.text)
+        self.assertTrue(res.worst_chunk.is_ai)
+        self.assertGreater(res.worst_chunk.ai_probability, 0.9980)
+        self.assertEqual(hybrid_doc[res.worst_chunk.start_char : res.worst_chunk.end_char], res.worst_chunk.text)
+        self.assertGreater(res.ai_content_ratio, 0.0)
+        self.assertLess(res.ai_content_ratio, 0.70)
+
+    def test_unbatched_1d_logits_guard(self):
+        class Model1D:
+            def eval(self):
+                pass
+            def to(self, d):
+                return self
+            def __call__(self, input_ids, attention_mask, morpheme_ids=None):
+                if HAS_TORCH and torch is not None:
+                    return {"logits": torch.tensor([2.0, -2.0]), "gate": torch.full((1, 768), 0.52)}
+                else:
+                    return {"logits": [2.0, -2.0], "gate": [0.52] * 768}
+
+        detector = DocumentDetector(
+            model=Model1D(),
+            raw_tokenizer=None,
+            morpheme_tokenizer=None,
+            calibrated_threshold=0.9980
+        )
+        res = detector.predict_document("Қысқа мәтін сынағы.")
+        self.assertEqual(res.total_chunks, 1)
+        self.assertEqual(res.verdict, "Authentic Human")
 
 
 if __name__ == "__main__":

@@ -274,6 +274,8 @@ class DocumentDetector:
 
                 # 5. Compute ai_probability via softmax
                 if HAS_TORCH and torch is not None and isinstance(logits, torch.Tensor):
+                    if logits.ndim == 1:
+                        logits = logits.unsqueeze(0)
                     probs = torch.softmax(logits, dim=-1)
                     if probs.shape[-1] >= 2:
                         ai_probs = probs[:, 1].detach().cpu().tolist()
