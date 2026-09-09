@@ -34,7 +34,7 @@
   - `DocumentAnalysisResult(verdict, document_ai_probability, ai_content_ratio, calibrated_threshold, total_words, total_sentences, total_chunks, worst_chunk, chunks)`
   - Methods: `to_dict()` on both dataclasses for clean JSON serialization.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_document_chunker.py
@@ -81,19 +81,19 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_document_chunker.py`
 Expected: FAIL with `ModuleNotFoundError: No module named 'kaz_mage.document'`
 
-- [ ] **Step 3: Implement `kaz_mage/document.py` and export in `kaz_mage/__init__.py`**
+- [x] **Step 3: Implement `kaz_mage/document.py` and export in `kaz_mage/__init__.py`**
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_document_chunker.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add kaz_mage/document.py kaz_mage/__init__.py tests/test_document_chunker.py
@@ -117,7 +117,7 @@ git commit -m "feat: implement DocumentChunk and DocumentAnalysisResult data str
   - `chunker.split_sentences(text: str) -> List[Tuple[str, int, int]]` (sentence text, start_char, end_char)
   - `chunker.chunk_document(text: str) -> List[DocumentChunk]`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # Add to tests/test_document_chunker.py:
@@ -159,21 +159,21 @@ git commit -m "feat: implement DocumentChunk and DocumentAnalysisResult data str
         self.assertEqual(chunker.chunk_document("   \n\n\t  "), [])
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_document_chunker.py`
 Expected: FAIL with `ModuleNotFoundError: No module named 'kaz_mage.chunker'`
 
-- [ ] **Step 3: Implement `kaz_mage/chunker.py`**
+- [x] **Step 3: Implement `kaz_mage/chunker.py`**
 
 Implement sentence segmentation with abbreviation regex masking (`т.б.`, `ж.б.`, `ғ.`, `ғғ.`, `ж.`, `жж.`, `қ.`, `мыс.`, `проф.`, `акад.`), quote handling, sentence-preserving sliding packing with offsets, and export in `kaz_mage/__init__.py`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_document_chunker.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add kaz_mage/chunker.py kaz_mage/__init__.py tests/test_document_chunker.py
@@ -196,7 +196,7 @@ git commit -m "feat: implement SentencePreservingChunker with Kazakh linguistic 
   - `DocumentAggregator(calibrated_threshold=0.9980, top_k_cfg=2)`
   - `aggregator.aggregate(chunks: List[DocumentChunk], total_words: int, total_sentences: int) -> DocumentAnalysisResult`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_document_aggregator.py
@@ -253,21 +253,21 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_document_aggregator.py`
 Expected: FAIL with `ModuleNotFoundError: No module named 'kaz_mage.aggregator'`
 
-- [ ] **Step 3: Implement `kaz_mage/aggregator.py`**
+- [x] **Step 3: Implement `kaz_mage/aggregator.py`**
 
 Implement Top-$K$ worst-chunk calculation, weighted AI ratio, three-tier classification, and export in `kaz_mage/__init__.py`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_document_aggregator.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add kaz_mage/aggregator.py kaz_mage/__init__.py tests/test_document_aggregator.py
@@ -292,7 +292,7 @@ git commit -m "feat: implement DocumentAggregator with Top-K worst-chunk pooling
   - `DocumentDetector(model, raw_tokenizer, morpheme_tokenizer, calibrated_threshold=0.9980, device=None)`
   - `detector.predict_document(text: str, top_k: int = 2, batch_size: int = 16) -> DocumentAnalysisResult`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/test_document_detector.py
@@ -340,21 +340,21 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_document_detector.py`
 Expected: FAIL with `ModuleNotFoundError: No module named 'models.document_detector'`
 
-- [ ] **Step 3: Implement `models/document_detector.py`**
+- [x] **Step 3: Implement `models/document_detector.py`**
 
 Implement `DocumentDetector` with defensive micro-batching (`batch_size = 16`), device handling, and seamless mock/CPU fallback.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_document_detector.py`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add models/document_detector.py models/__init__.py tests/test_document_detector.py
@@ -365,18 +365,18 @@ git commit -m "feat: implement DocumentDetector facade with batched multi-chunk 
 
 ### Task 5: End-to-End Hybrid Document Verification, Whole-Branch Review & Merge
 
-- [ ] **Step 1: Write hybrid document synthesis test**
+- [x] **Step 1: Write hybrid document synthesis test**
 Add a test in `tests/test_document_detector.py` testing a mixed 1,000-word document (authentic human paragraphs + 1 injected AI paragraph) and verifying that:
 1. `res.verdict == "Partially AI / Hybrid"`.
 2. `res.worst_chunk` matches the exact offset of the injected AI paragraph.
 3. `res.ai_content_ratio` reflects the injected proportion.
 
-- [ ] **Step 2: Run full regression test suite**
+- [x] **Step 2: Run full regression test suite**
 Run all tests:
 `python -m unittest tests/test_morpheme_tokenizer.py tests/test_supcon_loss.py tests/test_morpho_detector.py tests/test_metrics_evaluator.py tests/test_training_pipeline.py tests/test_kaz_raid_tier1.py tests/test_kaz_raid_tier2.py tests/test_kaz_raid_tiers3_4.py tests/test_adversarial_loss.py tests/test_kaz_raid_benchmark.py tests/test_kaz_mage_data.py tests/test_kaz_mage_long_doc.py tests/test_generate_kaz_mage.py tests/test_evaluate_kaz_mage.py tests/test_kaz_mage_kernel_build.py tests/test_multi_domain_data.py tests/test_domain_stratified_sampler.py tests/test_train_multi_domain.py tests/test_multi_domain_kernel_build.py tests/test_document_chunker.py tests/test_document_aggregator.py tests/test_document_detector.py`
 Expected: All tests pass.
 
-- [ ] **Step 3: Dispatch whole-branch code reviewer subagent**
+- [x] **Step 3: Dispatch whole-branch code reviewer subagent**
 Verify zero regressions, spec compliance, and zero modifications to `aist2026/paper.tex`.
 
 - [ ] **Step 4: Merge `feat/kaz-document-chunking-engine` into `main`**
@@ -385,3 +385,4 @@ Verify zero regressions, spec compliance, and zero modifications to `aist2026/pa
 git checkout main
 git merge --no-ff feat/kaz-document-chunking-engine -m "Merge branch 'feat/kaz-document-chunking-engine' into main"
 ```
+
