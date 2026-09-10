@@ -109,13 +109,38 @@ body, .gradio-container {
 .quick-samples-wrapper {
     margin-bottom: 10px;
 }
-.quick-samples-label {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #475569;
-    margin-bottom: 6px;
+.quick-samples-header-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 6px !important;
+}
+.quick-samples-title {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.quick-samples-title p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #475569 !important;
+}
+.lang-switch-inline {
+    display: flex !important;
+    justify-content: flex-end !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.lang-switch-inline .wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
 }
 .quick-samples-row {
     display: flex;
@@ -292,16 +317,16 @@ I18N = {
         "badge_dual_stream": "[Қос Ағынды Бағана: BERT + FST]",
         "badge_sliding_window": "[Жылжымалы Терезе: 25k сөзге дейін]",
         "badge_xss_safe": "[XSS Қауіпсіз Жылу Картасы]",
-        "quick_samples_title": "Жылдам үлгілер (Quick Samples):",
+        "quick_samples_title": "Жылдам сынақ үлгілері:",
         "pill_1": "Тұтынушы пікірі - Адам",
         "pill_2": "Жаңалықтар мәтіні - Адам",
         "pill_3": "Sherkala-7B пікірі - ЖИ",
         "pill_4": "Sherkala-7B жаңалықтары - ЖИ",
         "pill_5": "Qwen-2.5 еркін ЖИ",
         "pill_6": "Аралас / Гибрид құжат",
-        "tab_1_title": "Мәтінді тексеру және түсіндіру / Detection & Explainability",
-        "tab_2_title": "Морфологиялық талдау зертханасы / Morphological FST Lab",
-        "tab_3_title": "Бенчмарк және ғылыми әдістеме / Benchmark & Academic Methodology",
+        "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
+        "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
+        "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
         "presets_accordion": "Дайын Бенчмарк Үлгілері Кітапханасы (6 Пресет)",
         "presets_help": "Төмендегі дайын үлгілердің бірін таңдап, жүйенің әртүрлі жанрларда қалай жұмыс істейтінін көріңіз:",
         "preset_select_label": "Үлгіні таңдаңыз (Benchmark Preset)",
@@ -356,9 +381,9 @@ I18N = {
         "pill_4": "Sherkala-7B AI News",
         "pill_5": "Qwen-2.5 Wild AI",
         "pill_6": "Hybrid Document",
-        "tab_1_title": "Detection & Explainability",
-        "tab_2_title": "Morphological FST Lab",
-        "tab_3_title": "Benchmark & Academic Methodology",
+        "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
+        "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
+        "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
         "presets_accordion": "Curated Benchmark Demonstration Samples (6 Presets)",
         "presets_help": "Select one of the benchmark scenarios below to test detector performance across different genres and generators:",
         "preset_select_label": "Select Benchmark Sample",
@@ -711,13 +736,13 @@ def get_detector(load_model: bool = False):
 def _get_lang_key(lang_choice: str) -> str:
     """Extracts 'kz' or 'en' from language dropdown selection."""
     if not lang_choice:
-        return "kz"
+        return "en"
     return "en" if "English" in lang_choice or "en" in lang_choice.lower() else "kz"
 
 
-def render_hero_html(lang: str = "kz") -> str:
+def render_hero_html(lang: str = "en") -> str:
     """Renders publication-grade academic hero header card with zero emojis."""
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
     return f"""
     <div class="hero-card">
         <div class="hero-title">{d['hero_title']}</div>
@@ -732,9 +757,9 @@ def render_hero_html(lang: str = "kz") -> str:
     """
 
 
-def render_legend_html(lang: str = "kz") -> str:
+def render_legend_html(lang: str = "en") -> str:
     """Renders the three-tier color legend bar with zero emojis."""
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
     return f"""
     <div class="legend-bar">
         <span class="legend-item"><span class="legend-dot dot-human"></span> <strong>{d['legend_human']}</strong></span>
@@ -744,7 +769,7 @@ def render_legend_html(lang: str = "kz") -> str:
     """
 
 
-def render_methodology_markdown(lang: str = "kz") -> str:
+def render_methodology_markdown(lang: str = "en") -> str:
     """Renders academic documentation for Tab 3 (Prof. Guo and assistant Wang Na)."""
     if lang == "en":
         return """### Benchmark & Academic Methodology
@@ -860,7 +885,7 @@ $$\\mathbf{h} = \\mathbf{g} \\odot \\mathbf{h}_{\\text{sem}} + (1 - \\mathbf{g})
 """
 
 
-def handle_preset_change(preset_name: str, lang_choice: str = "kz") -> Tuple[str, str]:
+def handle_preset_change(preset_name: str, lang_choice: str = "en") -> Tuple[str, str]:
     """Loads text and formatted metadata when a preset sample is selected."""
     if not preset_name:
         return "", ""
@@ -870,29 +895,29 @@ def handle_preset_change(preset_name: str, lang_choice: str = "kz") -> Tuple[str
         return text, ""
 
     lang = _get_lang_key(lang_choice)
-    if lang == "en":
-        meta_md = (
-            f"**Domain:** `{meta.get('domain', 'N/A')}` | "
-            f"**Expected Verdict:** `{meta.get('expected_verdict', 'N/A')}` | "
-            f"**Generator:** `{meta.get('generator', 'N/A')}`\n\n"
-            f"*{meta.get('description', '')}*"
-        )
-    else:
+    if lang == "kz":
         meta_md = (
             f"**Домен:** `{meta.get('domain', 'N/A')}` | "
             f"**Күтілетін нәтиже:** `{meta.get('expected_verdict', 'N/A')}` | "
             f"**Генератор:** `{meta.get('generator', 'N/A')}`\n\n"
             f"*{meta.get('description', '')}*"
         )
+    else:
+        meta_md = (
+            f"**Domain:** `{meta.get('domain', 'N/A')}` | "
+            f"**Expected Verdict:** `{meta.get('expected_verdict', 'N/A')}` | "
+            f"**Generator:** `{meta.get('generator', 'N/A')}`\n\n"
+            f"*{meta.get('description', '')}*"
+        )
     return text, meta_md
 
 
-def handle_file_upload(file_obj: Any, lang_choice: str = "kz") -> Tuple[str, str]:
+def handle_file_upload(file_obj: Any, lang_choice: str = "en") -> Tuple[str, str]:
     """Loads uploaded file (.txt, .docx, .pdf) defensively with size and word limits."""
     if file_obj is None:
         return "", ""
     lang = _get_lang_key(lang_choice)
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
 
     text, err = load_document_file(file_obj)
     if err:
@@ -906,7 +931,7 @@ def handle_file_upload(file_obj: Any, lang_choice: str = "kz") -> Tuple[str, str
 def handle_analyze_document(
     text: str,
     detector: Any = None,
-    lang_choice: str = "kz"
+    lang_choice: str = "en"
 ) -> Tuple[str, str, str, str, str, str, str, Any, str, str, str, List[Dict[str, Any]]]:
     """
     Full document analysis pipeline:
@@ -933,7 +958,7 @@ def handle_analyze_document(
     """
     det = detector or OfflineHeuristicDetector()
     lang = _get_lang_key(lang_choice)
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
 
     if not text or not text.strip():
         empty_badge = f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>'
@@ -1044,11 +1069,11 @@ def handle_analyze_document(
 def handle_sentence_select(
     selected_index: Optional[int],
     raw_sents_state: List[Dict[str, Any]],
-    lang_choice: str = "kz"
+    lang_choice: str = "en"
 ) -> Tuple[str, str, str]:
     """Updates the diagnostic card when a sentence is selected from the dropdown."""
     lang = _get_lang_key(lang_choice)
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
 
     if selected_index is None or not raw_sents_state:
         return (
@@ -1080,7 +1105,7 @@ def handle_sentence_select(
 def handle_fst_parse(
     text: str,
     detector: Any = None,
-    lang_choice: str = "kz"
+    lang_choice: str = "en"
 ) -> Tuple[str, str]:
     """
     Morphological FST Lab parser for Tab 2:
@@ -1111,7 +1136,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
     when switching between Kazakh and English.
     """
     lang = _get_lang_key(lang_choice)
-    d = I18N.get(lang, I18N["kz"])
+    d = I18N.get(lang, I18N["en"])
 
     hero_html = render_hero_html(lang)
     legend_html = render_legend_html(lang)
@@ -1125,6 +1150,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
 
     return (
         hero_html,
+        f"**{d['quick_samples_title']}**",
         # 6 sample pills
         gr.update(value=d["pill_1"]),
         gr.update(value=d["pill_2"]),
@@ -1136,10 +1162,6 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
         gr.update(label=d["input_label"], placeholder=d["input_placeholder"]),
         gr.update(label=d["file_accordion"]),
         gr.update(label=d["upload_label"]),
-        gr.update(label=d["presets_accordion"]),
-        d["presets_help"],
-        gr.update(label=d["preset_select_label"]),
-        gr.update(value=d["load_preset_btn"]),
         gr.update(value=d["analyze_btn"]),
         gr.update(value=d["clear_btn"]),
         # Results
@@ -1181,6 +1203,7 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
     and bilingual localization (zero emojis).
     """
     app_detector = detector or get_detector(load_model=load_model)
+    d = I18N["en"]
 
     with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI") as demo:
         # State: stores analyzed sentences list for interactive drilldown
@@ -1189,20 +1212,8 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
         # Inject CSS styling safely
         gr.HTML(f"<style>{APP_CSS}</style>", visible=False)
 
-        # Top Bar: Academic Title and Language Selector
-        with gr.Row():
-            with gr.Column(scale=8):
-                pass
-            with gr.Column(scale=4):
-                lang_radio = gr.Radio(
-                    choices=["Қазақша", "English"],
-                    value="Қазақша",
-                    label="Тіл / Language",
-                    interactive=True
-                )
-
-        # Welcoming Academic Hero Header Card
-        hero_banner = gr.HTML(render_hero_html("kz"))
+        # Welcoming Academic Hero Header Card (Default English)
+        hero_banner = gr.HTML(render_hero_html("en"))
 
         # -------------------------------------------------------------------
         # 3 Main Academic Tabs
@@ -1212,18 +1223,29 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
             # ===============================================================
             # TAB 1: Detection & Explainability
             # ===============================================================
-            with gr.Tab("Мәтінді тексеру және түсіндіру / Detection & Explainability", id="tab_detection") as tab_detect:
+            with gr.Tab(d["tab_1_title"], id="tab_detection") as tab_detect:
 
-                # Quick Sample Pills (6 compact buttons immediately above text input)
+                # Header row: Quick Samples title on left, inline language switcher on right
                 with gr.Column(elem_classes=["quick-samples-wrapper"]):
-                    quick_samples_label = gr.Markdown("**Жылдам үлгілер (Quick Samples):**")
+                    with gr.Row(elem_classes=["quick-samples-header-row"]):
+                        with gr.Column(scale=8):
+                            quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
+                        with gr.Column(scale=4, min_width=170):
+                            lang_radio = gr.Radio(
+                                choices=["English", "Қазақша"],
+                                value="English",
+                                show_label=False,
+                                container=False,
+                                interactive=True,
+                                elem_classes=["lang-switch-inline"]
+                            )
                     with gr.Row(elem_classes=["quick-samples-row"]):
-                        pill_btn1 = gr.Button("Тұтынушы пікірі - Адам", size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn2 = gr.Button("Жаңалықтар мәтіні - Адам", size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn3 = gr.Button("Sherkala-7B пікірі - ЖИ", size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn4 = gr.Button("Sherkala-7B жаңалықтары - ЖИ", size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn5 = gr.Button("Qwen-2.5 еркін ЖИ", size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn6 = gr.Button("Аралас / Гибрид құжат", size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn1 = gr.Button(d["pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn2 = gr.Button(d["pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn3 = gr.Button(d["pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn4 = gr.Button(d["pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn5 = gr.Button(d["pill_5"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn6 = gr.Button(d["pill_6"], size="sm", elem_classes=["sample-pill"], scale=1)
 
                 # Main Input & KPI Section
                 with gr.Row():
@@ -1232,121 +1254,105 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                         text_input = gr.Textbox(
                             lines=8,
                             max_lines=22,
-                            placeholder="Қазақша мәтінді осында жазыңыз немесе көшіріп қойыңыз (25 000 сөзге дейін)...",
-                            label="Мәтін енгізу (Document Input)"
+                            placeholder=d["input_placeholder"],
+                            label=d["input_label"]
                         )
 
                         with gr.Row():
-                            analyze_btn = gr.Button("Құжатты Талдау (Analyze Document)", variant="primary", scale=3)
-                            clear_btn = gr.Button("Тазалау (Clear)", variant="secondary", scale=1)
+                            analyze_btn = gr.Button(d["analyze_btn"], variant="primary", scale=3)
+                            clear_btn = gr.Button(d["clear_btn"], variant="secondary", scale=1)
 
                         # File Upload Accordion (.txt, .docx, .pdf)
-                        with gr.Accordion("Құжатты файл арқылы жүктеу (.txt, .docx, .pdf)", open=False) as file_accordion:
+                        with gr.Accordion(d["file_accordion"], open=False) as file_accordion:
                             file_uploader = gr.File(
-                                label="Құжатты жүктеу (.txt, .docx, .pdf — макс. 10 MB)",
+                                label=d["upload_label"],
                                 file_types=[".txt", ".docx", ".pdf"],
                             )
                             file_status = gr.Markdown("")
 
-                        # Preset Samples Accordion (Full demonstration details)
-                        with gr.Accordion("Дайын Бенчмарк Үлгілері Кітапханасы (6 Пресет)", open=False) as presets_accordion:
-                            presets_help = gr.Markdown("Төмендегі дайын үлгілердің бірін таңдап, жүйенің әртүрлі жанрларда қалай жұмыс істейтінін көріңіз:")
-                            with gr.Row():
-                                preset_dropdown = gr.Dropdown(
-                                    choices=get_preset_choices(),
-                                    value=None,
-                                    label="Үлгіні таңдаңыз (Benchmark Preset)",
-                                    scale=3
-                                )
-                                load_preset_btn = gr.Button("Үлгіні Жүктеу", variant="secondary", scale=1)
-                            preset_meta_display = gr.Markdown("")
-
                     # Right Column: Document Results & Explainability
                     with gr.Column(scale=5):
-                        kpi_header = gr.Markdown("### Құжаттың Жалпы Нәтижесі (Document KPIs)")
-                        verdict_badge = gr.HTML('<div class="kpi-badge badge-neutral">[AWAITING INPUT]</div>')
+                        kpi_header = gr.Markdown(d["kpi_header"])
+                        verdict_badge = gr.HTML(f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>')
 
                         # Horizontal Confidence Meter
-                        confidence_meter_display = gr.HTML(render_confidence_meter(0.0, "[AWAITING INPUT]", lang="kz"))
+                        confidence_meter_display = gr.HTML(render_confidence_meter(0.0, d["awaiting_input"], lang="en"))
 
                         with gr.Row():
-                            prob_box = gr.Textbox(value="0.0%", label="AI Ықтималдығы (AI Probability)", interactive=False)
-                            ratio_box = gr.Textbox(value="0.0%", label="AI Көлемі (AI Content Ratio)", interactive=False)
+                            prob_box = gr.Textbox(value="0.0%", label=d["prob_label"], interactive=False)
+                            ratio_box = gr.Textbox(value="0.0%", label=d["ratio_label"], interactive=False)
 
                         stats_display = gr.Textbox(
-                            value="Сөздер: 0 | Сөйлемдер: 0 | Терезелер: 0",
-                            label="Құжат Статистикасы (Statistics)",
+                            value="Words: 0 | Sentences: 0 | Windows: 0",
+                            label=d["stats_label"],
                             interactive=False
                         )
 
                         # Dynamic Linguistic Reasoning Bullets
-                        linguistic_header = gr.Markdown("#### Динамикалық Лингвистикалық Түсіндірме (Linguistic Reasoning)")
+                        linguistic_header = gr.Markdown(d["linguistic_header"])
                         linguistic_bullets_display = gr.Markdown("")
 
                 # Visual Sentence Heatmap Section
                 gr.Markdown("---")
-                heatmap_header = gr.Markdown("### Сөйлем деңгейіндегі визуалды жылу картасы (Visual Sentence Heatmap)")
-                legend_display = gr.HTML(render_legend_html("kz"))
-                heatmap_display = gr.HTML('<div class="empty-doc-prompt">Мәтін енгізілмеді немесе бос.</div>')
+                heatmap_header = gr.Markdown(d["heatmap_header"])
+                legend_display = gr.HTML(render_legend_html("en"))
+                heatmap_display = gr.HTML(f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>')
 
                 # Sentence Deep Diagnostic & FST Breakdown Section
                 gr.Markdown("---")
-                diagnostic_header = gr.Markdown("### Сөйлемді Терең Талдау (Sentence Deep Diagnostic)")
+                diagnostic_header = gr.Markdown(d["diagnostic_header"])
 
                 with gr.Row():
                     sentence_selector = gr.Dropdown(
                         choices=[],
                         value=None,
-                        label="Талдайтын сөйлемді таңдаңыз (Select Sentence # to inspect)",
+                        label=d["sentence_select_label"],
                         scale=3
                     )
 
                 with gr.Row():
                     with gr.Column(scale=5):
                         selected_sentence_box = gr.Textbox(
-                            label="Таңдалған сөйлем мәтіні (Inspected Sentence)",
-                            value="Морфологиялық талдау үшін сөйлемді таңдаңыз.",
+                            label=d["inspected_sentence_label"],
+                            value=d["select_sentence_prompt"],
                             lines=3,
                             interactive=False
                         )
-                        gate_header = gr.Markdown("#### Динамикалық Бағана (Dynamic Fusion Gate: BERT vs FST)")
-                        gate_bar_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="kz"))
+                        gate_header = gr.Markdown(d["gate_header"])
+                        gate_bar_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="en"))
 
                     with gr.Column(scale=6):
-                        morpheme_header = gr.Markdown("#### Морфологиялық Агглютинативті Құрылым (FST Word Breakdown)")
-                        morpheme_table_display = gr.HTML('<p class="text-muted">Морфологиялық талдау үшін сөйлемді таңдаңыз.</p>')
+                        morpheme_header = gr.Markdown(d["morpheme_header"])
+                        morpheme_table_display = gr.HTML(f'<p class="text-muted">{d["select_sentence_prompt"]}</p>')
 
             # ===============================================================
             # TAB 2: Morphological FST Lab
             # ===============================================================
-            with gr.Tab("Морфологиялық талдау зертханасы / Morphological FST Lab", id="tab_fst") as tab_fst:
-                fst_lab_header = gr.Markdown("### Морфологиялық Талдау Зертханасы (Morphological FST Lab)")
-                fst_lab_desc = gr.Markdown(
-                    "Қазақ тілінің агглютинативті сөзжасам құрылымын, септік, көптік, шақ, жақ "
-                    "жалғауларының тізбегін (FST) және семантикалық динамикалық бағананы (g) талдау зертханасы."
-                )
+            with gr.Tab(d["tab_2_title"], id="tab_fst") as tab_fst:
+                fst_lab_header = gr.Markdown(d["fst_lab_header"])
+                fst_lab_desc = gr.Markdown(d["fst_lab_desc"])
 
                 with gr.Row():
                     fst_input = gr.Textbox(
                         lines=3,
                         max_lines=6,
-                        placeholder="Талдау үшін қазақша сөз немесе сөйлем жазыңыз (мысалы: Қазақстанның қалаларында тұратын адамдармен сөйлестім)...",
-                        label="Сөз немесе сөйлем енгізу (Word / Sentence Input)",
+                        placeholder=d["fst_input_placeholder"],
+                        label=d["fst_input_label"],
                         scale=4
                     )
-                    fst_parse_btn = gr.Button("Талдау (Parse Morphemes)", variant="primary", scale=1)
+                    fst_parse_btn = gr.Button(d["fst_parse_btn"], variant="primary", scale=1)
 
-                fst_gate_header = gr.Markdown("#### Динамикалық Үйлестіру Бағанасы (Context g vs Morpheme 1-g)")
-                fst_gate_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="kz"))
+                fst_gate_header = gr.Markdown(d["fst_gate_header"])
+                fst_gate_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="en"))
 
-                fst_table_header = gr.Markdown("#### Толық Агглютинативті Морфемалық Бөлшектеу Кестесі (FST Decomposition)")
-                fst_table_display = gr.HTML(render_fst_decomposition_table([], lang="kz"))
+                fst_table_header = gr.Markdown(d["fst_table_header"])
+                fst_table_display = gr.HTML(render_fst_decomposition_table([], lang="en"))
 
             # ===============================================================
             # TAB 3: Benchmark & Academic Methodology
             # ===============================================================
-            with gr.Tab("Бенчмарк және ғылыми әдістеме / Benchmark & Academic Methodology", id="tab_methodology") as tab_methodology:
-                methodology_md = gr.Markdown(render_methodology_markdown("kz"))
+            with gr.Tab(d["tab_3_title"], id="tab_methodology") as tab_methodology:
+                methodology_md = gr.Markdown(render_methodology_markdown("en"))
 
         # -------------------------------------------------------------------
         # Event Handlers & Wirings
@@ -1378,15 +1384,14 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
         # Clear Trigger
         def _clear_all(current_lang):
             lang = _get_lang_key(current_lang)
-            d = I18N.get(lang, I18N["kz"])
-            empty_badge = f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>'
-            empty_conf = render_confidence_meter(0.0, d["awaiting_input"], lang=lang)
-            empty_heatmap = f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>'
+            d_curr = I18N.get(lang, I18N["en"])
+            empty_badge = f'<div class="kpi-badge badge-neutral">{d_curr["awaiting_input"]}</div>'
+            empty_conf = render_confidence_meter(0.0, d_curr["awaiting_input"], lang=lang)
+            empty_heatmap = f'<div class="empty-doc-prompt">{d_curr["empty_heatmap"]}</div>'
             stats_empty = "Words: 0 | Sentences: 0 | Windows: 0" if lang == "en" else "Сөздер: 0 | Сөйлемдер: 0 | Терезелер: 0"
             return (
                 "",
                 None,
-                "",
                 "",
                 empty_badge,
                 empty_conf,
@@ -1396,9 +1401,9 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                 "",
                 empty_heatmap,
                 gr.update(choices=[], value=None),
-                d["select_sentence_prompt"],
+                d_curr["select_sentence_prompt"],
                 render_dynamic_gate_bar(0.5, lang=lang),
-                f'<p class="text-muted">{d["select_sentence_prompt"]}</p>',
+                f'<p class="text-muted">{d_curr["select_sentence_prompt"]}</p>',
                 []
             )
 
@@ -1409,7 +1414,6 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                 text_input,
                 file_uploader,
                 file_status,
-                preset_meta_display,
                 verdict_badge,
                 confidence_meter_display,
                 prob_box,
@@ -1432,21 +1436,6 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
         pill_btn4.click(fn=lambda: QUICK_SAMPLES["pill_4"]["text"], outputs=[text_input])
         pill_btn5.click(fn=lambda: QUICK_SAMPLES["pill_5"]["text"], outputs=[text_input])
         pill_btn6.click(fn=lambda: QUICK_SAMPLES["pill_6"]["text"], outputs=[text_input])
-
-        # Preset Dropdown & Load Button
-        def _on_preset_selected(p_name, current_lang):
-            return handle_preset_change(p_name, lang_choice=current_lang)
-
-        preset_dropdown.change(
-            fn=_on_preset_selected,
-            inputs=[preset_dropdown, lang_radio],
-            outputs=[text_input, preset_meta_display]
-        )
-        load_preset_btn.click(
-            fn=_on_preset_selected,
-            inputs=[preset_dropdown, lang_radio],
-            outputs=[text_input, preset_meta_display]
-        )
 
         # File Ingestion
         def _on_file_uploaded(f_obj, current_lang):
@@ -1488,6 +1477,7 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
             inputs=[lang_radio],
             outputs=[
                 hero_banner,
+                quick_samples_label,
                 pill_btn1,
                 pill_btn2,
                 pill_btn3,
@@ -1497,10 +1487,6 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                 text_input,
                 file_accordion,
                 file_uploader,
-                presets_accordion,
-                presets_help,
-                preset_dropdown,
-                load_preset_btn,
                 analyze_btn,
                 clear_btn,
                 kpi_header,

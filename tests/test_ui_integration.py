@@ -69,6 +69,7 @@ class TestUiIntegration(unittest.TestCase):
     def test_handle_analyze_document_empty(self):
         """Verifies empty input handling returns awaiting badges, empty confidence meter, and clean heatmap."""
         detector = OfflineHeuristicDetector()
+        # Default English
         (
             verdict_badge,
             conf_html,
@@ -90,13 +91,18 @@ class TestUiIntegration(unittest.TestCase):
         self.assertEqual(prob_text, "0.0%")
         self.assertEqual(ratio_text, "0.0%")
         self.assertEqual(bullets_md, "")
-        self.assertIn("Мәтін енгізілмеді", heatmap_html)
+        self.assertIn("No text entered or document is empty.", heatmap_html)
         self.assertEqual(raw_sents_state, [])
+
+        # Explicit Kazakh
+        *_, kz_heatmap, _, _, _, _, _ = handle_analyze_document("", detector, lang_choice="kz")
+        self.assertIn("Мәтін енгізілмеді", kz_heatmap)
 
     def test_handle_analyze_document_with_human_text(self):
         """Verifies analysis of authentic human text produces authentic status badge, confidence meter, and bullets."""
         detector = OfflineHeuristicDetector()
         text = "Бұл бірінші қазақша сөйлем. Ал бұл екінші сөйлем болып табылады."
+        # Default English
         (
             verdict_badge,
             conf_html,
@@ -117,16 +123,22 @@ class TestUiIntegration(unittest.TestCase):
         self.assertIn("[======", conf_html)
         self.assertIn("kaz-sentence", heatmap_html)
         self.assertEqual(len(raw_sents_state), 2)
-        self.assertIn("Сөздер", stats_text)
-        self.assertIn("Сөйлемдер: 2", stats_text)
+        self.assertIn("Words", stats_text)
+        self.assertIn("Sentences: 2", stats_text)
         # Linguistic reasoning bullets present
         self.assertTrue(len(bullets_md) > 0)
         self.assertTrue(bullets_md.startswith("- "))
+
+        # Explicit Kazakh
+        _, _, _, _, kz_stats, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(text, detector, lang_choice="kz")
+        self.assertIn("Сөздер", kz_stats)
+        self.assertIn("Сөйлемдер: 2", kz_stats)
 
     def test_handle_analyze_document_with_ai_text(self):
         """Verifies analysis of AI text produces [MACHINE-GENERATED] badge and high confidence meter."""
         detector = OfflineHeuristicDetector()
         ai_sample = QUICK_SAMPLES["pill_3"]["text"]
+        # Default English
         (
             verdict_badge,
             conf_html,
@@ -146,7 +158,11 @@ class TestUiIntegration(unittest.TestCase):
         self.assertIn("meter-ai", conf_html)
         self.assertTrue("99.9%" in conf_html or "100.0%" in conf_html)
         self.assertTrue(len(bullets_md) > 0)
-        self.assertIn("формулалық", bullets_md.lower())
+        self.assertIn("formulaic", bullets_md.lower())
+
+        # Explicit Kazakh
+        *_, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(ai_sample, detector, lang_choice="kz")
+        self.assertIn("формулалық", kz_bullets.lower())
 
     def test_handle_sentence_select(self):
         """Verifies selecting a sentence updates text, gate bar, and morpheme table."""
@@ -379,10 +395,15 @@ class TestUiIntegration(unittest.TestCase):
         choices = get_preset_choices()
         self.assertGreater(len(choices), 0)
         first_choice = choices[0]
+        # Default English
         text_out, meta_out = handle_preset_change(first_choice)
         expected_text = get_preset_text(first_choice)
         self.assertEqual(text_out, expected_text)
-        self.assertIn("Домен:", meta_out)
+        self.assertIn("Domain:", meta_out)
+
+        # Explicit Kazakh
+        _, meta_kz = handle_preset_change(first_choice, lang_choice="kz")
+        self.assertIn("Домен:", meta_kz)
 
     def test_handle_file_upload(self):
         """Verifies file ingestion returns extracted text and clean status without emojis."""
@@ -390,11 +411,16 @@ class TestUiIntegration(unittest.TestCase):
             f.write("Жүктелген файлдағы қазақша мәтін үлгісі.")
             tmp_path = f.name
         try:
+            # Default English
             text_out, status_out = handle_file_upload(tmp_path)
             self.assertEqual(text_out, "Жүктелген файлдағы қазақша мәтін үлгісі.")
-            self.assertIn("сәтті жүктелді", status_out)
-            # Ensure no checkmark emoji
+            self.assertIn("File loaded successfully", status_out)
             self.assertNotIn("✅", status_out)
+
+            # Explicit Kazakh
+            _, status_kz = handle_file_upload(tmp_path, lang_choice="kz")
+            self.assertIn("сәтті жүктелді", status_kz)
+            self.assertNotIn("✅", status_kz)
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
