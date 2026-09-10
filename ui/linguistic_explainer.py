@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 ui/linguistic_explainer.py: Dynamic Linguistic Explainer Engine for Kazakh AI Detection.
 
@@ -248,7 +248,7 @@ def _extract_doc_info(doc_result: Any) -> Tuple[str, float, float]:
     if doc_result is None:
         return "", -1.0, 0.0
     if isinstance(doc_result, dict):
-        verdict = str(doc_result.get("verdict", ""))
+        verdict = str(doc_result.get("verdict") or "")
         try:
             prob = float(doc_result.get("document_ai_probability", -1.0))
         except (ValueError, TypeError):
@@ -259,7 +259,7 @@ def _extract_doc_info(doc_result: Any) -> Tuple[str, float, float]:
             ratio = 0.0
         return verdict, prob, ratio
 
-    verdict = str(getattr(doc_result, "verdict", ""))
+    verdict = str(getattr(doc_result, "verdict", None) or "")
     try:
         prob = float(getattr(doc_result, "document_ai_probability", -1.0))
     except (ValueError, TypeError):
@@ -283,6 +283,7 @@ def generate_linguistic_explanation(
       - lang="en": English explanations (publication-grade style)
     Strictly zero decorative emojis.
     """
+    lang = (lang or "kz").strip().lower()
     feats = compute_linguistic_features(text)
     total_words = feats["total_words"]
 
@@ -300,22 +301,38 @@ def generate_linguistic_explanation(
 
     verdict, prob, ratio = _extract_doc_info(doc_result)
 
-    # If verdict/probability not supplied, infer dynamically from linguistic features
-    if prob < 0:
-        if feats["formulaic_marker_count"] >= 2 or (
-            feats["formulaic_marker_count"] >= 1 and feats["colloquial_marker_count"] == 0
-        ):
+    # If verdict not supplied, infer dynamically from linguistic features
+    if not verdict:
+        if prob >= 0.90:
             verdict = "Machine-Generated"
-            prob = 0.9995
-        elif feats["formulaic_marker_count"] >= 1 and feats["colloquial_marker_count"] >= 1:
+        elif prob >= 0.40:
             verdict = "Partially AI / Hybrid"
-            prob = 0.75
-        else:
+        elif prob >= 0.0:
             verdict = "Authentic Human"
-            prob = 0.03
+        else:
+            if feats["formulaic_marker_count"] >= 2 or (
+                feats["formulaic_marker_count"] >= 1 and feats["colloquial_marker_count"] == 0
+            ):
+                verdict = "Machine-Generated"
+                prob = 0.9995
+            elif feats["formulaic_marker_count"] >= 1 and feats["colloquial_marker_count"] >= 1:
+                verdict = "Partially AI / Hybrid"
+                prob = 0.75
+            else:
+                verdict = "Authentic Human"
+                prob = 0.03
+    elif prob < 0:
+        # Verdict is provided, but probability was not supplied: assign default based on verdict
+        v_tmp = verdict.lower()
+        if ("machine" in v_tmp or bool(re.search(r'\bai\b', v_tmp))) and "partially" not in v_tmp and "hybrid" not in v_tmp:
+            prob = 0.95
+        elif "partially" in v_tmp or "hybrid" in v_tmp:
+            prob = 0.50
+        else:
+            prob = 0.05
 
     v_lower = verdict.lower()
-    is_ai = ("machine" in v_lower or "ai" in v_lower) and "partially" not in v_lower and "hybrid" not in v_lower
+    is_ai = ("machine" in v_lower or bool(re.search(r'\bai\b', v_lower))) and "partially" not in v_lower and "hybrid" not in v_lower
     is_hybrid = "partially" in v_lower or "hybrid" in v_lower
     if not is_ai and not is_hybrid:
         if prob >= 0.90:
@@ -361,7 +378,21 @@ def generate_linguistic_explanation(
                     "сипаттары бар синтетикалық сөйлемдер араласқан."
                 )
         else:  # Authentic Human
-            if colloquial_count > 0:
+            if formulaic_count > 0 and colloquial_count > 0:
+                markers_c = ", ".join(f"«{m}»" for m in colloquial_found[:2])
+                markers_f = ", ".join(f"«{m}»" for m in formulaic_found[:2])
+                b1 = (
+                    f"Шынайы тұтынушылық лексика ({markers_c}) анықталды, ал формулалық "
+                    f"байланыстырғыштар ({markers_f}) сирек әрі қалыпты стилистикалық өзгерістер аясында: "
+                    f"синтаксистік құрылымы табиғи авторлық мәнерге толық сәйкес келеді."
+                )
+            elif formulaic_count > 0:
+                markers_preview = ", ".join(f"«{m}»" for m in formulaic_found[:2])
+                b1 = (
+                    f"Формулалық байланыстырғыштар сирек кездеседі ({markers_preview}) және адам жазбасына тән "
+                    f"қалыпты стилистикалық өзгерістер аясында: синтаксистік құрылымы табиғи әрі еркін."
+                )
+            elif colloquial_count > 0:
                 markers_preview = ", ".join(f"«{m}»" for m in colloquial_found[:3])
                 b1 = (
                     f"Шынайы тұтынушылық және ауызекі лексика маркерлері табылды ({markers_preview}): "
@@ -398,7 +429,21 @@ def generate_linguistic_explanation(
                     "organic human prose and synthetic machine generation."
                 )
         else:  # Authentic Human
-            if colloquial_count > 0:
+            if formulaic_count > 0 and colloquial_count > 0:
+                markers_c = ", ".join(f'"{m}"' for m in colloquial_found[:2])
+                markers_f = ", ".join(f'"{m}"' for m in formulaic_found[:2])
+                b1 = (
+                    f"Authentic colloquial terminology detected ({markers_c}) with sparse formulaic "
+                    f"connectors ({markers_f}) within normal stylistic variation: "
+                    f"syntax reflects genuine human prose."
+                )
+            elif formulaic_count > 0:
+                markers_preview = ", ".join(f'"{m}"' for m in formulaic_found[:2])
+                b1 = (
+                    f"Formal discourse connectors are sparse ({markers_preview}) and within normal stylistic "
+                    f"variation for human prose: syntax exhibits organic structural variation."
+                )
+            elif colloquial_count > 0:
                 markers_preview = ", ".join(f'"{m}"' for m in colloquial_found[:3])
                 b1 = (
                     f"Authentic colloquial and domain-specific terminology detected ({markers_preview}): "
@@ -445,8 +490,9 @@ def generate_linguistic_explanation(
                     f"vocabulary patterns or constrained lexical distribution."
                 )
         else:
+            words_label = "word" if total_words == 1 else "words"
             b2 = (
-                f"Compact text sample ({total_words} words, TTR = {ttr:.2f}): "
+                f"Compact text sample ({total_words} {words_label}, TTR = {ttr:.2f}): "
                 f"short samples naturally exhibit concentrated lexical indices."
             )
 

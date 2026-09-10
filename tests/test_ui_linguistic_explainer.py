@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 tests/test_ui_linguistic_explainer.py: Unit tests for ui/linguistic_explainer.py
 """
@@ -187,6 +187,108 @@ class TestLinguisticExplainer(unittest.TestCase):
         bullets = generate_linguistic_explanation(text, dict_res, lang="en")
         self.assertGreaterEqual(len(bullets), 2)
         self.assertLessEqual(len(bullets), 4)
+
+    def test_verdict_check_domain_uncertain_does_not_trigger_ai(self):
+        """Verifies verdicts containing 'domain', 'uncertain', or 'email' do not trigger AI branch."""
+        text = "Бұл қарапайым күнделікті мәтін үлгісі."
+        for verdict_str in ["domain specific prose", "uncertain review", "email communication"]:
+            # With explicit human/neutral probability
+            dict_res = {"verdict": verdict_str, "document_ai_probability": 0.15}
+            bullets_en = generate_linguistic_explanation(text, dict_res, lang="en")
+            self.assertFalse(
+                any("high ai classification confidence" in b.lower() or "generative language models detected" in b.lower() for b in bullets_en),
+                f"Verdict '{verdict_str}' incorrectly triggered AI branch in English: {bullets_en}"
+            )
+            bullets_kz = generate_linguistic_explanation(text, dict_res, lang="kz")
+            self.assertFalse(
+                any("модельдік сенімділік деңгейі жоғары" in b.lower() for b in bullets_kz),
+                f"Verdict '{verdict_str}' incorrectly triggered AI branch in Kazakh: {bullets_kz}"
+            )
+
+            # Without document_ai_probability supplied
+            dict_no_prob = {"verdict": verdict_str}
+            bullets_en_no_prob = generate_linguistic_explanation(text, dict_no_prob, lang="en")
+            self.assertFalse(
+                any("high ai classification confidence" in b.lower() for b in bullets_en_no_prob),
+                f"Verdict '{verdict_str}' without prob incorrectly triggered AI branch: {bullets_en_no_prob}"
+            )
+
+    def test_dict_custom_verdict_preserved(self):
+        """When doc_result dict has non-empty verdict but no prob, verdict is not overwritten by markers."""
+        # Text with formulaic markers that would normally infer 'Machine-Generated' if verdict was missing
+        text = "Қорытындылай келе, айта кету керек, бұл маңызды рөл атқарады."
+        dict_res = {"verdict": "Manual Human Review"}
+        bullets_en = generate_linguistic_explanation(text, dict_res, lang="en")
+
+        # Custom verdict should NOT be overwritten into Machine-Generated
+        self.assertFalse(
+            any("high ai classification confidence" in b.lower() for b in bullets_en),
+            f"Custom verdict was overwritten into AI verdict: {bullets_en}"
+        )
+        # Should qualify formal connectors as human prose variation
+        self.assertTrue(
+            any("normal stylistic variation" in b.lower() or "sparse" in b.lower() for b in bullets_en),
+            f"Expected qualified connector bullets for human prose: {bullets_en}"
+        )
+
+    def test_human_text_with_isolated_formal_connector(self):
+        """Human text with isolated formal connector (e.g., 'сонымен қатар') does not claim complete absence."""
+        text = "Бұл мақалада жаңа зерттеу бағыты қарастырылады, сонымен қатар алынған деректер қорытылады."
+        dict_res = {"verdict": "Authentic Human", "document_ai_probability": 0.05}
+
+        bullets_en = generate_linguistic_explanation(text, dict_res, lang="en")
+        # English: Must NOT claim total absence
+        self.assertFalse(
+            any("absence of synthetic formulaic connectors" in b.lower() for b in bullets_en),
+            f"Incorrectly claimed complete absence in English: {bullets_en}"
+        )
+        # English: Must note that connectors are sparse / within normal variation
+        self.assertTrue(
+            any("sparse" in b.lower() or "stylistic variation" in b.lower() for b in bullets_en),
+            f"Expected sparse/variation note in English: {bullets_en}"
+        )
+
+        bullets_kz = generate_linguistic_explanation(text, dict_res, lang="kz")
+        # Kazakh: Must NOT claim complete absence ('анықталмады')
+        self.assertFalse(
+            any("анықталмады" in b.lower() for b in bullets_kz),
+            f"Incorrectly claimed complete absence in Kazakh: {bullets_kz}"
+        )
+        # Kazakh: Must note sparse or normal stylistic variation
+        self.assertTrue(
+            any("сирек" in b.lower() or "стилистикалық" in b.lower() for b in bullets_kz),
+            f"Expected sparse/variation note in Kazakh: {bullets_kz}"
+        )
+
+    def test_uppercase_and_whitespace_lang_parameter(self):
+        """Verifies lang parameter normalization handles 'KZ', 'EN', and padded strings."""
+        text = "Бұл қалыпты қазақша жазылған сөйлем."
+        dict_res = {"verdict": "Authentic Human", "document_ai_probability": 0.05}
+
+        bullets_kz_upper = generate_linguistic_explanation(text, dict_res, lang="KZ")
+        bullets_kz_padded = generate_linguistic_explanation(text, dict_res, lang="  kz  ")
+        bullets_kz_lower = generate_linguistic_explanation(text, dict_res, lang="kz")
+        self.assertEqual(bullets_kz_upper, bullets_kz_lower)
+        self.assertEqual(bullets_kz_padded, bullets_kz_lower)
+
+        bullets_en_upper = generate_linguistic_explanation(text, dict_res, lang="EN")
+        bullets_en_padded = generate_linguistic_explanation(text, dict_res, lang="  en  ")
+        bullets_en_lower = generate_linguistic_explanation(text, dict_res, lang="en")
+        self.assertEqual(bullets_en_upper, bullets_en_lower)
+        self.assertEqual(bullets_en_padded, bullets_en_lower)
+
+    def test_single_word_compact_sample_grammar(self):
+        """Single word in English output produces '1 word' instead of '1 words'."""
+        text = "Сәлем"
+        bullets_en = generate_linguistic_explanation(text, None, lang="en")
+        b2 = bullets_en[1]
+        self.assertIn("1 word,", b2)
+        self.assertNotIn("1 words,", b2)
+
+        text_multi = "Сәлем достар қалайсыздар"
+        bullets_multi = generate_linguistic_explanation(text_multi, None, lang="en")
+        b2_multi = bullets_multi[1]
+        self.assertIn("3 words,", b2_multi)
 
     def test_no_decorative_emojis_in_explanations(self):
         """Enforces zero decorative emojis constraint across various texts and settings."""
