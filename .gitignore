@@ -46,3 +46,12 @@ notebook_analysis.txt
 pi_run.log
 pi_run.txt
 pi_*
+
+# Local documents and artifacts
+*.docx
+~$*
+output/
+Detecting_AI_Generated_User_Reviews*
+da_lei_content.txt
+full_diff*.txt
+
