@@ -98,7 +98,7 @@ class TestHfSpaceMetadata(unittest.TestCase):
         self.assertEqual(metadata.get("title"), "Kazakh AI Text Detector")
         self.assertEqual(metadata.get("emoji"), "🔍")
         self.assertEqual(metadata.get("colorFrom"), "indigo")
-        self.assertEqual(metadata.get("colorTo"), "slate")
+        self.assertEqual(metadata.get("colorTo"), "gray")
         self.assertEqual(metadata.get("sdk"), "gradio")
         self.assertEqual(str(metadata.get("sdk_version")), "6.26.0")
         self.assertEqual(metadata.get("app_file"), "app.py")
