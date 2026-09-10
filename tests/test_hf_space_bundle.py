@@ -254,6 +254,7 @@ class TestPushToHfScript(unittest.TestCase):
                 folder_path=tmpdir,
                 repo_id="testuser/testspace",
                 repo_type="space",
+                ignore_patterns=["**/__pycache__/**", "**/*.pyc", "**/.DS_Store"],
             )
 
 

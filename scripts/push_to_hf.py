@@ -135,6 +135,7 @@ def push_to_hf(
         folder_path=bundle_dir,
         repo_id=repo_id,
         repo_type="space",
+        ignore_patterns=["**/__pycache__/**", "**/*.pyc", "**/.DS_Store"],
     )
     print(f"[+] Upload complete!")
 
