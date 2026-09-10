@@ -264,13 +264,14 @@ def render_document_heatmap(
     return f'<div class="kaz-heatmap-container">{inner_content}</div>'
 
 
-def render_dynamic_gate_bar(gate_value: Optional[float] = None) -> str:
+def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz") -> str:
     """
     Renders a dual-colored split progress bar indicating dynamic gate allocation
     between the Context Stream (BERT) and Morpheme Stream (FST).
 
     Args:
         gate_value: Float in [0, 1] representing context stream weight, or None for neutral fusion (0.5).
+        lang: 'kz' for Kazakh labels, 'en' for English labels.
 
     Returns:
         HTML string displaying the responsive split bar.
@@ -287,17 +288,24 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None) -> str:
     bert_label = bert_pct_str if bert_pct >= 8.0 else ""
     fst_label = fst_pct_str if fst_pct >= 8.0 else ""
 
+    if lang == "en":
+        bert_title = f"Context Stream (BERT): {bert_pct_str}"
+        fst_title = f"Morpheme Stream (FST): {fst_pct_str}"
+    else:
+        bert_title = f"Семантикалық Контекст (BERT): {bert_pct_str}"
+        fst_title = f"Морфологиялық FST (Тіл Құрылымы): {fst_pct_str}"
+
     return (
         f'<div class="gate-bar-wrapper">\n'
         f'  <div class="gate-bar-header">\n'
-        f'    <span>Семантикалық Контекст (BERT): {bert_pct_str}</span>\n'
-        f'    <span>Морфологиялық FST (Тіл Құрылымы): {fst_pct_str}</span>\n'
+        f'    <span>{bert_title}</span>\n'
+        f'    <span>{fst_title}</span>\n'
         f'  </div>\n'
         f'  <div class="gate-bar-container">\n'
         f'    <div class="gate-stream-bert" style="width: {bert_pct:.1f}%;" '
-        f'title="Семантикалық Контекст: {bert_pct_str}">{bert_label}</div>\n'
+        f'title="{bert_title}">{bert_label}</div>\n'
         f'    <div class="gate-stream-fst" style="width: {fst_pct:.1f}%;" '
-        f'title="Морфологиялық FST: {fst_pct_str}">{fst_label}</div>\n'
+        f'title="{fst_title}">{fst_label}</div>\n'
         f'  </div>\n'
         f'  <div class="gate-bar-legend">\n'
         f'    <span>Context Stream (BERT): {bert_pct_str}</span>\n'
@@ -307,19 +315,21 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None) -> str:
     )
 
 
-def render_morpheme_table(word_breakdowns: List[Dict[str, Any]]) -> str:
+def render_morpheme_table(word_breakdowns: List[Dict[str, Any]], lang: str = "kz") -> str:
     """
     Renders a responsive HTML table detailing morphological decompositions
     (Word, Stem, POS, Affixes) with strict XSS sanitization.
 
     Args:
         word_breakdowns: List of dicts containing 'word', 'root', 'pos', and 'affixes'.
+        lang: 'kz' for Kazakh headers, 'en' for English headers.
 
     Returns:
         HTML string representing the table or empty prompt.
     """
     if not word_breakdowns:
-        return '<p class="text-muted">Морфологиялық талдау деректері жоқ.</p>'
+        empty_msg = "Morphological analysis data is empty." if lang == "en" else "Морфологиялық талдау деректері жоқ."
+        return f'<p class="text-muted">{empty_msg}</p>'
 
     rows: List[str] = []
     for item in word_breakdowns:
@@ -356,15 +366,26 @@ def render_morpheme_table(word_breakdowns: List[Dict[str, Any]]) -> str:
 
     table_body = "\n".join(rows)
 
+    if lang == "en":
+        th_word = "Word"
+        th_stem = "Stem / Root"
+        th_pos = "Part of Speech (POS)"
+        th_affixes = "Agglutinative Affixes"
+    else:
+        th_word = "Сөз (Word)"
+        th_stem = "Түбір (Stem)"
+        th_pos = "Сөз табы (POS)"
+        th_affixes = "Жұрнақ / Жалғаулар (Affixes)"
+
     return (
         f'<div class="fst-table-container">\n'
         f'  <table class="fst-table">\n'
         f'    <thead>\n'
         f'      <tr>\n'
-        f'        <th>Сөз (Word)</th>\n'
-        f'        <th>Түбір (Stem)</th>\n'
-        f'        <th>Сөз табы (POS)</th>\n'
-        f'        <th>Жұрнақ / Жалғаулар (Affixes)</th>\n'
+        f'        <th>{th_word}</th>\n'
+        f'        <th>{th_stem}</th>\n'
+        f'        <th>{th_pos}</th>\n'
+        f'        <th>{th_affixes}</th>\n'
         f'      </tr>\n'
         f'    </thead>\n'
         f'    <tbody>\n'
