@@ -132,6 +132,89 @@ HEATMAP_CSS = """
     color: #6b7280;
 }
 
+/* Horizontal Confidence Meter Styles */
+.confidence-meter-container {
+    margin: 12px 0 16px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.confidence-meter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.confidence-label {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8rem;
+    color: #4b5563;
+}
+
+.confidence-value {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #111827;
+}
+
+.confidence-verdict-tag {
+    margin-left: 8px;
+    font-size: 0.75rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+}
+
+.confidence-track {
+    width: 100%;
+    height: 22px;
+    border-radius: 6px;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.confidence-fill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: width 0.3s ease;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.meter-human {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.meter-amber {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.meter-ai {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.confidence-ascii-scale {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 5px;
+    text-align: right;
+    letter-spacing: 0.05em;
+}
+
 /* FST Morpheme Breakdown Table Styles */
 .fst-table-container {
     overflow-x: auto;
@@ -182,6 +265,50 @@ HEATMAP_CSS = """
     background-color: #ede9fe;
     color: #6d28d9;
     border: 1px solid #ddd6fe;
+}
+
+.badge-case {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.badge-plur {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.badge-tense {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #fce7f3;
+    color: #9d174d;
+    border: 1px solid #fbcfe8;
+}
+
+.badge-person {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
 }
 
 .pos-badge {
@@ -394,3 +521,205 @@ def render_morpheme_table(word_breakdowns: List[Dict[str, Any]], lang: str = "kz
         f'  </table>\n'
         f'</div>'
     )
+
+
+def render_confidence_meter(
+    probability: Optional[float],
+    verdict: str = "",
+    lang: str = "kz"
+) -> str:
+    """
+    Renders a horizontal confidence progress meter with percentage display
+    and zero emoji clutter, formatted in publication-grade academic style.
+
+    Args:
+        probability: AI probability in [0.0, 1.0] or [0.0, 100.0].
+        verdict: Verdict string (e.g. '[AUTHENTIC HUMAN]', '[MACHINE-GENERATED]').
+        lang: 'kz' for Kazakh labels, 'en' for English labels.
+
+    Returns:
+        XSS-safe HTML string representing the horizontal confidence meter.
+    """
+    if probability is None:
+        p_float = 0.0
+    else:
+        try:
+            p_float = float(probability)
+        except (ValueError, TypeError):
+            p_float = 0.0
+
+    # Defensively clamp probability in [0.0, 1.0] and scale to percentage [0.0, 100.0]
+    p_clamped = max(0.0, min(1.0, p_float))
+    p_pct = p_clamped * 100.0
+    pct_str = f"{p_pct:.1f}%"
+
+    # Color tier matching
+    v_clean = (verdict or "").strip()
+    v_lower = v_clean.lower()
+    if p_pct >= 99.8 or "machine" in v_lower or "жасанды" in v_lower:
+        tier_class = "meter-ai"
+    elif p_pct >= 40.0 or "partially" in v_lower or "hybrid" in v_lower or "аралас" in v_lower:
+        tier_class = "meter-amber"
+    else:
+        tier_class = "meter-human"
+
+    if lang == "en":
+        label_text = "AI Confidence Level"
+    else:
+        label_text = "AI Сенімділік Деңгейі"
+
+    safe_verdict = html.escape(v_clean, quote=True)
+    verdict_badge = f'<span class="confidence-verdict-tag">{safe_verdict}</span>' if safe_verdict else ""
+
+    # ASCII bracketed bar representation: e.g. [====== 99.8% =====]
+    ascii_bar = f"[====== {pct_str} =====]"
+
+    return (
+        f'<div class="confidence-meter-container">\n'
+        f'  <div class="confidence-meter-header">\n'
+        f'    <span class="confidence-label">{label_text}</span>\n'
+        f'    <span class="confidence-value">{pct_str} {verdict_badge}</span>\n'
+        f'  </div>\n'
+        f'  <div class="confidence-track">\n'
+        f'    <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" '
+        f'title="{label_text}: {pct_str}">\n'
+        f'      <span class="confidence-bar-text">{pct_str if p_pct >= 12.0 else ""}</span>\n'
+        f'    </div>\n'
+        f'  </div>\n'
+        f'  <div class="confidence-ascii-scale">{ascii_bar}</div>\n'
+        f'</div>'
+    )
+
+
+def render_fst_decomposition_table(
+    word_breakdowns: List[Dict[str, Any]],
+    lang: str = "kz"
+) -> str:
+    """
+    Renders an 8-column morphological FST decomposition table:
+    (Word, Root, POS, Case, Plural, Tense, Person, Suffix Chain) with strict XSS sanitization.
+
+    Args:
+        word_breakdowns: List of dicts containing 'word', 'root', 'pos', 'case',
+                         'plural', 'tense', 'person', and 'suffix_chain'.
+        lang: 'kz' for Kazakh headers, 'en' for English headers.
+
+    Returns:
+        Safe HTML string containing the responsive table.
+    """
+    if not word_breakdowns:
+        empty_msg = (
+            "No morphological decomposition data available. Enter a word or sentence to parse."
+            if lang == "en"
+            else "Морфологиялық талдау деректері жоқ. Талдау үшін сөз немесе сөйлем енгізіңіз."
+        )
+        return f'<p class="text-muted">{empty_msg}</p>'
+
+    rows: List[str] = []
+    for item in word_breakdowns:
+        raw_word = str(item.get("word", ""))
+        raw_root = str(item.get("root", ""))
+        raw_pos = str(item.get("pos", ""))
+        raw_case = str(item.get("case", "—"))
+        raw_plur = str(item.get("plural", "—"))
+        raw_tense = str(item.get("tense", "—"))
+        raw_person = str(item.get("person", "—"))
+        raw_chain = str(item.get("suffix_chain", item.get("affixes", "—")))
+
+        safe_word = html.escape(raw_word, quote=True)
+        safe_root = html.escape(raw_root, quote=True)
+
+        if raw_pos and raw_pos != "—":
+            safe_pos = f'<span class="pos-badge">{html.escape(raw_pos, quote=True)}</span>'
+        else:
+            safe_pos = '<span class="text-muted">—</span>'
+
+        if raw_case and raw_case != "—":
+            safe_case = f'<span class="badge-case">{html.escape(raw_case, quote=True)}</span>'
+        else:
+            safe_case = '<span class="text-muted">—</span>'
+
+        if raw_plur and raw_plur != "—":
+            safe_plur = f'<span class="badge-plur">{html.escape(raw_plur, quote=True)}</span>'
+        else:
+            safe_plur = '<span class="text-muted">—</span>'
+
+        if raw_tense and raw_tense != "—":
+            safe_tense = f'<span class="badge-tense">{html.escape(raw_tense, quote=True)}</span>'
+        else:
+            safe_tense = '<span class="text-muted">—</span>'
+
+        if raw_person and raw_person != "—":
+            safe_person = f'<span class="badge-person">{html.escape(raw_person, quote=True)}</span>'
+        else:
+            safe_person = '<span class="text-muted">—</span>'
+
+        if isinstance(raw_chain, list):
+            if raw_chain:
+                safe_chain = " ".join(
+                    f'<span class="morpheme-badge">{html.escape(str(c), quote=True)}</span>'
+                    for c in raw_chain
+                )
+            else:
+                safe_chain = '<span class="text-muted">—</span>'
+        elif raw_chain and raw_chain != "—":
+            safe_chain = html.escape(str(raw_chain), quote=True)
+        else:
+            safe_chain = '<span class="text-muted">—</span>'
+
+        rows.append(
+            f'      <tr>\n'
+            f'        <td><strong>{safe_word}</strong></td>\n'
+            f'        <td>{safe_root}</td>\n'
+            f'        <td>{safe_pos}</td>\n'
+            f'        <td>{safe_case}</td>\n'
+            f'        <td>{safe_plur}</td>\n'
+            f'        <td>{safe_tense}</td>\n'
+            f'        <td>{safe_person}</td>\n'
+            f'        <td>{safe_chain}</td>\n'
+            f'      </tr>'
+        )
+
+    table_body = "\n".join(rows)
+
+    if lang == "en":
+        th_word = "Word"
+        th_stem = "Root"
+        th_pos = "POS"
+        th_case = "Case"
+        th_plur = "Plural"
+        th_tense = "Tense"
+        th_person = "Person"
+        th_chain = "Suffix Chain"
+    else:
+        th_word = "Сөз (Word)"
+        th_stem = "Түбір (Root)"
+        th_pos = "Сөз табы (POS)"
+        th_case = "Септік (Case)"
+        th_plur = "Көптік (Plural)"
+        th_tense = "Шақ (Tense)"
+        th_person = "Жақ (Person)"
+        th_chain = "Жұрнақ тізбегі (Suffix Chain)"
+
+    return (
+        f'<div class="fst-table-container">\n'
+        f'  <table class="fst-table">\n'
+        f'    <thead>\n'
+        f'      <tr>\n'
+        f'        <th>{th_word}</th>\n'
+        f'        <th>{th_stem}</th>\n'
+        f'        <th>{th_pos}</th>\n'
+        f'        <th>{th_case}</th>\n'
+        f'        <th>{th_plur}</th>\n'
+        f'        <th>{th_tense}</th>\n'
+        f'        <th>{th_person}</th>\n'
+        f'        <th>{th_chain}</th>\n'
+        f'      </tr>\n'
+        f'    </thead>\n'
+        f'    <tbody>\n'
+        f'{table_body}\n'
+        f'    </tbody>\n'
+        f'  </table>\n'
+        f'</div>'
+    )
+
