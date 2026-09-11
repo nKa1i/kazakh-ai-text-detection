@@ -11,6 +11,7 @@ from verification.evidence import (
 )
 from verification.knowledge_store import KnowledgeStore
 from verification.retriever import HybridEvidenceRetriever
+from verification.claim_extractor import KazakhClaimExtractor
 
 __all__ = [
     "EvidencePassage",
@@ -19,4 +20,5 @@ __all__ = [
     "DocumentTrustResult",
     "KnowledgeStore",
     "HybridEvidenceRetriever",
+    "KazakhClaimExtractor",
 ]
