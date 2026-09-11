@@ -53,8 +53,7 @@ class AdvancedKazakhFSTAnalyzer:
             'ған', 'ген', 'қан', 'кен',
             'ады', 'еді', 'йды', 'йді',
             'мақ', 'мек', 'бақ', 'бек', 'пақ', 'пек',
-            'атын', 'етін',
-            'атын', 'етін',
+            'ды', 'ді', 'ты', 'ті',
         ]
 
         # Verbal Personal Agreement Endings
@@ -63,6 +62,12 @@ class AdvancedKazakhFSTAnalyzer:
             'мыз', 'міз', 'быз', 'біз', 'пыз', 'піз',
             'сың', 'сің', 'сыздар', 'сіздер'
         ]
+
+        # Verbal Negation (Болымсыздық жұрнақтары)
+        self.verbal_negations = ['ба', 'бе', 'па', 'пе', 'ма', 'ме']
+
+        # Verbalizer / Derivational Suffixes (Сөзжасам жұрнақтары)
+        self.verbalizers = ['лан', 'лен', 'дан', 'ден', 'тан', 'тен']
 
         self.case_re = re.compile(r'(' + '|'.join(self.cases) + r')$')
         self.poss_re = re.compile(r'(' + '|'.join(self.possessives) + r')$')
@@ -98,18 +103,39 @@ class AdvancedKazakhFSTAnalyzer:
             # Native Kazakh Morphological Segmentation (Nouns & Verbs)
             original = word
             suffixes = []
+            had_verb = False
 
             # 1. Verbal Personal Agreement Suffixes (e.g. келгенмін -> -мін)
             m_vper = self.verb_person_re.search(word)
             if m_vper and len(word[:m_vper.start()]) >= 3:
                 suffixes.insert(0, m_vper.group(1))
                 word = word[:m_vper.start()]
+                had_verb = True
 
             # 2. Verbal Tense / Participle Suffixes (e.g. жасалғандықтан -> -ғандықтан / -ған)
             m_vt = self.verb_tense_re.search(word)
             if m_vt and len(word[:m_vt.start()]) >= 3:
                 suffixes.insert(0, m_vt.group(1))
                 word = word[:m_vt.start()]
+                had_verb = True
+
+            # 2b. Verbal Negation Suffixes (e.g. қанағаттанба -> -ба, келме -> -ме)
+            if had_verb:
+                for neg in self.verbal_negations:
+                    if word.lower().endswith(neg) and len(word[:-len(neg)]) >= 3:
+                        sfx = word[-len(neg):]
+                        word = word[:-len(neg)]
+                        suffixes.insert(0, sfx)
+                        break
+
+            # 2c. Verbalizer Derivational Suffixes (e.g. қанағаттан -> -тан, пайдалан -> -лан)
+            if had_verb:
+                for deriv in self.verbalizers:
+                    if word.lower().endswith(deriv) and len(word[:-len(deriv)]) >= 3:
+                        sfx = word[-len(deriv):]
+                        word = word[:-len(deriv)]
+                        suffixes.insert(0, sfx)
+                        break
 
             # 3. Noun Cases
             match = self.case_re.search(word)

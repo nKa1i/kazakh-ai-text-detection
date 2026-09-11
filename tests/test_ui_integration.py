@@ -214,9 +214,15 @@ class TestUiIntegration(unittest.TestCase):
         self.assertIn("Септік (Case)", table_html)
         self.assertIn("Көптік (Plural)", table_html)
         self.assertIn("Шақ (Tense)", table_html)
-        self.assertIn("Жақ (Person)", table_html)
         self.assertIn("Жұрнақ тізбегі (Suffix Chain)", table_html)
         self.assertIn("Қазақстанның", table_html)
+
+        # Verify accurate deep root extraction for complex verbalized word: қанағаттанбаған -> қанағат
+        _, qan_table = handle_fst_parse("қанағаттанбаған", detector=detector, lang_choice="en")
+        self.assertIn("қанағат", qan_table)
+        self.assertIn("-тан (VERB.DERIV)", qan_table)
+        self.assertIn("-ба (NEG)", qan_table)
+        self.assertIn("-ған (PAST.PART)", qan_table)
 
         # Verify empty input handling
         empty_gate, empty_table = handle_fst_parse("", detector=detector, lang_choice="kz")
@@ -313,10 +319,11 @@ class TestUiIntegration(unittest.TestCase):
             self.assertIn(r"\mathbf{g}", md)
             self.assertIn(r"\mathbf{h}_{\text{sem}}", md)
             self.assertIn(r"\mathbf{h}_{\text{morph}}", md)
-            # Credits
-            self.assertIn("Da Lei", md)
-            self.assertIn("Prof. Guo", md)
-            self.assertIn("Wang Na", md)
+            self.assertIn(r"\sigma", md)
+            # Section 4 (Credits) removed as requested
+            self.assertNotIn("Project Credits", md)
+            self.assertNotIn("Жоба Авторлары", md)
+            self.assertNotIn("Da Lei", md)
 
     def test_language_switch(self):
         """Verifies switching language updates all pills, labels, methodology, and placeholders."""

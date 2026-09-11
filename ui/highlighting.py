@@ -73,27 +73,54 @@ HEATMAP_CSS = """
 
 /* Dynamic Gate Split-Bar Styles */
 .gate-bar-wrapper {
-    margin: 14px 0;
+    margin: 12px 0 16px 0;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .gate-bar-header {
     display: flex;
     justify-content: space-between;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #374151;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.gate-header-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.gate-header-bert {
+    text-align: left;
+}
+
+.gate-header-fst {
+    text-align: right;
+}
+
+.gate-title-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.gate-subtitle {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-top: 1px;
 }
 
 .gate-bar-container {
     display: flex;
     width: 100%;
-    height: 26px;
+    height: 24px;
     border-radius: 6px;
     overflow: hidden;
-    background-color: #e5e7eb;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    background-color: #e2e8f0;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .gate-stream-bert {
@@ -125,11 +152,14 @@ HEATMAP_CSS = """
 }
 
 .gate-bar-legend {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-    font-size: 0.75rem;
-    color: #6b7280;
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.gate-explanation {
+    display: block;
 }
 
 /* Horizontal Confidence Meter Styles */
@@ -418,15 +448,37 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz"
     if lang == "en":
         bert_title = f"Context Stream (BERT): {bert_pct_str}"
         fst_title = f"Morpheme Stream (FST): {fst_pct_str}"
+        bert_sub = "Sentence semantics & discourse flow"
+        fst_sub = "Agglutinative affixes & grammar harmony"
+        if bert_pct > 60.0:
+            expl_text = f"Semantic context dominates detection for this segment ({bert_pct_str} BERT vs {fst_pct_str} FST)."
+        elif bert_pct < 40.0:
+            expl_text = f"Morphological structure dominates detection for this segment ({fst_pct_str} FST vs {bert_pct_str} BERT)."
+        else:
+            expl_text = f"Balanced dual-stream fusion: {bert_pct_str} contextual semantics, {fst_pct_str} morphological structure."
     else:
         bert_title = f"Семантикалық Контекст (BERT): {bert_pct_str}"
         fst_title = f"Морфологиялық FST (Тіл Құрылымы): {fst_pct_str}"
+        bert_sub = "Мәтінмәндік мағына мен сөйлем құрылымы"
+        fst_sub = "Агглютинативті жұрнақтар мен үйлесімділік"
+        if bert_pct > 60.0:
+            expl_text = f"Бұл бөлікте семантикалық мәтінмән басымдыққа ие ({bert_pct_str} BERT vs {fst_pct_str} FST)."
+        elif bert_pct < 40.0:
+            expl_text = f"Бұл бөлікте морфологиялық құрылым басымдыққа ие ({fst_pct_str} FST vs {bert_pct_str} BERT)."
+        else:
+            expl_text = f"Теңгерімді қос ағынды үйлесім: шешім {bert_pct_str} семантикаға және {fst_pct_str} морфологияға негізделген."
 
     return (
         f'<div class="gate-bar-wrapper">\n'
         f'  <div class="gate-bar-header">\n'
-        f'    <span>{bert_title}</span>\n'
-        f'    <span>{fst_title}</span>\n'
+        f'    <div class="gate-header-col gate-header-bert">\n'
+        f'      <span class="gate-title-text">{bert_title}</span>\n'
+        f'      <span class="gate-subtitle">{bert_sub}</span>\n'
+        f'    </div>\n'
+        f'    <div class="gate-header-col gate-header-fst">\n'
+        f'      <span class="gate-title-text">{fst_title}</span>\n'
+        f'      <span class="gate-subtitle">{fst_sub}</span>\n'
+        f'    </div>\n'
         f'  </div>\n'
         f'  <div class="gate-bar-container">\n'
         f'    <div class="gate-stream-bert" style="width: {bert_pct:.1f}%;" '
@@ -435,8 +487,7 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz"
         f'title="{fst_title}">{fst_label}</div>\n'
         f'  </div>\n'
         f'  <div class="gate-bar-legend">\n'
-        f'    <span>Context Stream (BERT): {bert_pct_str}</span>\n'
-        f'    <span>Morpheme Stream (FST): {fst_pct_str}</span>\n'
+        f'    <span class="gate-explanation">{expl_text}</span>\n'
         f'  </div>\n'
         f'</div>'
     )

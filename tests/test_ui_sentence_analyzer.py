@@ -58,6 +58,15 @@ class TestUiSentenceAnalyzer(unittest.TestCase):
         self.assertEqual(item_cvb["pos"], "VERB")
         self.assertEqual(item_cvb["affixes"], ["-ғандықтан (CVB.REASON)"])
 
+        # қанағаттанбаған -> root: қанағат, pos: VERB, affixes: [-тан (VERB.DERIV), -ба (NEG), -ған (PAST.PART)]
+        breakdowns_qan = analyze_sentence_morphemes("қанағаттанбаған")
+        self.assertEqual(len(breakdowns_qan), 1)
+        item_qan = breakdowns_qan[0]
+        self.assertEqual(item_qan["word"], "қанағаттанбаған")
+        self.assertEqual(item_qan["root"], "қанағат")
+        self.assertEqual(item_qan["pos"], "VERB")
+        self.assertEqual(item_qan["affixes"], ["-тан (VERB.DERIV)", "-ба (NEG)", "-ған (PAST.PART)"])
+
     def test_loanword_breakdown(self):
         from ui.sentence_analyzer import analyze_sentence_morphemes
         # доставкасы -> root: доставка, pos: LOANWORD/NOUN, affixes: [-сы]

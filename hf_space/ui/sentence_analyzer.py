@@ -93,6 +93,21 @@ VERB_TENSE_TAGS: Dict[str, str] = {
     # Future intention / infinitive
     "мақ": "FUT.INT", "мек": "FUT.INT", "бақ": "FUT.INT", "бек": "FUT.INT",
     "пақ": "FUT.INT", "пек": "FUT.INT",
+    # Past tense
+    "ды": "PAST", "ді": "PAST", "ты": "PAST", "ті": "PAST",
+}
+
+VERB_NEG_TAGS: Dict[str, str] = {
+    "ба": "NEG", "бе": "NEG", "па": "NEG", "пе": "NEG", "ма": "NEG", "ме": "NEG",
+}
+
+VERB_DERIV_TAGS: Dict[str, str] = {
+    "лан": "VERB.DERIV", "лен": "VERB.DERIV",
+    "дан": "VERB.DERIV", "ден": "VERB.DERIV",
+    "тан": "VERB.DERIV", "тен": "VERB.DERIV",
+    "ла": "VERB.DERIV", "ле": "VERB.DERIV",
+    "да": "VERB.DERIV", "де": "VERB.DERIV",
+    "та": "VERB.DERIV", "те": "VERB.DERIV",
 }
 
 VERB_PERSON_TAGS: Dict[str, str] = {
@@ -237,6 +252,25 @@ def analyze_sentence_morphemes(
             has_verb_tense = True
             tag = VERB_TENSE_TAGS.get(sfx.lower(), "TENSE")
             matched_affixes.insert(0, (sfx, tag))
+
+        # 2b. Verbal Negation Suffixes (e.g. қанағаттанба -> -ба, келме -> -ме)
+        if has_verb_person or has_verb_tense:
+            for neg in ["ба", "бе", "па", "пе", "ма", "ме"]:
+                if current.lower().endswith(neg) and len(current[:-len(neg)]) >= 3:
+                    sfx = current[-len(neg):]
+                    current = current[:-len(neg)]
+                    tag = VERB_NEG_TAGS.get(neg.lower(), "NEG")
+                    matched_affixes.insert(0, (sfx, tag))
+                    break
+
+            # 2c. Verbalizer Derivational Suffixes (e.g. қанағаттан -> -тан, пайдалан -> -лан)
+            for deriv in ["лан", "лен", "дан", "ден", "тан", "тен"]:
+                if current.lower().endswith(deriv) and len(current[:-len(deriv)]) >= 3:
+                    sfx = current[-len(deriv):]
+                    current = current[:-len(deriv)]
+                    tag = VERB_DERIV_TAGS.get(deriv.lower(), "VERB.DERIV")
+                    matched_affixes.insert(0, (sfx, tag))
+                    break
 
         # 3. Noun Cases
         m_case = analyzer.case_re.search(current.lower())

@@ -57,7 +57,9 @@ from ui.sentence_analyzer import (
     PLUR_TAGS,
     POSS_TAGS,
     VERB_TENSE_TAGS,
-    VERB_PERSON_TAGS
+    VERB_PERSON_TAGS,
+    VERB_NEG_TAGS,
+    VERB_DERIV_TAGS
 )
 from ui.linguistic_explainer import generate_linguistic_explanation
 
@@ -526,6 +528,25 @@ def extract_detailed_morphemes(sentence_text: str) -> List[Dict[str, Any]]:
             tense_val = f"-{sfx} ({tag})"
             matched_affixes.insert(0, (sfx, tag))
 
+        # 2b. Verbal Negation Suffixes (e.g. қанағаттанба -> -ба, келме -> -ме)
+        if has_verb:
+            for neg in ["ба", "бе", "па", "пе", "ма", "ме"]:
+                if current.lower().endswith(neg) and len(current[:-len(neg)]) >= 3:
+                    sfx = current[-len(neg):]
+                    current = current[:-len(neg)]
+                    tag = VERB_NEG_TAGS.get(neg.lower(), "NEG")
+                    matched_affixes.insert(0, (sfx, tag))
+                    break
+
+            # 2c. Verbalizer Derivational Suffixes (e.g. қанағаттан -> -тан, пайдалан -> -лан)
+            for deriv in ["лан", "лен", "дан", "ден", "тан", "тен"]:
+                if current.lower().endswith(deriv) and len(current[:-len(deriv)]) >= 3:
+                    sfx = current[-len(deriv):]
+                    current = current[:-len(deriv)]
+                    tag = VERB_DERIV_TAGS.get(deriv.lower(), "VERB.DERIV")
+                    matched_affixes.insert(0, (sfx, tag))
+                    break
+
         # 3. Noun Cases
         m_case = analyzer.case_re.search(current.lower())
         if m_case and len(current[:m_case.start()]) >= 3:
@@ -770,11 +791,11 @@ def render_legend_html(lang: str = "en") -> str:
 
 
 def render_methodology_markdown(lang: str = "en") -> str:
-    """Renders academic documentation for Tab 3 (Prof. Guo and assistant Wang Na)."""
+    """Renders academic documentation for Tab 3 (Benchmark & Academic Methodology)."""
     if lang == "en":
         return """### Benchmark & Academic Methodology
 
-Academic documentation and empirical evaluation methodology for Prof. Guo and assistant Wang Na on Kazakh AI-generated text detection.
+Academic documentation and empirical evaluation methodology for Kazakh AI-generated text detection.
 
 ---
 
@@ -812,25 +833,18 @@ Kazakh is a morphologically rich agglutinative language. Standard pretrained lan
 
 $$\\mathbf{h} = \\mathbf{g} \\odot \\mathbf{h}_{\\text{sem}} + (1 - \\mathbf{g}) \\odot \\mathbf{h}_{\\text{morph}}$$
 
-Where:
-- $\\mathbf{h}_{\\text{sem}}$ denotes the semantic context vector from the transformer backbone.
-- $\\mathbf{h}_{\\text{morph}}$ represents the FST agglutinative morpheme decomposition representation.
-- $\\mathbf{g} \\in [0, 1]$ represents the dynamic gating weight:
-  $$\\mathbf{g} = \\sigma(\\mathbf{W}_g [\\mathbf{h}_{\\text{sem}}; \\mathbf{h}_{\\text{morph}}] + \\mathbf{b}_g)$$
+The dynamic gating weight $\\mathbf{g} \\in [0, 1]$ adaptively balances contextual semantics and inflectional topology:
 
----
+$$\\mathbf{g} = \\sigma\\left(\\mathbf{W}_g [\\mathbf{h}_{\\text{sem}};\\; \\mathbf{h}_{\\text{morph}}] + \\mathbf{b}_g\\right)$$
 
-#### 4. Project Credits & Attribution
-
-- **Author:** Da Lei (大雷)
-- **Advisor:** Prof. Guo (郭老师)
-- **Assistant:** Wang Na (王娜)
-- **Topic:** Robust AI Text Detection in Agglutinative Languages
+- **$\\mathbf{h}_{\\text{sem}}$**: Semantic context vector from the transformer backbone (BERT/RoBERTa encoder output).
+- **$\\mathbf{h}_{\\text{morph}}$**: Morphological topological representation from the FST transition graph.
+- **$\\mathbf{g}$**: Learned dynamic gating weight ($\\sigma$ denotes the sigmoid activation function).
 """
     else:
         return """### Бенчмарк және Ғылыми Әдістеме (Benchmark & Academic Methodology)
 
-Бұл зерттеу қазақ тіліндегі жасанды интеллект мәтіндерін анықтауға арналған ғылыми әдістеме мен нәтижелерді қамтиды (Проф. Го және көмекші Ван На үшін ұсынылған ғылыми құжаттама).
+Бұл зерттеу қазақ тіліндегі жасанды интеллект мәтіндерін анықтауға арналған ғылыми әдістеме мен Kaz-MAGE эмпирикалық нәтижелерін қамтиды.
 
 ---
 
@@ -868,20 +882,13 @@ Kaz-MAGE бағалау матрицасы генеративті мәтінде
 
 $$\\mathbf{h} = \\mathbf{g} \\odot \\mathbf{h}_{\\text{sem}} + (1 - \\mathbf{g}) \\odot \\mathbf{h}_{\\text{morph}}$$
 
-Мұндағы:
-- $\\mathbf{h}_{\\text{sem}}$ — Семантикалық контекст векторы (BERT/RoBERTa encoder шығысы).
-- $\\mathbf{h}_{\\text{morph}}$ — Морфологиялық FST топологиясы мен аффикстік тізбек векторы.
-- $\\mathbf{g} \\in [0, 1]$ — Динамикалық үйлестіру бағанасы (Gate weight):
-  $$\\mathbf{g} = \\sigma(\\mathbf{W}_g [\\mathbf{h}_{\\text{sem}}; \\mathbf{h}_{\\text{morph}}] + \\mathbf{b}_g)$$
+Динамикалық үйлестіру бағанасы $\\mathbf{g} \\in [0, 1]$ келесідей есептеледі:
 
----
+$$\\mathbf{g} = \\sigma\\left(\\mathbf{W}_g [\\mathbf{h}_{\\text{sem}};\\; \\mathbf{h}_{\\text{morph}}] + \\mathbf{b}_g\\right)$$
 
-#### 4. Жоба Авторлары мен Алғыстар (Project Credits)
-
-- **Зерттеу авторы:** Da Lei (大雷)
-- **Ғылыми жетекші:** Prof. Guo (郭老师)
-- **Ғылыми көмекші:** Wang Na (王娜)
-- **Бағыты:** Түркі және агглютинативті тілдерде жасанды интеллект мәтіндерін сенімді анықтау
+- **$\\mathbf{h}_{\\text{sem}}$**: Семантикалық контекст векторы (BERT/RoBERTa encoder шығысы).
+- **$\\mathbf{h}_{\\text{morph}}$**: Морфологиялық FST топологиясы мен аффикстік тізбек векторы.
+- **$\\mathbf{g}$**: Динамикалық үйлестіру бағанасы ($\\sigma$ — сигмоид функциясы).
 """
 
 
