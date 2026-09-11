@@ -129,3 +129,70 @@ def get_preset_metadata(preset_name: Optional[str]) -> Dict[str, str]:
         "generator": sample.get("generator", ""),
         "description": sample.get("description", ""),
     }
+
+
+VERIFICATION_PRESET_SAMPLES: Dict[str, Dict[str, str]] = {
+    "Quadrant 1: Verified Human Fact": {
+        "title": "Quadrant 1: Verified Human Fact",
+        "quadrant": "Verified Human Fact",
+        "description": "Authentic human prose containing verified historical facts about Kazakhstan's independence and capital.",
+        "text": (
+            "Қазақстан Республикасы 1991 жылы 16 желтоқсанда өз тәуелсіздігін ресми түрде жариялады. "
+            "Астана қаласы — Қазақстанның елордасы болып табылады. "
+            "1997 жылы елорда Алматы қаласынан Ақмолаға көшірілді."
+        )
+    },
+    "Quadrant 2: Human Misinformation": {
+        "title": "Quadrant 2: Human Misinformation",
+        "quadrant": "Human Misinformation",
+        "description": "Human-written informal text containing widespread factual errors and false entity claims.",
+        "text": (
+            "Меніңше, Шымкент қаласы — Қазақстанның ресми елордасы болып табылады. "
+            "Қазақстан өз тәуелсіздігін 1998 жылы ресми түрде жариялаған болатын."
+        )
+    },
+    "Quadrant 3: Accurate AI Synthesis": {
+        "title": "Quadrant 3: Accurate AI Synthesis",
+        "quadrant": "Accurate AI Synthesis",
+        "description": "LLM-generated encyclopedic synthesis that is stylistically artificial but factually accurate.",
+        "text": (
+            "Тоқтар Оңғарбайұлы Әубәкіров — қазақтан шыққан тұңғыш ғарышкер болып табылады. "
+            "Ол 1991 жылы «Союз ТМ-13» ғарыш кемесімен ғарышқа сапар шекті. "
+            "Байқоңыр — әлемдегі тұңғыш әрі ең ірі ғарыш айлағы."
+        )
+    },
+    "Quadrant 4: Hallucinatory AI Disinformation": {
+        "title": "Quadrant 4: Hallucinatory AI Disinformation",
+        "quadrant": "Hallucinatory AI Disinformation",
+        "description": "LLM-generated text exhibiting typical hallucinated historical disinformation and false dates.",
+        "text": (
+            "Абай Құнанбайұлы француз тілінде бес роман жазған және айға ұшып барған. "
+            "Қазақстанның ұлттық валютасы теңге 1917 жылы айналымға енгізілген болатын."
+        )
+    }
+}
+
+
+def get_verification_preset_choices() -> List[str]:
+    """Returns the ordered list of 4-quadrant verification demonstration titles."""
+    return list(VERIFICATION_PRESET_SAMPLES.keys())
+
+
+def get_verification_preset_text(preset_name: Optional[str]) -> str:
+    """Returns the text for the given verification preset name, or empty string if not found."""
+    if not preset_name or preset_name not in VERIFICATION_PRESET_SAMPLES:
+        return ""
+    return VERIFICATION_PRESET_SAMPLES[preset_name].get("text", "")
+
+
+def get_verification_preset_metadata(preset_name: Optional[str]) -> Dict[str, str]:
+    """Returns the metadata dictionary for the given verification preset name."""
+    if not preset_name or preset_name not in VERIFICATION_PRESET_SAMPLES:
+        return {}
+    sample = VERIFICATION_PRESET_SAMPLES[preset_name]
+    return {
+        "title": sample.get("title", preset_name),
+        "quadrant": sample.get("quadrant", ""),
+        "description": sample.get("description", "")
+    }
+

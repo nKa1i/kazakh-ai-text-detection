@@ -412,6 +412,179 @@ HEATMAP_CSS = """
     color: #6b7280;
     font-style: italic;
 }
+
+/* Factual Verification & Trust Matrix Styles */
+.trust-card-wrapper {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.trust-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.lvl-verified-human {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.lvl-human-misinfo {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+}
+
+.lvl-ai-synthesis {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #3b82f6;
+}
+
+.lvl-ai-disinfo {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+}
+
+.trust-bars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 14px 0;
+}
+
+.trust-bar-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.trust-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.trust-bar-track {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.trust-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.fill-ai { background: #ef4444; }
+.fill-fact { background: #f59e0b; }
+.fill-trust { background: #6366f1; }
+
+.trust-stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: #334155;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.trust-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.stat-pill-total { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+.stat-pill-sup { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.stat-pill-ref { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.stat-pill-nei { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+/* Claims Verification Table Styles */
+.claims-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.claims-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.claims-table th {
+    background-color: #f8fafc;
+    color: #334155;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.claims-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: top;
+}
+
+.claims-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.verdict-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.verdict-supported {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.verdict-refuted {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+}
+
+.verdict-nei {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+}
 </style>
 """.strip()
 
@@ -942,6 +1115,191 @@ def render_fst_decomposition_table(
         f'        <th>{th_tense}</th>\n'
         f'        <th>{th_person}</th>\n'
         f'        <th>{th_chain}</th>\n'
+        f'      </tr>\n'
+        f'    </thead>\n'
+        f'    <tbody>\n'
+        f'{table_body}\n'
+        f'    </tbody>\n'
+        f'  </table>\n'
+        f'</div>'
+    )
+
+
+def render_trust_summary_card(
+    doc_trust_result: Optional[Any],
+    lang: str = "en"
+) -> str:
+    """
+    Renders an executive summary card for Document Trust Verification,
+    including the Four-Quadrant badge, dual risk progress bars, and claim counts.
+    """
+    lang_clean = (lang or "en").strip().lower()
+    is_kz = (lang_clean == "kz" or lang_clean == "kk")
+
+    if doc_trust_result is None:
+        title_text = "Деректерді тексеру күтілуде" if is_kz else "Awaiting Verification"
+        desc_text = (
+            "Құжатты тексеру үшін мәтінді енгізіп, «Тексеру» түймесін басыңыз."
+            if is_kz
+            else "Enter text and click 'Verify Document' to evaluate factual accuracy and trust risk."
+        )
+        return (
+            f'<div class="trust-card-wrapper">\n'
+            f'  <div style="font-size: 1.05rem; font-weight: 700; color: #334155; margin-bottom: 4px;">{title_text}</div>\n'
+            f'  <div class="text-muted" style="font-size: 0.85rem;">{desc_text}</div>\n'
+            f'</div>'
+        )
+
+    ai_risk = max(0.0, min(1.0, float(getattr(doc_trust_result, "ai_risk", 0.0))))
+    fact_risk = max(0.0, min(1.0, float(getattr(doc_trust_result, "factual_risk", 0.0))))
+    trust_risk = max(0.0, min(1.0, float(getattr(doc_trust_result, "trust_risk", 0.0))))
+    quadrant = getattr(doc_trust_result, "quadrant_verdict", "Verified Human Fact")
+    total_claims = int(getattr(doc_trust_result, "total_claims", 0))
+    sup_count = int(getattr(doc_trust_result, "supported_count", 0))
+    ref_count = int(getattr(doc_trust_result, "refuted_count", 0))
+    nei_count = int(getattr(doc_trust_result, "nei_count", 0))
+
+    # Determine CSS class and localized badge text
+    if quadrant == "Verified Human Fact":
+        badge_class = "lvl-verified-human"
+        badge_text = "Расталған ақиқат (Verified Human Fact)" if is_kz else "Verified Human Fact"
+    elif quadrant == "Human Misinformation":
+        badge_class = "lvl-human-misinfo"
+        badge_text = "Адам қателігі / Жалған дерек (Human Misinformation)" if is_kz else "Human Misinformation"
+    elif quadrant == "Accurate AI Synthesis":
+        badge_class = "lvl-ai-synthesis"
+        badge_text = "Нақты AI синтезі (Accurate AI Synthesis)" if is_kz else "Accurate AI Synthesis"
+    else:
+        badge_class = "lvl-ai-disinfo"
+        badge_text = "Галлюцинациялық AI дезинформация (Hallucinatory AI Disinformation)" if is_kz else "Hallucinatory AI Disinformation"
+
+    card_title = "Сенімділік бағалауы" if is_kz else "Trustworthiness Assessment"
+    ai_label = "AI генерация қаупі" if is_kz else "AI Risk"
+    fact_label = "Дерек қайшылығы қаупі" if is_kz else "Factual Risk"
+    trust_label = "Жиынтық сенім қаупі" if is_kz else "Trust Risk"
+
+    lbl_total = "Барлық мәлімдемелер" if is_kz else "Total Claims"
+    lbl_sup = "Расталған" if is_kz else "Supported"
+    lbl_ref = "Теріске шығарылған" if is_kz else "Refuted"
+    lbl_nei = "Ақпарат жеткіліксіз" if is_kz else "Not Enough Info"
+
+    ai_pct = f"{ai_risk * 100:.1f}%"
+    fact_pct = f"{fact_risk * 100:.1f}%"
+    trust_pct = f"{trust_risk * 100:.1f}%"
+
+    return (
+        f'<div class="trust-card-wrapper">\n'
+        f'  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">\n'
+        f'    <div style="font-size: 1.05rem; font-weight: 700; color: #0f172a;">{card_title}</div>\n'
+        f'    <div class="trust-badge {badge_class}">{html.escape(badge_text, quote=True)}</div>\n'
+        f'  </div>\n'
+        f'  <div class="trust-bars-grid">\n'
+        f'    <div class="trust-bar-item">\n'
+        f'      <div class="trust-bar-label"><span>{ai_label}</span><span>{ai_pct}</span></div>\n'
+        f'      <div class="trust-bar-track"><div class="trust-bar-fill fill-ai" style="width: {ai_pct};"></div></div>\n'
+        f'    </div>\n'
+        f'    <div class="trust-bar-item">\n'
+        f'      <div class="trust-bar-label"><span>{fact_label}</span><span>{fact_pct}</span></div>\n'
+        f'      <div class="trust-bar-track"><div class="trust-bar-fill fill-fact" style="width: {fact_pct};"></div></div>\n'
+        f'    </div>\n'
+        f'    <div class="trust-bar-item">\n'
+        f'      <div class="trust-bar-label"><span>{trust_label}</span><span>{trust_pct}</span></div>\n'
+        f'      <div class="trust-bar-track"><div class="trust-bar-fill fill-trust" style="width: {trust_pct};"></div></div>\n'
+        f'    </div>\n'
+        f'  </div>\n'
+        f'  <div class="trust-stats-row">\n'
+        f'    <span class="trust-stat-pill stat-pill-total">{lbl_total}: {total_claims}</span>\n'
+        f'    <span class="trust-stat-pill stat-pill-sup">{lbl_sup}: {sup_count}</span>\n'
+        f'    <span class="trust-stat-pill stat-pill-ref">{lbl_ref}: {ref_count}</span>\n'
+        f'    <span class="trust-stat-pill stat-pill-nei">{lbl_nei}: {nei_count}</span>\n'
+        f'  </div>\n'
+        f'</div>'
+    )
+
+
+def render_claims_verification_table(
+    claims: Optional[List[Any]],
+    lang: str = "en"
+) -> str:
+    """
+    Renders an HTML table listing atomic claims, verdicts, evidence citations, and explanations.
+    All dynamic texts are escaped to prevent XSS.
+    """
+    lang_clean = (lang or "en").strip().lower()
+    is_kz = (lang_clean == "kz" or lang_clean == "kk")
+
+    if not claims:
+        msg = "Әзірге тексерілген атомдық мәлімдемелер жоқ." if is_kz else "No atomic claims extracted or verified yet."
+        return f'<div class="empty-doc-prompt">{msg}</div>'
+
+    rows = []
+    for idx, c in enumerate(claims, 1):
+        claim_obj = getattr(c, "claim", None)
+        claim_text = getattr(claim_obj, "text", str(c)) if claim_obj else str(c)
+        safe_claim = html.escape(claim_text, quote=True)
+
+        verdict = getattr(c, "verdict", "NOT ENOUGH INFO")
+        if verdict == "SUPPORTED":
+            v_badge = f'<span class="verdict-badge verdict-supported">SUPPORTED</span>'
+        elif verdict == "REFUTED":
+            v_badge = f'<span class="verdict-badge verdict-refuted">REFUTED</span>'
+        else:
+            v_badge = f'<span class="verdict-badge verdict-nei">NOT ENOUGH INFO</span>'
+
+        conf = float(getattr(c, "confidence", 0.5))
+        conf_str = f"{conf * 100:.1f}%"
+
+        # Evidence citation
+        evidence_list = getattr(c, "evidence", [])
+        if evidence_list:
+            top_ev = evidence_list[0]
+            ev_title = html.escape(getattr(top_ev, "title", "Wikipedia"), quote=True)
+            ev_text = html.escape(getattr(top_ev, "text", ""), quote=True)
+            ev_url = getattr(top_ev, "source_url", "")
+            if len(ev_text) > 130:
+                ev_text = ev_text[:127] + "..."
+            ev_html = f"<strong>{ev_title}</strong>: {ev_text}"
+            if ev_url:
+                safe_url = html.escape(ev_url, quote=True)
+                ev_html += f' <a href="{safe_url}" target="_blank" style="color: #2563eb; text-decoration: underline;">[Wiki]</a>'
+        else:
+            ev_html = '<span class="text-muted">—</span>'
+
+        explanation = getattr(c, "explanation", "")
+        safe_exp = html.escape(explanation, quote=True) if explanation else '<span class="text-muted">—</span>'
+
+        row = (
+            f'      <tr>\n'
+            f'        <td style="font-weight: 600; color: #64748b;">{idx}</td>\n'
+            f'        <td style="font-weight: 500;">{safe_claim}</td>\n'
+            f'        <td>{v_badge}</td>\n'
+            f'        <td style="font-family: monospace; font-weight: 600;">{conf_str}</td>\n'
+            f'        <td style="font-size: 0.8rem; line-height: 1.45;">{ev_html}</td>\n'
+            f'        <td style="font-size: 0.8rem; color: #475569;">{safe_exp}</td>\n'
+            f'      </tr>'
+        )
+        rows.append(row)
+
+    table_body = "\n".join(rows)
+
+    th_idx = "#"
+    th_claim = "Мәлімдеме (Claim)" if is_kz else "Atomic Claim"
+    th_verdict = "Үкім (Verdict)" if is_kz else "Verdict"
+    th_conf = "Сенімділік (Conf)" if is_kz else "Confidence"
+    th_ev = "Дәйексөз (Evidence Source)" if is_kz else "Evidence Source & Passage"
+    th_exp = "Түсіндірме (Explanation)" if is_kz else "Reasoning / Contradiction"
+
+    return (
+        f'<div class="claims-table-container">\n'
+        f'  <table class="claims-table">\n'
+        f'    <thead>\n'
+        f'      <tr>\n'
+        f'        <th style="width: 4%;">{th_idx}</th>\n'
+        f'        <th style="width: 28%;">{th_claim}</th>\n'
+        f'        <th style="width: 12%;">{th_verdict}</th>\n'
+        f'        <th style="width: 9%;">{th_conf}</th>\n'
+        f'        <th style="width: 27%;">{th_ev}</th>\n'
+        f'        <th style="width: 20%;">{th_exp}</th>\n'
         f'      </tr>\n'
         f'    </thead>\n'
         f'    <tbody>\n'

@@ -1,5 +1,14 @@
 import unittest
-from ui.presets import PRESET_SAMPLES, get_preset_choices, get_preset_text, get_preset_metadata
+from ui.presets import (
+    PRESET_SAMPLES,
+    get_preset_choices,
+    get_preset_text,
+    get_preset_metadata,
+    VERIFICATION_PRESET_SAMPLES,
+    get_verification_preset_choices,
+    get_verification_preset_text,
+    get_verification_preset_metadata,
+)
 
 
 class TestUiPresets(unittest.TestCase):
@@ -83,6 +92,38 @@ class TestUiPresets(unittest.TestCase):
         """Verifies that all 6 presets have unique, distinct Kazakh texts."""
         texts = [PRESET_SAMPLES[k]["text"] for k in PRESET_SAMPLES]
         self.assertEqual(len(set(texts)), 6)
+
+    def test_verification_presets_coverage(self):
+        """Verifies exactly 4 quadrants of the Trust Matrix are covered."""
+        self.assertEqual(len(VERIFICATION_PRESET_SAMPLES), 4)
+        expected_quadrants = {
+            "Verified Human Fact",
+            "Human Misinformation",
+            "Accurate AI Synthesis",
+            "Hallucinatory AI Disinformation"
+        }
+        actual_quadrants = {s["quadrant"] for s in VERIFICATION_PRESET_SAMPLES.values()}
+        self.assertEqual(expected_quadrants, actual_quadrants)
+
+    def test_verification_preset_helpers(self):
+        """Verifies choices, text, and metadata getters for verification presets."""
+        choices = get_verification_preset_choices()
+        self.assertEqual(len(choices), 4)
+
+        for choice in choices:
+            text = get_verification_preset_text(choice)
+            self.assertIsInstance(text, str)
+            self.assertGreater(len(text), 20)
+
+            meta = get_verification_preset_metadata(choice)
+            self.assertIsInstance(meta, dict)
+            self.assertIn("quadrant", meta)
+            self.assertIn("description", meta)
+
+        # Fallbacks
+        self.assertEqual(get_verification_preset_text("Unknown"), "")
+        self.assertEqual(get_verification_preset_metadata("Unknown"), {})
+
 
 
 if __name__ == "__main__":

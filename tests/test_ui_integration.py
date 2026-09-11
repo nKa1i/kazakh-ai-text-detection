@@ -28,6 +28,7 @@ from ui.app import (
     handle_fst_parse,
     handle_preset_change,
     handle_file_upload,
+    handle_verify_document,
     switch_ui_language,
     render_hero_html,
     render_legend_html,
@@ -37,8 +38,19 @@ from ui.app import (
     QUICK_SAMPLES,
     I18N
 )
-from ui.highlighting import render_confidence_meter, render_fst_decomposition_table
-from ui.presets import get_preset_choices, get_preset_text
+from ui.highlighting import (
+    render_confidence_meter,
+    render_fst_decomposition_table,
+    render_trust_summary_card,
+    render_claims_verification_table
+)
+from ui.presets import (
+    get_preset_choices,
+    get_preset_text,
+    VERIFICATION_PRESET_SAMPLES,
+    get_verification_preset_choices,
+    get_verification_preset_text
+)
 
 
 class TestUiIntegration(unittest.TestCase):
@@ -307,16 +319,27 @@ class TestUiIntegration(unittest.TestCase):
             self.assertIn(r"\mathbf{h}_{\text{sem}}", md)
             self.assertIn(r"\mathbf{h}_{\text{morph}}", md)
             self.assertIn(r"\sigma", md)
-            # Section 4 (Credits) removed as requested
+            # Topic 3 Factual Verification & Trust Matrix
+            if lang == "en":
+                self.assertIn("Factual Verification", md)
+                self.assertIn("Four-Quadrant Trust Matrix", md)
+            else:
+                self.assertIn("Деректі Тексеру", md)
+                self.assertIn("Сенім Матрицасы", md)
+            self.assertIn(r"\text{Risk}", md)
+            self.assertIn("100.00%", md)
+            self.assertIn("66.67%", md)
+
+            # Institutional Attribution
             self.assertNotIn("Project Credits", md)
             self.assertNotIn("Жоба Авторлары", md)
             self.assertNotIn("Da Lei", md)
 
     def test_language_switch(self):
-        """Verifies switching language updates all pills, labels, methodology, and placeholders."""
+        """Verifies switching language updates all pills, labels, methodology, and placeholders across 4 tabs."""
         en_outputs = switch_ui_language("English")
         self.assertIsInstance(en_outputs, tuple)
-        self.assertEqual(len(en_outputs), 35)
+        self.assertEqual(len(en_outputs), 48)
 
         # Verify English strings in key positions
         quick_samples_en = en_outputs[0]
@@ -325,17 +348,28 @@ class TestUiIntegration(unittest.TestCase):
         exec_card_en = en_outputs[13]
         self.assertIn("Document Analysis Executive Summary", exec_card_en)
 
-        methodology_en = en_outputs[-1]
+        methodology_en = en_outputs[34]
         self.assertIn("Benchmark & Academic Methodology", methodology_en)
         self.assertIn("Scientific Significance", methodology_en)
 
+        # Tab 4 verification strings in English
+        verify_hero_en = en_outputs[35]
+        self.assertIn("Evidence-Grounded Factual Verification", verify_hero_en)
+        verify_samples_en = en_outputs[37]
+        self.assertIn("Four-Quadrant Demonstration Samples", verify_samples_en)
+
         # Switch back to Kazakh
         kz_outputs = switch_ui_language("Қазақша")
+        self.assertEqual(len(kz_outputs), 48)
         quick_samples_kz = kz_outputs[0]
         self.assertIn("Жылдам сынақ үлгілері", quick_samples_kz)
 
         exec_card_kz = kz_outputs[13]
         self.assertIn("Құжатты Сараптаудың Қорытындысы", exec_card_kz)
+
+        verify_hero_kz = kz_outputs[35]
+        self.assertIn("Деректі Тексеру", verify_hero_kz)
+
 
     def test_zero_emoji_constraint_across_ui(self):
         """
@@ -422,6 +456,46 @@ class TestUiIntegration(unittest.TestCase):
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
+
+    def test_handle_verify_document(self):
+        """Verifies Tab 4 factual verification and 4-quadrant trust card rendering."""
+        # 1. Empty input
+        card_empty, tbl_empty = handle_verify_document("", lang_choice="en")
+        self.assertIn("Awaiting Verification", card_empty)
+        self.assertIn("No atomic claims extracted", tbl_empty)
+
+        card_empty_kz, tbl_empty_kz = handle_verify_document("", lang_choice="kz")
+        self.assertIn("Деректерді тексеру күтілуде", card_empty_kz)
+        self.assertIn("тексерілген атомдық мәлімдемелер жоқ", tbl_empty_kz)
+
+        # 2. Quadrant 1: Verified Human Fact
+        q1_text = get_verification_preset_text("Quadrant 1: Verified Human Fact")
+        card_q1, tbl_q1 = handle_verify_document(q1_text, lang_choice="en")
+        self.assertIn("Verified Human Fact", card_q1)
+        self.assertIn("lvl-verified-human", card_q1)
+        self.assertIn("SUPPORTED", tbl_q1)
+        self.assertIn("claims-table", tbl_q1)
+
+        # 3. Quadrant 2: Human Misinformation
+        q2_text = get_verification_preset_text("Quadrant 2: Human Misinformation")
+        card_q2, tbl_q2 = handle_verify_document(q2_text, lang_choice="en")
+        self.assertIn("Human Misinformation", card_q2)
+        self.assertIn("lvl-human-misinfo", card_q2)
+        self.assertIn("REFUTED", tbl_q2)
+
+        # 4. Quadrant 3: Accurate AI Synthesis
+        q3_text = get_verification_preset_text("Quadrant 3: Accurate AI Synthesis")
+        card_q3, tbl_q3 = handle_verify_document(q3_text, lang_choice="en")
+        self.assertIn("Accurate AI Synthesis", card_q3)
+        self.assertIn("lvl-ai-synthesis", card_q3)
+        self.assertIn("SUPPORTED", tbl_q3)
+
+        # 5. Quadrant 4: Hallucinatory AI Disinformation
+        q4_text = get_verification_preset_text("Quadrant 4: Hallucinatory AI Disinformation")
+        card_q4, tbl_q4 = handle_verify_document(q4_text, lang_choice="en")
+        self.assertIn("Hallucinatory AI Disinformation", card_q4)
+        self.assertIn("lvl-ai-disinfo", card_q4)
+
 
 
 if __name__ == "__main__":
