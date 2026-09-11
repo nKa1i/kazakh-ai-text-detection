@@ -10,6 +10,7 @@ from verification.evidence import (
     DocumentTrustResult,
 )
 from verification.knowledge_store import KnowledgeStore
+from verification.retriever import HybridEvidenceRetriever
 
 __all__ = [
     "EvidencePassage",
@@ -17,4 +18,5 @@ __all__ = [
     "ClaimVerificationResult",
     "DocumentTrustResult",
     "KnowledgeStore",
+    "HybridEvidenceRetriever",
 ]
