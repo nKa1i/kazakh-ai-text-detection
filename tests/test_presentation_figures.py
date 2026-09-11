@@ -22,7 +22,8 @@ EXPECTED_FIGURES = [
 
 class TestPresentationFigures(unittest.TestCase):
     def test_all_figures_exist_and_valid(self):
-        fig_dir = os.path.abspath("presentation_figures")
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        fig_dir = os.path.join(project_root, "presentation_figures")
         self.assertTrue(os.path.exists(fig_dir), f"Directory {fig_dir} must exist")
         for fig_name in EXPECTED_FIGURES:
             path = os.path.join(fig_dir, fig_name)

@@ -20,6 +20,7 @@ Date: 2026年9月
 import os
 import sys
 import shutil
+import argparse
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
@@ -51,10 +52,11 @@ FONT_TITLE = "Arial"
 FONT_BODY = "Arial"
 FONT_ZH = "Microsoft YaHei"
 
-BASELINE_PPT_PATH = r"C:\Users\Roza\Downloads\Aliya PPT.pptx"
+USER_HOME = os.path.expanduser("~")
+BASELINE_PPT_PATH = os.path.join(USER_HOME, "Downloads", "Aliya PPT.pptx")
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_OUTPUT_PATH = os.path.join(PROJECT_ROOT, "Kazakh_AI_Detection_Thesis_Progress_Prof_Guo.pptx")
-DESKTOP_MIRROR_PATH = os.path.join(r"C:\Users\Roza\Desktop", "Kazakh_AI_Detection_Thesis_Progress_Prof_Guo.pptx")
+DESKTOP_MIRROR_PATH = os.path.join(USER_HOME, "Desktop", "Kazakh_AI_Detection_Thesis_Progress_Prof_Guo.pptx")
 FIGURE_DIR = os.path.join(PROJECT_ROOT, "presentation_figures")
 
 # Gradient highlight tracker reposition schedule (0-indexed slide index)
@@ -1461,7 +1463,11 @@ def update_content_slides(slides):
             population_dispatch[s_idx](slide)
 
 
-def build_cloned_presentation(input_path=BASELINE_PPT_PATH, output_path=DEFAULT_OUTPUT_PATH):
+def build_cloned_presentation(
+    input_path=BASELINE_PPT_PATH,
+    output_path=DEFAULT_OUTPUT_PATH,
+    mirror_desktop=True
+):
     """
     Loads baseline presentation, processes all 23 slides according to Task 3 specifications,
     and saves output cloned presentation to project root and desktop mirror.
@@ -1500,18 +1506,51 @@ def build_cloned_presentation(input_path=BASELINE_PPT_PATH, output_path=DEFAULT_
     prs.save(output_path)
     print("Presentation successfully cloned and saved.")
 
-    # Mirror to desktop if desktop exists
-    desktop_dir = os.path.dirname(DESKTOP_MIRROR_PATH)
-    if os.path.isdir(desktop_dir):
-        try:
-            shutil.copy2(output_path, DESKTOP_MIRROR_PATH)
-            print(f"Mirrored presentation to Desktop: {DESKTOP_MIRROR_PATH}")
-        except Exception as e:
-            print(f"Desktop mirror notice: {e}")
+    # Mirror to desktop if enabled
+    if mirror_desktop:
+        desktop_dir = os.path.dirname(DESKTOP_MIRROR_PATH)
+        target_desktop_file = os.path.join(desktop_dir, os.path.basename(output_path))
+        if os.path.isdir(desktop_dir):
+            try:
+                shutil.copy2(output_path, target_desktop_file)
+                print(f"Mirrored presentation to Desktop: {target_desktop_file}")
+            except Exception as e:
+                print(f"Warning: Failed to mirror presentation to Desktop: {e}")
+        else:
+            print(f"Warning: Desktop directory does not exist or is inaccessible: {desktop_dir}")
 
     return output_path
 
 
-if __name__ == "__main__":
-    out = build_cloned_presentation()
+def main():
+    parser = argparse.ArgumentParser(
+        description="Clone and populate Kazakh AI Detection thesis presentation."
+    )
+    parser.add_argument(
+        "--input", "-i",
+        default=BASELINE_PPT_PATH,
+        help=f"Path to baseline PPT template (default: {BASELINE_PPT_PATH})"
+    )
+    parser.add_argument(
+        "--output", "-o",
+        default=DEFAULT_OUTPUT_PATH,
+        help=f"Path to output PPT (default: {DEFAULT_OUTPUT_PATH})"
+    )
+    parser.add_argument(
+        "--mirror-desktop",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Mirror output presentation to Desktop if accessible (default: True)"
+    )
+
+    args = parser.parse_args()
+    out = build_cloned_presentation(
+        input_path=args.input,
+        output_path=args.output,
+        mirror_desktop=args.mirror_desktop
+    )
     print(f"Completed build: {out}")
+
+
+if __name__ == "__main__":
+    main()
