@@ -13,6 +13,8 @@ from verification.knowledge_store import KnowledgeStore
 from verification.retriever import HybridEvidenceRetriever
 from verification.claim_extractor import KazakhClaimExtractor
 from verification.nli_verifier import NLIClaimVerifier
+from verification.trust_scorer import DualRiskTrustScorer
+from verification.verifier import TrustworthyDocumentVerifier
 
 __all__ = [
     "EvidencePassage",
@@ -23,4 +25,6 @@ __all__ = [
     "HybridEvidenceRetriever",
     "KazakhClaimExtractor",
     "NLIClaimVerifier",
+    "DualRiskTrustScorer",
+    "TrustworthyDocumentVerifier",
 ]
