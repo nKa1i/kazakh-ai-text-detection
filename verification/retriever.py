@@ -11,6 +11,14 @@ from verification.evidence import EvidencePassage
 from verification.knowledge_store import KnowledgeStore
 
 
+KAZAKH_STOPWORDS = {
+    "және", "мен", "бен", "пен", "де", "да", "та", "те", "бұл", "ол", "оның", "олар",
+    "үшін", "туралы", "бойынша", "арқылы", "сияқты", "тура", "бойы", "дейін",
+    "болып", "бола", "болған", "болды", "екен", "етіп", "еткен", "етті",
+    "бір", "барлық", "бар", "жоқ", "ресми", "түрде", "деген", "деп", "осы", "сол"
+}
+
+
 class HybridEvidenceRetriever:
     """
     Combines FST morphological root-stemmed BM25 sparse search with
@@ -48,7 +56,11 @@ class HybridEvidenceRetriever:
         if not query or not query.strip():
             return []
 
-        query_stems = self.store.stem_text(query)
+        all_q_stems = self.store.stem_text(query)
+        # Filter stopwords
+        query_stems = [s for s in all_q_stems if s not in KAZAKH_STOPWORDS]
+        if not query_stems:
+            query_stems = all_q_stems  # fallback if all were stopwords
         if not query_stems:
             return []
 
@@ -76,8 +88,6 @@ class HybridEvidenceRetriever:
         if not scores:
             return []
 
-        # Normalize BM25 scores
-        max_bm25 = max(scores.values())
         results: List[EvidencePassage] = []
 
         for pid, bm25_val in scores.items():
@@ -85,11 +95,13 @@ class HybridEvidenceRetriever:
             if not orig_passage:
                 continue
 
-            norm_bm25 = bm25_val / max_bm25 if max_bm25 > 0 else 0.0
+            # Asymptotic saturation curve for BM25 score (score / (score + 5.0))
+            # Prevents single isolated stop-term from dominating
+            norm_bm25 = bm25_val / (bm25_val + 5.0)
 
             # Dense / semantic overlap component
             matched = matched_stems_map[pid]
-            doc_unique_stems = set(orig_passage.stemmed_tokens)
+            doc_unique_stems = set(orig_passage.stemmed_tokens) - KAZAKH_STOPWORDS
             overlap_count = len(matched)
             semantic_overlap = (
                 overlap_count / math.sqrt(len(unique_q_stems) * max(1, len(doc_unique_stems)))

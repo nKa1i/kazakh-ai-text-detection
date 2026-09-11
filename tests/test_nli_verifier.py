@@ -84,6 +84,52 @@ class TestNLIClaimVerifier(unittest.TestCase):
         result = self.verifier.verify_claim(claim, [])
         self.assertEqual(result.verdict, "NOT ENOUGH INFO")
 
+    def test_refuted_entity_substitution(self):
+        """Claim asserts Shymkent is the capital vs Evidence that Astana is the capital -> REFUTED."""
+        claim = AtomicClaim(claim_id="c6", text="Шымкент қаласы — Қазақстанның елордасы.")
+        evidence = [
+            EvidencePassage(
+                passage_id="wiki_02",
+                title="Астана қаласы",
+                text="Астана қаласы — Қазақстанның елордасы.",
+                similarity_score=0.65,
+                matched_stems=["елорда", "қазақстан", "қала"]
+            )
+        ]
+        result = self.verifier.verify_claim(claim, evidence)
+        self.assertEqual(result.verdict, "REFUTED")
+        self.assertIn("шымкент", result.explanation.lower())
+
+    def test_not_enough_info_hallucinated_predicate_on_known_entity(self):
+        """Claim that Abai flew to the moon vs biographical passage -> NOT ENOUGH INFO."""
+        claim = AtomicClaim(claim_id="c7", text="Абай Құнанбайұлы айға ұшып барды.")
+        evidence = [
+            EvidencePassage(
+                passage_id="wiki_05",
+                title="Абай Құнанбайұлы",
+                text="Абай (Ибраһим) Құнанбайұлы — ұлы қазақ ақыны, ойшылы және ағартушысы. Оның атақты туындысы — «Қара сөздері».",
+                similarity_score=0.48,
+                matched_stems=["абай", "құнанбайұлы"]
+            )
+        ]
+        result = self.verifier.verify_claim(claim, evidence)
+        self.assertEqual(result.verdict, "NOT ENOUGH INFO")
+
+    def test_not_enough_info_unrelated_date_claim(self):
+        """Claim about a 500m tower in 1900 vs Astana capital move passage -> NOT ENOUGH INFO."""
+        claim = AtomicClaim(claim_id="c8", text="Алматыда 1900 жылы биіктігі 500 метр мұнара салынған.")
+        evidence = [
+            EvidencePassage(
+                passage_id="wiki_02",
+                title="Астана қаласы",
+                text="1997 жылы елорда Алматы қаласынан Ақмолаға көшіріліп, 1998 жылы қала атауы Астана болып өзгертілді.",
+                similarity_score=0.35,
+                matched_stems=["алматы", "жыл"]
+            )
+        ]
+        result = self.verifier.verify_claim(claim, evidence)
+        self.assertEqual(result.verdict, "NOT ENOUGH INFO")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -111,9 +111,22 @@ class KazakhClaimExtractor:
     def split_compound_clauses(self, sentence: str) -> List[str]:
         """
         Splits coordinate clauses joined by 'және', 'әрі', 'бірақ', 'ал'
-        into independent atomic propositions if both sides are substantial.
+        into independent atomic propositions, propagating head subjects when ellipted.
         """
         s = sentence.strip()
+        # Extract potential head subject before dash copula or first capitalized words
+        head_subject = ""
+        copula_symbol = " — "
+        if " — " in s:
+            head_subject = s.split(" — ")[0].strip()
+            copula_symbol = " — "
+        elif " – " in s:
+            head_subject = s.split(" – ")[0].strip()
+            copula_symbol = " – "
+        elif " - " in s:
+            head_subject = s.split(" - ")[0].strip()
+            copula_symbol = " - "
+
         # Look for coordinating conjunctions with surrounding whitespace
         conj_pattern = r'\s+(?:және|әрі|бірақ|ал|дегенмен)\s+'
         parts = re.split(conj_pattern, s, flags=re.UNICODE)
@@ -121,12 +134,18 @@ class KazakhClaimExtractor:
             return [s]
 
         clauses = []
-        for part in parts:
+        for i, part in enumerate(parts):
             p_clean = part.strip()
             if not p_clean:
                 continue
-            # Ensure proper capitalization and terminal punctuation
-            p_clean = p_clean[0].upper() + p_clean[1:]
+
+            # If this is a subsequent coordinate clause and it lacks the head subject
+            if i > 0 and head_subject and head_subject not in p_clean:
+                # Prepend the head subject with the copula
+                p_clean = f"{head_subject}{copula_symbol}{p_clean[0].lower() + p_clean[1:]}"
+            else:
+                p_clean = p_clean[0].upper() + p_clean[1:]
+
             if not p_clean.endswith(('.', '!', '?')):
                 p_clean += '.'
             if len(p_clean.split()) >= 3:

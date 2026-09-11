@@ -52,6 +52,15 @@ class TestKazakhClaimExtractor(unittest.TestCase):
         verifiable = [c for c in claims if c.is_verifiable]
         self.assertEqual(len(verifiable), 0)
 
+    def test_subject_ellipsis_propagation(self):
+        """Coordinate clause lacking an overt subject should inherit the head subject from clause 1."""
+        text = "Мұхтар Әуезов — көрнекті жазушы және қоғам қайраткері."
+        claims = self.extractor.extract_claims(text)
+        self.assertEqual(len(claims), 2)
+        self.assertIn("Мұхтар Әуезов", claims[0].text)
+        self.assertIn("Мұхтар Әуезов", claims[1].text)
+        self.assertIn("қоғам қайраткері", claims[1].text)
+
     def test_empty_and_short_inputs(self):
         self.assertEqual(self.extractor.extract_claims(""), [])
         self.assertEqual(self.extractor.extract_claims("   "), [])

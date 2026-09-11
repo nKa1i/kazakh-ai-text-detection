@@ -15,6 +15,8 @@ from verification.claim_extractor import KazakhClaimExtractor
 from verification.nli_verifier import NLIClaimVerifier
 from verification.trust_scorer import DualRiskTrustScorer
 from verification.verifier import TrustworthyDocumentVerifier
+from verification.fever_generator import KazakhFEVERGenerator
+from verification.evaluator import FEVEREvaluator
 
 __all__ = [
     "EvidencePassage",
@@ -27,4 +29,6 @@ __all__ = [
     "NLIClaimVerifier",
     "DualRiskTrustScorer",
     "TrustworthyDocumentVerifier",
+    "KazakhFEVERGenerator",
+    "FEVEREvaluator",
 ]
