@@ -236,13 +236,69 @@ HEATMAP_CSS = """
     background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
-.confidence-ascii-scale {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+/* Executive Summary Card Styles */
+.executive-summary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.executive-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.executive-card-title {
     font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 5px;
-    text-align: right;
+    font-weight: 700;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
+    color: #475569;
+}
+
+.executive-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.executive-kpi-tile {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.executive-kpi-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.executive-kpi-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.executive-kpi-sub {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-top: 2px;
 }
 
 /* FST Morpheme Breakdown Table Styles */
@@ -622,9 +678,6 @@ def render_confidence_meter(
     safe_verdict = html.escape(v_clean, quote=True)
     verdict_badge = f'<span class="confidence-verdict-tag">{safe_verdict}</span>' if safe_verdict else ""
 
-    # ASCII bracketed bar representation: e.g. [====== 99.8% =====]
-    ascii_bar = f"[====== {pct_str} =====]"
-
     return (
         f'<div class="confidence-meter-container">\n'
         f'  <div class="confidence-meter-header">\n'
@@ -634,10 +687,134 @@ def render_confidence_meter(
         f'  <div class="confidence-track">\n'
         f'    <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" '
         f'title="{label_text}: {pct_str}">\n'
-        f'      <span class="confidence-bar-text">{pct_str if p_pct >= 12.0 else ""}</span>\n'
+        f'      <span class="confidence-bar-text">{pct_str if p_pct >= 10.0 else ""}</span>\n'
         f'    </div>\n'
         f'  </div>\n'
-        f'  <div class="confidence-ascii-scale">{ascii_bar}</div>\n'
+        f'</div>'
+    )
+
+
+def render_executive_summary_card(
+    probability: Optional[float] = None,
+    verdict: str = "",
+    lang: str = "kz",
+    total_words: int = 0,
+    total_sents: int = 0,
+    total_windows: int = 0,
+    ai_ratio: float = 0.0,
+) -> str:
+    """
+    Renders an all-in-one publication-grade executive summary card:
+    - Prominent classification verdict badge.
+    - Sleek modern gradient progress bar (zero ASCII brackets).
+    - 3-tile KPI metric grid (AI Probability, AI Content Ratio, Document Volume).
+    """
+    if probability is None:
+        p_float = 0.0
+    else:
+        try:
+            p_float = float(probability)
+        except (ValueError, TypeError):
+            p_float = 0.0
+
+    p_clamped = max(0.0, min(1.0, p_float))
+    p_pct = p_clamped * 100.0
+    pct_str = f"{p_pct:.1f}%"
+
+    try:
+        r_float = float(ai_ratio)
+    except (ValueError, TypeError):
+        r_float = 0.0
+    ratio_pct = max(0.0, min(100.0, r_float * 100.0 if r_float <= 1.0 else r_float))
+    ratio_str = f"{ratio_pct:.1f}%"
+
+    # Color tier and verdict badge matching
+    v_clean = (verdict or "").strip()
+    v_lower = v_clean.lower()
+    if "machine" in v_lower or "жасанды" in v_lower:
+        badge_class = "badge-ai"
+        tier_class = "meter-ai"
+    elif "partially" in v_lower or "hybrid" in v_lower or "аралас" in v_lower:
+        badge_class = "badge-hybrid"
+        tier_class = "meter-amber"
+    elif "authentic" in v_lower or "адам" in v_lower or "human" in v_lower:
+        badge_class = "badge-human"
+        tier_class = "meter-human"
+    elif not v_clean or "awaiting" in v_lower or "күтілуде" in v_lower:
+        badge_class = "badge-neutral"
+        tier_class = "meter-human"
+    elif p_pct >= 99.8:
+        badge_class = "badge-ai"
+        tier_class = "meter-ai"
+    elif p_pct >= 40.0:
+        badge_class = "badge-hybrid"
+        tier_class = "meter-amber"
+    else:
+        badge_class = "badge-human"
+        tier_class = "meter-human"
+
+    if lang == "en":
+        card_title = "Document Analysis Executive Summary"
+        conf_label = "AI Confidence Level"
+        kpi_prob_title = "AI Probability"
+        kpi_ratio_title = "AI Content Ratio"
+        kpi_vol_title = "Document Volume"
+        kpi_vol_val = f"{total_words} words"
+        kpi_vol_sub = f"{total_sents} sentences • {total_windows} window{'s' if total_windows != 1 else ''}"
+        empty_default = "Awaiting Input"
+    else:
+        card_title = "Құжатты Сараптаудың Қорытындысы"
+        conf_label = "AI Сенімділік Деңгейі"
+        kpi_prob_title = "AI Ықтималдығы"
+        kpi_ratio_title = "AI Мазмұн Үлесі"
+        kpi_vol_title = "Құжат Көлемі"
+        kpi_vol_val = f"{total_words} сөз"
+        kpi_vol_sub = f"{total_sents} сөйлем • {total_windows} терезе"
+        empty_default = "Мәтін күтілуде"
+
+    display_verdict = v_clean if v_clean else empty_default
+
+    safe_card_title = html.escape(card_title, quote=True)
+    safe_conf_label = html.escape(conf_label, quote=True)
+    safe_verdict = html.escape(display_verdict, quote=True)
+    safe_kpi_prob_title = html.escape(kpi_prob_title, quote=True)
+    safe_kpi_ratio_title = html.escape(kpi_ratio_title, quote=True)
+    safe_kpi_vol_title = html.escape(kpi_vol_title, quote=True)
+    safe_vol_val = html.escape(kpi_vol_val, quote=True)
+    safe_vol_sub = html.escape(kpi_vol_sub, quote=True)
+
+    return (
+        f'<div class="executive-summary-card">\n'
+        f'  <div class="executive-card-header">\n'
+        f'    <span class="executive-card-title">{safe_card_title}</span>\n'
+        f'    <span class="kpi-badge {badge_class}">{safe_verdict}</span>\n'
+        f'  </div>\n'
+        f'  <div class="confidence-meter-container" style="margin: 4px 0 12px 0;">\n'
+        f'    <div class="confidence-meter-header">\n'
+        f'      <span class="confidence-label">{safe_conf_label}</span>\n'
+        f'      <span class="confidence-value">{pct_str}</span>\n'
+        f'    </div>\n'
+        f'    <div class="confidence-track">\n'
+        f'      <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" title="{safe_conf_label}: {pct_str}">\n'
+        f'        <span class="confidence-bar-text">{pct_str if p_pct >= 10.0 else ""}</span>\n'
+        f'      </div>\n'
+        f'    </div>\n'
+        f'  </div>\n'
+        f'  <div class="executive-kpi-grid">\n'
+        f'    <div class="executive-kpi-tile">\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_prob_title}</div>\n'
+        f'      <div class="executive-kpi-value">{pct_str}</div>\n'
+        f'    </div>\n'
+        f'    <div class="executive-kpi-tile">\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_ratio_title}</div>\n'
+        f'      <div class="executive-kpi-value">{ratio_str}</div>\n'
+        f'    </div>\n'
+        f'    <div class="executive-kpi-tile">\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_vol_title}</div>\n'
+        f'      <div class="executive-kpi-value">{safe_vol_val}</div>\n'
+        f'      <div class="executive-kpi-sub">{safe_vol_sub}</div>\n'
+        f'    </div>\n'
+        f'  </div>\n'
         f'</div>'
     )
 

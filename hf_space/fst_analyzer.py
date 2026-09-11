@@ -69,6 +69,9 @@ class AdvancedKazakhFSTAnalyzer:
         # Verbalizer / Derivational Suffixes (Сөзжасам жұрнақтары)
         self.verbalizers = ['лан', 'лен', 'дан', 'ден', 'тан', 'тен']
 
+        # Agentive / Derivational Noun Suffixes (-ші / -шы)
+        self.agentive_suffixes = ['ші', 'шы']
+
         self.case_re = re.compile(r'(' + '|'.join(self.cases) + r')$')
         self.poss_re = re.compile(r'(' + '|'.join(self.possessives) + r')$')
         self.plur_re = re.compile(r'(' + '|'.join(self.plurals) + r')$')
@@ -147,8 +150,12 @@ class AdvancedKazakhFSTAnalyzer:
             if len(word) > 3:
                 match = self.poss_re.search(word)
                 if match and len(word[:match.start()]) >= 3:
-                    suffixes.insert(0, match.group(1))
-                    word = word[:match.start()]
+                    poss_cand = match.group(1).lower()
+                    if (word.lower().endswith("ші") and poss_cand == "і") or (word.lower().endswith("шы") and poss_cand == "ы"):
+                        pass
+                    else:
+                        suffixes.insert(0, match.group(1))
+                        word = word[:match.start()]
 
             # 5. Plurals
             if len(word) > 3:
@@ -156,6 +163,15 @@ class AdvancedKazakhFSTAnalyzer:
                 if match and len(word[:match.start()]) >= 3:
                     suffixes.insert(0, match.group(1))
                     word = word[:match.start()]
+
+            # 6. Agentive Derivational Suffixes (-ші / -шы)
+            if len(word) >= 4 and not had_verb:
+                for ag in self.agentive_suffixes:
+                    if word.lower().endswith(ag) and len(word[:-len(ag)]) >= 3:
+                        sfx = word[-len(ag):]
+                        word = word[:-len(ag)]
+                        suffixes.insert(0, sfx)
+                        break
 
             if suffixes:
                 processed_words.append(word + " " + " ".join(f"-{s}" for s in suffixes))

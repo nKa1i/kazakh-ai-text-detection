@@ -1,5 +1,10 @@
 import pytest
-from llama_engine import LlamaEngine
+import unittest
+
+try:
+    from llama_engine import LlamaEngine
+except ImportError:
+    raise unittest.SkipTest("llama_engine not installed")
 
 def test_generate_mock(mocker):
     engine = LlamaEngine(api_url="http://localhost:8080/v1/chat/completions")

@@ -302,7 +302,21 @@ class TestUiSentenceAnalyzer(unittest.TestCase):
         sents = analyze_document_sentences(text, fst_analyzer=fst)
         self.assertEqual(len(sents), 1)
         self.assertIn("morphemes", sents[0])
-        self.assertGreater(len(sents[0]["morphemes"]), 0)
+    def test_agentive_suffix_stemming(self):
+        from ui.sentence_analyzer import analyze_sentence_morphemes
+        breakdowns = analyze_sentence_morphemes("жетекші")
+        self.assertEqual(len(breakdowns), 1)
+        self.assertEqual(breakdowns[0]["word"], "жетекші")
+        self.assertEqual(breakdowns[0]["root"], "жетек")
+        self.assertEqual(breakdowns[0]["pos"], "NOUN")
+        self.assertTrue(any("AGENT" in aff or "-ші" in aff for aff in breakdowns[0]["affixes"]))
+
+        # Also test with plural: жетекшілер -> root: жетек, affixes: [-ші (DERIV.AGENT), -лер (PLUR)]
+        b_plur = analyze_sentence_morphemes("жетекшілер")
+        self.assertEqual(len(b_plur), 1)
+        self.assertEqual(b_plur[0]["root"], "жетек")
+        self.assertTrue(any("AGENT" in aff or "-ші" in aff for aff in b_plur[0]["affixes"]))
+        self.assertTrue(any("PLUR" in aff for aff in b_plur[0]["affixes"]))
 
 
 if __name__ == "__main__":

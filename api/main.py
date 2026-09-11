@@ -48,9 +48,11 @@ def explain_endpoint(request: PredictRequest):
     return result
 
 from typing import Dict, Any, Optional
-from consensus_engine import ConsensusEngine
-
-consensus_engine = ConsensusEngine()
+try:
+    from consensus_engine import ConsensusEngine
+    consensus_engine = ConsensusEngine()
+except ImportError:
+    consensus_engine = None
 
 class VerificationRequest(BaseModel):
     text: str
@@ -60,6 +62,8 @@ import time
 
 @app.post("/v1/verify")
 def verify_content(req: VerificationRequest):
+    if consensus_engine is None:
+        raise HTTPException(status_code=503, detail="Consensus engine unavailable")
     t0 = time.time()
     result = consensus_engine.evaluate(req.text, req.telemetry, layer1_score=0.10)
     result["processing_time_ms"] = round((time.time() - t0) * 1000, 2)

@@ -71,11 +71,7 @@ class TestUiIntegration(unittest.TestCase):
         detector = OfflineHeuristicDetector()
         # Default English
         (
-            verdict_badge,
-            conf_html,
-            prob_text,
-            ratio_text,
-            stats_text,
+            exec_card_html,
             bullets_md,
             heatmap_html,
             dropdown_update,
@@ -85,11 +81,9 @@ class TestUiIntegration(unittest.TestCase):
             raw_sents_state
         ) = handle_analyze_document("", detector)
 
-        self.assertIn("[AWAITING INPUT]", verdict_badge)
-        self.assertIn("0.0%", conf_html)
-        self.assertIn("confidence-meter-container", conf_html)
-        self.assertEqual(prob_text, "0.0%")
-        self.assertEqual(ratio_text, "0.0%")
+        self.assertIn("executive-summary-card", exec_card_html)
+        self.assertIn("[AWAITING INPUT]", exec_card_html)
+        self.assertIn("0.0%", exec_card_html)
         self.assertEqual(bullets_md, "")
         self.assertIn("No text entered or document is empty.", heatmap_html)
         self.assertEqual(raw_sents_state, [])
@@ -104,11 +98,7 @@ class TestUiIntegration(unittest.TestCase):
         text = "Бұл бірінші қазақша сөйлем. Ал бұл екінші сөйлем болып табылады."
         # Default English
         (
-            verdict_badge,
-            conf_html,
-            prob_text,
-            ratio_text,
-            stats_text,
+            exec_card_html,
             bullets_md,
             heatmap_html,
             dropdown_update,
@@ -118,21 +108,21 @@ class TestUiIntegration(unittest.TestCase):
             raw_sents_state
         ) = handle_analyze_document(text, detector)
 
-        self.assertIn("kpi-badge", verdict_badge)
-        self.assertIn("confidence-meter-container", conf_html)
-        self.assertIn("[======", conf_html)
+        self.assertIn("executive-summary-card", exec_card_html)
+        self.assertIn("badge-human", exec_card_html)
+        self.assertNotIn("[======", exec_card_html)
         self.assertIn("kaz-sentence", heatmap_html)
         self.assertEqual(len(raw_sents_state), 2)
-        self.assertIn("Words", stats_text)
-        self.assertIn("Sentences: 2", stats_text)
+        self.assertIn("words", exec_card_html.lower())
+        self.assertIn("sentences", exec_card_html.lower())
         # Linguistic reasoning bullets present
         self.assertTrue(len(bullets_md) > 0)
         self.assertTrue(bullets_md.startswith("- "))
 
         # Explicit Kazakh
-        _, _, _, _, kz_stats, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(text, detector, lang_choice="kz")
-        self.assertIn("Сөздер", kz_stats)
-        self.assertIn("Сөйлемдер: 2", kz_stats)
+        kz_exec, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(text, detector, lang_choice="kz")
+        self.assertIn("сөз", kz_exec)
+        self.assertIn("сөйлем", kz_exec)
 
     def test_handle_analyze_document_with_ai_text(self):
         """Verifies analysis of AI text produces [MACHINE-GENERATED] badge and high confidence meter."""
@@ -140,11 +130,7 @@ class TestUiIntegration(unittest.TestCase):
         ai_sample = QUICK_SAMPLES["pill_3"]["text"]
         # Default English
         (
-            verdict_badge,
-            conf_html,
-            prob_text,
-            ratio_text,
-            stats_text,
+            exec_card_html,
             bullets_md,
             heatmap_html,
             dropdown_update,
@@ -154,14 +140,14 @@ class TestUiIntegration(unittest.TestCase):
             raw_sents_state
         ) = handle_analyze_document(ai_sample, detector)
 
-        self.assertIn("[MACHINE-GENERATED]", verdict_badge)
-        self.assertIn("meter-ai", conf_html)
-        self.assertTrue("99.9%" in conf_html or "100.0%" in conf_html)
+        self.assertIn("badge-ai", exec_card_html)
+        self.assertIn("meter-ai", exec_card_html)
+        self.assertTrue("99.9%" in exec_card_html or "100.0%" in exec_card_html)
         self.assertTrue(len(bullets_md) > 0)
         self.assertIn("formulaic", bullets_md.lower())
 
         # Explicit Kazakh
-        *_, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(ai_sample, detector, lang_choice="kz")
+        _, kz_bullets, _, _, _, _, _, _ = handle_analyze_document(ai_sample, detector, lang_choice="kz")
         self.assertIn("формулалық", kz_bullets.lower())
 
     def test_handle_sentence_select(self):
@@ -268,7 +254,8 @@ class TestUiIntegration(unittest.TestCase):
         meter_ai = render_confidence_meter(0.9985, "[MACHINE-GENERATED]", lang="kz")
         self.assertIn("99.9%", meter_ai)
         self.assertIn("meter-ai", meter_ai)
-        self.assertIn("[====== 99.9% =====]", meter_ai)
+        self.assertNotIn("[======", meter_ai)
+        self.assertIn("confidence-track", meter_ai)
         self.assertIn("[MACHINE-GENERATED]", meter_ai)
 
         # 2. Borderline / Amber
@@ -329,12 +316,14 @@ class TestUiIntegration(unittest.TestCase):
         """Verifies switching language updates all pills, labels, methodology, and placeholders."""
         en_outputs = switch_ui_language("English")
         self.assertIsInstance(en_outputs, tuple)
-        self.assertGreater(len(en_outputs), 30)
+        self.assertEqual(len(en_outputs), 35)
 
         # Verify English strings in key positions
-        hero_en = en_outputs[0]
-        self.assertIn("Kazakh AI-Generated Text Detector", hero_en)
-        self.assertIn("Tri-Domain Robustness", hero_en)
+        quick_samples_en = en_outputs[0]
+        self.assertIn("Quick Benchmark Samples", quick_samples_en)
+
+        exec_card_en = en_outputs[13]
+        self.assertIn("Document Analysis Executive Summary", exec_card_en)
 
         methodology_en = en_outputs[-1]
         self.assertIn("Benchmark & Academic Methodology", methodology_en)
@@ -342,9 +331,11 @@ class TestUiIntegration(unittest.TestCase):
 
         # Switch back to Kazakh
         kz_outputs = switch_ui_language("Қазақша")
-        hero_kz = kz_outputs[0]
-        self.assertIn("Қазақ Тіліндегі Жасанды Интеллект", hero_kz)
-        self.assertIn("Үш-Домендік Тұрақтылық", hero_kz)
+        quick_samples_kz = kz_outputs[0]
+        self.assertIn("Жылдам сынақ үлгілері", quick_samples_kz)
+
+        exec_card_kz = kz_outputs[13]
+        self.assertIn("Құжатты Сараптаудың Қорытындысы", exec_card_kz)
 
     def test_zero_emoji_constraint_across_ui(self):
         """

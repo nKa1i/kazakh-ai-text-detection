@@ -38,6 +38,7 @@ from ui.highlighting import (
     render_dynamic_gate_bar,
     render_morpheme_table,
     render_confidence_meter,
+    render_executive_summary_card,
     render_fst_decomposition_table,
     HEATMAP_CSS
 )
@@ -114,12 +115,15 @@ body, .gradio-container {
 .quick-samples-header-row {
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    margin-bottom: 6px !important;
+    justify-content: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 8px !important;
 }
 .quick-samples-title {
     margin: 0 !important;
     padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 .quick-samples-title p {
     margin: 0 !important;
@@ -130,8 +134,8 @@ body, .gradio-container {
     color: #475569 !important;
 }
 .lang-switch-inline {
-    display: flex !important;
-    justify-content: flex-end !important;
+    display: inline-flex !important;
+    justify-content: flex-start !important;
     border: none !important;
     background: transparent !important;
     padding: 0 !important;
@@ -141,7 +145,7 @@ body, .gradio-container {
     display: flex !important;
     flex-direction: row !important;
     gap: 12px !important;
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
     align-items: center !important;
 }
 .quick-samples-row {
@@ -225,31 +229,54 @@ body, .gradio-container {
 }
 .legend-bar {
     display: flex;
-    gap: 18px;
+    gap: 10px;
     font-size: 12px;
     color: #334155;
     margin-top: 6px;
     margin-bottom: 12px;
     flex-wrap: wrap;
     background: #f8fafc;
-    padding: 8px 14px;
+    padding: 8px 12px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
 }
 .legend-item {
     display: inline-flex;
     align-items: center;
+}
+.legend-pill {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.legend-pill-human {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+.legend-pill-amber {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+}
+.legend-pill-ai {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
 }
 .legend-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
     display: inline-block;
 }
-.dot-human { background-color: #d1fae5; border: 1px solid #10b981; }
-.dot-amber { background-color: #fef3c7; border: 1px solid #f59e0b; }
-.dot-ai { background-color: #fee2e2; border: 1px solid #ef4444; }
+.dot-human { background-color: #10b981; }
+.dot-amber { background-color: #f59e0b; }
+.dot-ai { background-color: #ef4444; }
 .linguistic-box {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -783,9 +810,9 @@ def render_legend_html(lang: str = "en") -> str:
     d = I18N.get(lang, I18N["en"])
     return f"""
     <div class="legend-bar">
-        <span class="legend-item"><span class="legend-dot dot-human"></span> <strong>{d['legend_human']}</strong></span>
-        <span class="legend-item"><span class="legend-dot dot-amber"></span> <strong>{d['legend_amber']}</strong></span>
-        <span class="legend-item"><span class="legend-dot dot-ai"></span> <strong>{d['legend_ai']}</strong></span>
+        <span class="legend-item"><span class="legend-pill legend-pill-human"><span class="legend-dot dot-human"></span> {d['legend_human']}</span></span>
+        <span class="legend-item"><span class="legend-pill legend-pill-amber"><span class="legend-dot dot-amber"></span> {d['legend_amber']}</span></span>
+        <span class="legend-item"><span class="legend-pill legend-pill-ai"><span class="legend-dot dot-ai"></span> {d['legend_ai']}</span></span>
     </div>
     """
 
@@ -939,21 +966,17 @@ def handle_analyze_document(
     text: str,
     detector: Any = None,
     lang_choice: str = "en"
-) -> Tuple[str, str, str, str, str, str, str, Any, str, str, str, List[Dict[str, Any]]]:
+) -> Tuple[str, str, str, Any, str, str, str, List[Dict[str, Any]]]:
     """
     Full document analysis pipeline:
-    Runs DocumentDetector/Heuristic, renders KPIs, horizontal confidence progress meter,
+    Runs DocumentDetector/Heuristic, renders the unified executive summary card,
     dynamic linguistic reasoning bullets, visual sentence heatmap,
     populates sentence dropdown, and selects sentence 0 for immediate drilldown.
 
     Returns:
         Tuple of:
         (
-            verdict_badge,
-            confidence_meter_html,
-            prob_str,
-            ratio_str,
-            stats_str,
+            executive_card_html,
             explanation_bullets_md,
             heatmap_html,
             dropdown_update,
@@ -968,17 +991,19 @@ def handle_analyze_document(
     d = I18N.get(lang, I18N["en"])
 
     if not text or not text.strip():
-        empty_badge = f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>'
-        empty_conf = render_confidence_meter(0.0, d["awaiting_input"], lang=lang)
+        empty_exec = render_executive_summary_card(
+            probability=0.0,
+            verdict=d["awaiting_input"],
+            lang=lang,
+            total_words=0,
+            total_sents=0,
+            total_windows=0,
+            ai_ratio=0.0
+        )
         empty_heatmap = f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>'
         prompt_select = d["select_sentence_prompt"]
-        stats_empty = "Сөздер: 0 | Сөйлемдер: 0 | Терезелер: 0" if lang == "kz" else "Words: 0 | Sentences: 0 | Windows: 0"
         return (
-            empty_badge,
-            empty_conf,
-            "0.0%",
-            "0.0%",
-            stats_empty,
+            empty_exec,
             "",
             empty_heatmap,
             gr.update(choices=[], value=None),
@@ -997,37 +1022,26 @@ def handle_analyze_document(
     # 3. Format verdict badge in active language (clean brackets, zero emojis)
     verdict = doc_res.verdict
     if verdict == "Authentic Human":
-        badge_html = f'<div class="kpi-badge badge-human">{d["verdict_human"]}</div>'
         verdict_tag = d["verdict_human"]
     elif verdict == "Partially AI" or "partially" in verdict.lower():
-        badge_html = f'<div class="kpi-badge badge-hybrid">{d["verdict_hybrid"]}</div>'
         verdict_tag = d["verdict_hybrid"]
     else:
-        badge_html = f'<div class="kpi-badge badge-ai">{d["verdict_ai"]}</div>'
         verdict_tag = d["verdict_ai"]
 
-    # 4. Horizontal confidence meter HTML
-    conf_html = render_confidence_meter(doc_res.document_ai_probability, verdict_tag, lang=lang)
+    # 4. Publication-grade executive summary card
+    exec_card_html = render_executive_summary_card(
+        probability=doc_res.document_ai_probability,
+        verdict=verdict_tag,
+        lang=lang,
+        total_words=doc_res.total_words,
+        total_sents=doc_res.total_sentences,
+        total_windows=doc_res.total_chunks,
+        ai_ratio=doc_res.ai_content_ratio
+    )
 
     # 5. Dynamic linguistic explanation bullets
     bullets = generate_linguistic_explanation(text, doc_res, lang=lang)
     bullets_md = "\n".join(f"- {b}" for b in bullets)
-
-    prob_str = f"{doc_res.document_ai_probability:.1%}"
-    ratio_str = f"{doc_res.ai_content_ratio:.1%}"
-
-    if lang == "en":
-        stats_str = (
-            f"Words: {doc_res.total_words:,} | "
-            f"Sentences: {doc_res.total_sentences} | "
-            f"Windows: {doc_res.total_chunks}"
-        )
-    else:
-        stats_str = (
-            f"Сөздер: {doc_res.total_words:,} | "
-            f"Сөйлемдер: {doc_res.total_sentences} | "
-            f"Терезелер: {doc_res.total_chunks}"
-        )
 
     # 6. Render heatmap
     heatmap_html = render_document_heatmap(
@@ -1058,11 +1072,7 @@ def handle_analyze_document(
     dropdown_update = gr.update(choices=choices, value=default_val)
 
     return (
-        badge_html,
-        conf_html,
-        prob_str,
-        ratio_str,
-        stats_str,
+        exec_card_html,
         bullets_md,
         heatmap_html,
         dropdown_update,
@@ -1145,18 +1155,17 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
     lang = _get_lang_key(lang_choice)
     d = I18N.get(lang, I18N["en"])
 
-    hero_html = render_hero_html(lang)
     legend_html = render_legend_html(lang)
-    empty_badge = f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>'
-    empty_conf = render_confidence_meter(0.0, d["awaiting_input"], lang=lang)
+    empty_exec = render_executive_summary_card(
+        0.0, d["awaiting_input"], lang=lang,
+        total_words=0, total_sents=0, total_windows=0, ai_ratio=0.0
+    )
     empty_heatmap = f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>'
     gate_html = render_dynamic_gate_bar(0.5, lang=lang)
     morph_html = f'<p class="text-muted">{d["select_sentence_prompt"]}</p>'
-    stats_empty = "Words: 0 | Sentences: 0 | Windows: 0" if lang == "en" else "Сөздер: 0 | Сөйлемдер: 0 | Терезелер: 0"
     methodology_md = render_methodology_markdown(lang)
 
     return (
-        hero_html,
         f"**{d['quick_samples_title']}**",
         # 6 sample pills
         gr.update(value=d["pill_1"]),
@@ -1173,11 +1182,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
         gr.update(value=d["clear_btn"]),
         # Results
         d["kpi_header"],
-        empty_badge,
-        empty_conf,
-        gr.update(label=d["prob_label"]),
-        gr.update(label=d["ratio_label"]),
-        gr.update(label=d["stats_label"], value=stats_empty),
+        empty_exec,
         d["linguistic_header"],
         "",  # linguistic bullets cleared on language switch
         d["heatmap_header"],
@@ -1219,11 +1224,8 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
         # Inject CSS styling safely
         gr.HTML(f"<style>{APP_CSS}</style>", visible=False)
 
-        # Welcoming Academic Hero Header Card (Default English)
-        hero_banner = gr.HTML(render_hero_html("en"))
-
         # -------------------------------------------------------------------
-        # 3 Main Academic Tabs
+        # 3 Main Academic Tabs (Start directly at the top)
         # -------------------------------------------------------------------
         with gr.Tabs() as tabs:
 
@@ -1232,20 +1234,18 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
             # ===============================================================
             with gr.Tab(d["tab_1_title"], id="tab_detection") as tab_detect:
 
-                # Header row: Quick Samples title on left, inline language switcher on right
+                # Header row: Quick Samples title on left, inline language switcher immediately adjacent on left
                 with gr.Column(elem_classes=["quick-samples-wrapper"]):
                     with gr.Row(elem_classes=["quick-samples-header-row"]):
-                        with gr.Column(scale=8):
-                            quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
-                        with gr.Column(scale=4, min_width=170):
-                            lang_radio = gr.Radio(
-                                choices=["English", "Қазақша"],
-                                value="English",
-                                show_label=False,
-                                container=False,
-                                interactive=True,
-                                elem_classes=["lang-switch-inline"]
-                            )
+                        quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
+                        lang_radio = gr.Radio(
+                            choices=["English", "Қазақша"],
+                            value="English",
+                            show_label=False,
+                            container=False,
+                            interactive=True,
+                            elem_classes=["lang-switch-inline"]
+                        )
                     with gr.Row(elem_classes=["quick-samples-row"]):
                         pill_btn1 = gr.Button(d["pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
                         pill_btn2 = gr.Button(d["pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
@@ -1280,19 +1280,16 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                     # Right Column: Document Results & Explainability
                     with gr.Column(scale=5):
                         kpi_header = gr.Markdown(d["kpi_header"])
-                        verdict_badge = gr.HTML(f'<div class="kpi-badge badge-neutral">{d["awaiting_input"]}</div>')
-
-                        # Horizontal Confidence Meter
-                        confidence_meter_display = gr.HTML(render_confidence_meter(0.0, d["awaiting_input"], lang="en"))
-
-                        with gr.Row():
-                            prob_box = gr.Textbox(value="0.0%", label=d["prob_label"], interactive=False)
-                            ratio_box = gr.Textbox(value="0.0%", label=d["ratio_label"], interactive=False)
-
-                        stats_display = gr.Textbox(
-                            value="Words: 0 | Sentences: 0 | Windows: 0",
-                            label=d["stats_label"],
-                            interactive=False
+                        executive_card_display = gr.HTML(
+                            render_executive_summary_card(
+                                probability=0.0,
+                                verdict=d["awaiting_input"],
+                                lang="en",
+                                total_words=0,
+                                total_sents=0,
+                                total_windows=0,
+                                ai_ratio=0.0
+                            )
                         )
 
                         # Dynamic Linguistic Reasoning Bullets
@@ -1373,11 +1370,7 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
             fn=_run_analysis,
             inputs=[text_input, lang_radio],
             outputs=[
-                verdict_badge,
-                confidence_meter_display,
-                prob_box,
-                ratio_box,
-                stats_display,
+                executive_card_display,
                 linguistic_bullets_display,
                 heatmap_display,
                 sentence_selector,
@@ -1392,19 +1385,21 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
         def _clear_all(current_lang):
             lang = _get_lang_key(current_lang)
             d_curr = I18N.get(lang, I18N["en"])
-            empty_badge = f'<div class="kpi-badge badge-neutral">{d_curr["awaiting_input"]}</div>'
-            empty_conf = render_confidence_meter(0.0, d_curr["awaiting_input"], lang=lang)
+            empty_exec = render_executive_summary_card(
+                probability=0.0,
+                verdict=d_curr["awaiting_input"],
+                lang=lang,
+                total_words=0,
+                total_sents=0,
+                total_windows=0,
+                ai_ratio=0.0
+            )
             empty_heatmap = f'<div class="empty-doc-prompt">{d_curr["empty_heatmap"]}</div>'
-            stats_empty = "Words: 0 | Sentences: 0 | Windows: 0" if lang == "en" else "Сөздер: 0 | Сөйлемдер: 0 | Терезелер: 0"
             return (
                 "",
                 None,
                 "",
-                empty_badge,
-                empty_conf,
-                "0.0%",
-                "0.0%",
-                stats_empty,
+                empty_exec,
                 "",
                 empty_heatmap,
                 gr.update(choices=[], value=None),
@@ -1421,11 +1416,7 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                 text_input,
                 file_uploader,
                 file_status,
-                verdict_badge,
-                confidence_meter_display,
-                prob_box,
-                ratio_box,
-                stats_display,
+                executive_card_display,
                 linguistic_bullets_display,
                 heatmap_display,
                 sentence_selector,
@@ -1483,7 +1474,6 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
             fn=switch_ui_language,
             inputs=[lang_radio],
             outputs=[
-                hero_banner,
                 quick_samples_label,
                 pill_btn1,
                 pill_btn2,
@@ -1497,11 +1487,7 @@ def create_app(detector: Any = None, load_model: bool = False) -> gr.Blocks:
                 analyze_btn,
                 clear_btn,
                 kpi_header,
-                verdict_badge,
-                confidence_meter_display,
-                prob_box,
-                ratio_box,
-                stats_display,
+                executive_card_display,
                 linguistic_header,
                 linguistic_bullets_display,
                 heatmap_header,

@@ -123,6 +123,11 @@ VERB_PERSON_TAGS: Dict[str, str] = {
     "сыздар": "PERS.2PL", "сіздер": "PERS.2PL",
 }
 
+AGENT_DERIV_TAGS: Dict[str, str] = {
+    "ші": "DERIV.AGENT",
+    "шы": "DERIV.AGENT",
+}
+
 
 def _get_field(obj: Any, field_name: str, default: Any = None) -> Any:
     """Safely retrieves an attribute or dictionary key."""
@@ -285,11 +290,17 @@ def analyze_sentence_morphemes(
         if len(current) > 3:
             m_poss = analyzer.poss_re.search(current.lower())
             if m_poss and len(current[:m_poss.start()]) >= 3:
-                sfx = current[m_poss.start():]
-                current = current[:m_poss.start()]
-                has_poss = True
-                tag = POSS_TAGS.get(sfx.lower(), "POSS")
-                matched_affixes.insert(0, (sfx, tag))
+                poss_cand = m_poss.group(1).lower()
+                # If current ends with -ші or -шы and candidate possessive is just 'і' or 'ы',
+                # do not mistakenly strip the vowel part of the agentive suffix
+                if (current.lower().endswith("ші") and poss_cand == "і") or (current.lower().endswith("шы") and poss_cand == "ы"):
+                    pass
+                else:
+                    sfx = current[m_poss.start():]
+                    current = current[:m_poss.start()]
+                    has_poss = True
+                    tag = POSS_TAGS.get(sfx.lower(), "POSS")
+                    matched_affixes.insert(0, (sfx, tag))
 
         # 5. Plurals
         if len(current) > 3:
@@ -301,9 +312,21 @@ def analyze_sentence_morphemes(
                 tag = PLUR_TAGS.get(sfx.lower(), "PLUR")
                 matched_affixes.insert(0, (sfx, tag))
 
+        # 6. Agentive Derivational Suffix (-ші / -шы, e.g. жетекші -> жетек + -ші)
+        has_agent = False
+        if len(current) >= 4 and not (has_verb_person or has_verb_tense):
+            for ag in ["ші", "шы"]:
+                if current.lower().endswith(ag) and len(current[:-len(ag)]) >= 3:
+                    sfx = current[-len(ag):]
+                    current = current[:-len(ag)]
+                    has_agent = True
+                    tag = AGENT_DERIV_TAGS.get(ag.lower(), "DERIV.AGENT")
+                    matched_affixes.insert(0, (sfx, tag))
+                    break
+
         if has_verb_person or has_verb_tense:
             pos = "VERB"
-        elif has_case or has_poss or has_plur:
+        elif has_case or has_poss or has_plur or has_agent:
             pos = "NOUN"
         else:
             pos = "STEM/OTHER"

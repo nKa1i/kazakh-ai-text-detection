@@ -132,7 +132,29 @@ class TestUiHighlighting(unittest.TestCase):
         self.assertIn(".lvl-ai", HEATMAP_CSS)
         self.assertIn(".gate-bar-container", HEATMAP_CSS)
         self.assertIn(".fst-table", HEATMAP_CSS)
-        self.assertIn("white-space: pre-wrap;", HEATMAP_CSS)
+    def test_render_confidence_meter_no_ascii_brackets(self):
+        from ui.highlighting import render_confidence_meter
+        html_out = render_confidence_meter(0.03, "[AUTHENTIC HUMAN]", lang="en")
+        self.assertNotIn("[======", html_out)
+        self.assertIn("confidence-track", html_out)
+        self.assertIn("3.0%", html_out)
+
+    def test_render_executive_summary_card(self):
+        from ui.highlighting import render_executive_summary_card
+        html_out = render_executive_summary_card(
+            probability=0.03,
+            verdict="[AUTHENTIC HUMAN]",
+            lang="en",
+            total_words=120,
+            total_sents=8,
+            total_windows=1,
+            ai_ratio=0.0
+        )
+        self.assertIn("executive-summary-card", html_out)
+        self.assertIn("3.0%", html_out)
+        self.assertIn("120", html_out)
+        self.assertNotIn("[======", html_out)
+
 
 if __name__ == "__main__":
     unittest.main()

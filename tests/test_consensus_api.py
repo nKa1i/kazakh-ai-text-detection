@@ -1,6 +1,10 @@
 import pytest
+import unittest
 from fastapi.testclient import TestClient
-from api.main import app
+from api.main import app, consensus_engine
+
+if consensus_engine is None:
+    raise unittest.SkipTest("consensus_engine not installed")
 
 client = TestClient(app)
 
