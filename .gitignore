@@ -54,4 +54,7 @@ output/
 Detecting_AI_Generated_User_Reviews*
 da_lei_content.txt
 full_diff*.txt
+ppt_images/
+*_scratch.pptx
+
 
