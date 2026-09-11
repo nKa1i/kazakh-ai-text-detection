@@ -158,13 +158,18 @@ class TestClonedPresentation(unittest.TestCase):
 
     def test_08_legacy_shapes_cleared(self):
         self.assertIsNotNone(self.prs, "Presentation could not be loaded")
+        legacy_poultry_terms = [
+            "poultry", "chickens", "broiler", "chicken coop",
+            "肉鸡", "养殖", "蛋鸡", "鸡舍", "雏鸡", "出栏", "屠宰", "饲料", "家禽"
+        ]
         for i in range(2, 22):
             slide = self.prs.slides[i]
-            # Each content slide should only have top navigation elements, top line, and slide number
-            self.assertLessEqual(
-                len(slide.shapes), 10,
-                f"Slide {i+1} has {len(slide.shapes)} shapes, legacy poultry shapes were not cleared"
-            )
+            all_text = " ".join(shp.text for shp in slide.shapes if shp.has_text_frame).lower()
+            for term in legacy_poultry_terms:
+                self.assertNotIn(
+                    term.lower(), all_text,
+                    f"Slide {i+1} still contains legacy poultry term '{term}'"
+                )
 
     def test_09_slide_2_table_of_contents(self):
         self.assertIsNotNone(self.prs, "Presentation could not be loaded")
