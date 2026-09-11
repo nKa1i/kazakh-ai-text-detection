@@ -64,7 +64,7 @@
 
 ---
 
-### Task 3: Kazakh Atomic Claim Extractor
+### Task 3: Kazakh Atomic Claim Extractor (with Nominal Copula & Date Normalizer)
 
 **Files:**
 - Create: `verification/claim_extractor.py`
@@ -75,7 +75,7 @@
 - Produces: `KazakhClaimExtractor` with `.extract_claims(text: str) -> List[AtomicClaim]`
 
 - [ ] **Step 1: Write the failing tests in `tests/test_claim_extractor.py`**
-  Verify hedge stripping (*Меніңше*), compound clause splitting (*және*, *әрі*, *бірақ*), and opinion filtering (*Өте керемет*).
+  Verify hedge stripping (*Меніңше*), compound clause splitting (*және*, *әрі*, *бірақ*), opinion filtering (*Өте керемет*), and zero-copula nominal predicates (*Астана — Қазақстанның астанасы*).
 - [ ] **Step 2: Run test to confirm failure**
 - [ ] **Step 3: Implement `verification/claim_extractor.py`**
 - [ ] **Step 4: Re-run tests to confirm pass**
@@ -106,24 +106,26 @@
 
 ---
 
-### Task 5: Dual-Risk Trust Scorer & Four-Quadrant Categorization
+### Task 5: Dual-Risk Trust Scorer, Four-Quadrant Matrix & Unified Document Verifier Facade
 
 **Files:**
 - Create: `verification/trust_scorer.py`
+- Create: `verification/verifier.py`
 - Test: `tests/test_trust_scorer.py`
+- Test: `tests/test_document_verifier.py`
 
 **Interfaces:**
 - Consumes: `ClaimVerificationResult`, `DocumentTrustResult` from `verification/evidence.py`; `DocumentAnalysisResult` from `kaz_mage/document.py`
-- Produces: `DualRiskTrustScorer(alpha=0.5)` with `.score_document(doc_text: str, ai_result: Optional[DocumentAnalysisResult] = None) -> DocumentTrustResult`
+- Produces: `DualRiskTrustScorer(alpha=0.5)` with `.score_document(...)`; `TrustworthyDocumentVerifier(ai_detector=None, knowledge_store=None)` with `.verify(text: str) -> DocumentTrustResult`
 
-- [ ] **Step 1: Write the failing tests in `tests/test_trust_scorer.py`**
-  Verify factual penalty aggregation, mathematical risk formula $\alpha \text{Risk}_{\text{AI}} + (1 - \alpha) \text{Risk}_{\text{Fact}}$, and four-quadrant assignments: `Verified Human Fact`, `Human Misinformation`, `Accurate AI Synthesis`, `Hallucinatory AI Disinformation`.
+- [ ] **Step 1: Write the failing tests in `tests/test_trust_scorer.py` and `tests/test_document_verifier.py`**
+  Verify factual penalty aggregation, mathematical risk formula $\alpha \text{Risk}_{\text{AI}} + (1 - \alpha) \text{Risk}_{\text{Fact}}$, four-quadrant assignments, and end-to-end facade execution.
 - [ ] **Step 2: Run test to confirm failure**
-- [ ] **Step 3: Implement `verification/trust_scorer.py`**
+- [ ] **Step 3: Implement `verification/trust_scorer.py` and `verification/verifier.py`**
 - [ ] **Step 4: Re-run tests to confirm pass**
 - [ ] **Step 5: Git commit**
-  `git add verification/trust_scorer.py tests/test_trust_scorer.py`
-  `git commit -m "feat(verification): implement dual-risk trust scorer and four-quadrant matrix"`
+  `git add verification/trust_scorer.py verification/verifier.py tests/test_trust_scorer.py tests/test_document_verifier.py`
+  `git commit -m "feat(verification): implement dual-risk trust scorer and unified TrustworthyDocumentVerifier facade"`
 
 ---
 
