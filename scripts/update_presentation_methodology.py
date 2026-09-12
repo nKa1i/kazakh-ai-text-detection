@@ -370,7 +370,7 @@ def update_slide_20(slide):
             "bullets": [
                 "- Curated 10,000+ benchmark dataset across News, Wikipedia, and Consumer Reviews.",
                 "- Kazakh-FEVER: Curated 36 articles and 120 verified claims; 100% NLI Macro-F1.",
-                "- Engineering: Micro-batching (<1.4 GB VRAM); 302 automated passing tests.",
+                "- Engineering: Micro-batching (<1.4 GB VRAM); 311 automated passing tests.",
             ],
             "x_range": (6.3, 9.4),
             "header_name": "TextBox 134",
