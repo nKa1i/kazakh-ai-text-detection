@@ -14,7 +14,7 @@ This presentation is designed for the formal Master's thesis progress review and
 1. **Linguistic Inductive Prior (Topic 1):** Overcoming catastrophic out-of-domain degradation in agglutinative Turkic NLP through an 83-rule Finite State Transducer (FST) dynamic cross-attention mechanism (+42.18% OOD AUC gain).
 2. **Syntactic Boundary Preservation (Topic 2):** Overcoming the 512-token truncation bottleneck with a 10-guard regex sentence-preserving chunker and dynamic Top-K worst-chunk pooling (100% localization in hybrid documents up to 25,000 words).
 3. **Evidence-Grounded Factual Verification (Topic 3):** Constructing Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix to decouple AI stylistic probability from factual veracity.
-4. **Engineering and Institutional Rigor:** 288/288 automated regression tests passing, Hugging Face Spaces cloud package, sub-1.2s cold start, zero emojis, and complete committee itemized resolutions.
+4. **Engineering and Institutional Rigor:** 302/302 automated regression tests passing, Hugging Face Spaces cloud package, sub-1.2s cold start, zero emojis, and complete committee itemized resolutions.
 
 ---
 
@@ -46,8 +46,8 @@ This presentation is designed for the formal Master's thesis progress review and
 > 第二部分，相关工作与现有局限，系统剖析主流AI检测器与国际事实核验基准在突厥语族中的失效根源；
 > 第三部分，研究内容与系统架构，系统汇报本论文提出的三大环环相扣的核心技术创新；
 > 第四部分，实验设计与评测结果，重点汇报ACL Kaz-MAGE 2x2矩阵、长文本注入应力测试、Kazakh-FEVER事实核验及严格消融实验数据；
-> 第五部分，工程落地与交互演示，展示四标签页Gradio学术系统、轻量化Hugging Face Spaces云端包与288项自动化回归测试体系；
-> 第六部分，研究总结与毕业规划，汇报论文手稿完成进度、后续论文投递策略以及请郭老师指导讨论的关键议题。
+> 第五部分，工程落地与交互演示，展示四标签页Gradio学术系统、轻量化Hugging Face Spaces云端包与302项自动化回归测试体系；
+> 第六部分，方法创新全景与录用进展，系统展示三大环环相扣的方法创新架构全景（图15）、汇报Springer LNCS（AIST 2026）论文录用与今天组会的实机演示议程，并请郭老师指导后续工作推进。
 
 ---
 
@@ -289,47 +289,87 @@ This presentation is designed for the formal Master's thesis progress review and
 
 ### Slide 18: System Demonstration — Cloud Packaging, Hugging Face Spaces & Test Rigor
 - **Slide Title:** System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor
-- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 288 passing tests
+- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 302 passing tests
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (288 / 288 Automated Test Suite, < 1.2s Cold-Start Latency, 100% Zero Emoji Design); Hugging Face Spaces feature box.
+- **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (302 / 302 Automated Test Suite, < 1.2s Cold-Start Latency, 100% Zero Emoji Design); Hugging Face Spaces feature box.
 
 #### Spoken Script (Chinese)
 > 第18页展示系统的工程健壮性与云端封装成果：
 > 1. Hugging Face Spaces独立包（`hf_space/`）：完全解耦本地大型权重文件，内置轻量化兜底模型，支持零额外配置云上一键启动；
 > 2. 防御性文件解析：严密支持`.txt`、`.docx`和`.pdf`格式上传，设定10MB内存护栏和2.5万字软上限，防止内存拒绝服务攻击；
 > 3. 双语切换支持：界面支持哈萨克语（Қазақша）与英语（English）一键热切换；
-> 4. 严苛的代码质量：全工程通过288项单元与集成回归测试，冷启动小于1.2秒，严格遵守学术界零装饰性表情（Zero Emoji）及UTF-8编码规范，代码已完整提交Git仓库进行版本追溯。
+> 4. 严苛的代码质量：全工程通过302项单元与集成回归测试，冷启动小于1.2秒，严格遵守学术界零装饰性表情（Zero Emoji）及UTF-8编码规范，代码已完整提交Git仓库进行版本追溯。
 
 ---
 
-### Slide 19: Conclusion — Summary of Thesis Contributions & Writing Progress
-- **Slide Title:** Conclusion: Summary of Thesis Contributions & Writing Progress
-- **Subtitle:** Master's thesis completion estimated at 85%; core theoretical, empirical, and engineering milestones achieved
-- **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Left box: Three Primary Academic Contributions; Right box: Master's Thesis Manuscript Status (~85% Complete).
+### Slide 19: Methodological Innovations — Comprehensive Technical Framework
+- **Slide Title:** Methodological Innovations: Comprehensive Technical Framework
+- **Bilingual Subtitle:** 面向低资源哈萨克语的AI生成文本检测与事实核验总体方法创新架构与技术流程
+- **Allocated Time:** 2.5 Minutes
+- **Key Visual:** Figure 15 (Comprehensive Methodological Innovations Framework): Input & Knowledge Stage -> Innovation 1: Sentence Gating -> Innovation 2: Document Top-K Engine -> Innovation 3: Fact-Checking Trust Matrix -> Integrated Research Contributions.
 
-#### Spoken Script (Chinese)
-> 进入第六部分：研究总结与毕业规划。
-> 本论文的学术贡献可以概括为三点：
-> 1. 算法创新：开创了低资源黏着语双流FST跨注意力动态门控架构，解决了突厥语族深层领域崩溃顽疾（+42.18%增益）；
-> 2. 方法创新：研发了哈萨克语首个防截断句子分块与动态Top-K池化引擎，实现2.5万字长文档混合篡改100%定位；
-> 3. 社会与资源贡献：构建了哈萨克语首个事实核验基准Kazakh-FEVER与四象限信任矩阵，打破中亚地区事实资源空白，并交付了工业级开源演示平台。
-> 目前硕士论文手稿整体进度已达85%：第1至4章（绪论、相关工作、算法模型、实验结果）已全部定稿；第5章系统实现完成90%；第6章总结展望完成70%，完全处于可控轨道上。
+#### Spoken Script (Chinese - for Prof. Guo)
+> 尊敬的郭老师，第19页是本篇学位论文的核心方法学全景图——图15《面向低资源哈萨克语的AI生成文本检测与事实核验总体方法创新架构与技术流程》。在前期与郭老师和答辩委员会的研讨中，我们明确了必须建立一个从底层形态表征、到篇章级长文本推理、再到高层语义事实核验的端到端严密科学体系。图15系统解构了本研究所提出的三大环环相扣的核心方法创新：
+> 
+> 首先看最左侧的【阶段1：输入与先验知识库（Stage 1: Input & Knowledge）】：
+> 针对哈萨克语极其复杂的黏着构词机制，系统接收从单句到2.5万字的多领域原始哈萨克语长文本（涵盖新闻、维基百科、用户评论等）。输入文本首先接入我们建立的包含128类形态标记的83条规则有限状态转换器（FST），在词法层精准恢复词根派生链与屈折变位序列；同时挂载包含36篇精选权威百科长文、1248条标注句的金标参考知识库（Evidence Base），为后续事实核验提供坚实的事实底座。
+> 
+> 沿着数据流进入【创新一：句子级双流形态感知与动态门控网络（Innovation 1: Sentence Gating）】：
+> 针对传统预训练统计模型在跨领域时面临的严重表征崩溃，我们构建了双流特征空间：768维KazRoBERTa语义向量 $h_{sem}$ 与256维FST BiLSTM形态向量 $h_{morph}$（经线性映射 $W_{proj}$ 投影至768维）。通过维度级可学习门控机制 $g = \sigma(W_g [h_{sem}; W_{proj} h_{morph}] + b_g) \in [0, 1]^d$，动态融合语义与形态信息：$h_{fused} = g \odot h_{sem} + (1-g) \odot (W_{proj} h_{morph})$。配合监督对比损失（Supervised Contrastive Loss, $\mathcal{L}_{Total} = \mathcal{L}_{BCE} + \lambda \mathcal{L}_{SupCon}$），在128维超球面上将形态合规的人类语言与机器生成文本紧凑聚类，最终输出经过温度校准的句子级AI概率 $P_{AI}(s_i)$。在ACL Kaz-MAGE多领域基准上，该创新取得了99.80%跨域ROC-AUC的优异性能。
+> 
+> 接着推进到【创新二：文档级边界保持分块与自适应Top-K池化引擎（Innovation 2: Document Top-K Engine）】：
+> 为攻克预训练模型强制512-token截断盲区以及局部段落AI注入难题，我们研发了首个哈萨克语正规缩写词边界保护机制，部署涵盖'т.б.'（等等）、'ж.б.'（以及其他）、'мыс.'（例如）、'ғ.'（世纪）、'жж.'（年代）等10类边界防护正则，彻底防止缩写句点引发的虚假断句；采用256 token滑窗与1句滑动重叠机制，精确记录每一个分块的字符级绝对偏移量（Exact Character Span Offsets）；针对“人类长文中潜伏注入数段AI篡改”的现实威胁，提出自适应极值Top-K池化公式 $K = \max(1, \min(k_{cfg}, \lceil 0.25 M \rceil))$，由风险最高的Top-K异常块加权决策整篇文档的AI评分 $S_{doc}$，配合微批次处理将峰值显存严格控制在1.4 GB以内，实现了长达2.5万字混合篡改文档中100%定位篡改跨度。
+> 
+> 最后汇聚到【创新三：基于Kazakh-FEVER基准的四象限事实信任核验矩阵（Innovation 3: Fact-Checking Trust Matrix）】：
+> 这是我们解决“纯文风概率无法辨识事实真伪”这一根本痛点的核心突破。系统从待检文本中抽取事实陈述主张，基于词干归一化的BM25检索器在36篇知识库中高效匹配Top-3金标证据句（Evidence Recall@3达到91.67%）；随后由三分类交叉编码器（Supports/Refutes/NEI）完成深层蕴含推理；最终结合AI生成概率与事实反驳概率，计算双风险可信指数 $Risk_{Trust} = \alpha P(AI) + (1-\alpha) P(Ref)$，将判定结果科学映射为四个象限：Q1经核验人类真实文本、Q2虚假误导人类信息、Q3良性AI辅助合规内容、Q4恶意生成深伪谣言，事实核验Macro-F1达到100.0%。
+> 
+> 总结而言，三大创新形成了“底层形态抗泛化、篇章滑窗御截断、高层矩阵辨真伪”的有机统一体，彻底打通了突厥语族生成文本安全防线。
+
+#### Spoken Script (English - Bilingual Defense Context)
+> Respected Professor Guo, Slide 19 presents Figure 15, the comprehensive methodological framework of our Master's thesis. It articulates how our three interlocking innovations systematically resolve the core vulnerabilities of low-resource agglutinative NLP:
+> 1. Innovation 1 (Sentence Gating): A dual-stream architecture fusing KazRoBERTa semantic representations ($h_{sem} \in \mathbb{R}^{768}$) with 83-rule FST morphological encodings ($h_{morph} \in \mathbb{R}^{256}$) via a dimension-wise dynamic gate ($g \in [0, 1]^d$), trained with Supervised Contrastive Loss to achieve 99.80% cross-domain ROC-AUC.
+> 2. Innovation 2 (Document Top-K Engine): A syntactic sentence-preserving sliding window with 10 Kazakh abbreviation guards and adaptive worst-case Top-K pooling ($K = \max(1, \min(k_{cfg}, \lceil 0.25 M \rceil))$), overcoming 512-token truncation with sub-1.4 GB VRAM footprint and 100% tamper span localization in documents up to 25,000 words.
+> 3. Innovation 3 (Fact-Checking Trust Matrix): Decoupling stylistic probability from factual veracity through BM25 evidence retrieval over the Kazakh-FEVER benchmark, 3-way cross-encoder NLI inference, and the Four-Quadrant Trust Matrix ($Risk_{Trust} = \alpha P(AI) + (1-\alpha) P(Ref)$), achieving 100.0% Macro-F1.
 
 ---
 
-### Slide 20: Roadmap — Publication Strategy & Master's Defense Timeline
-- **Slide Title:** Roadmap: Publication Strategy & Master's Defense Timeline
-- **Subtitle:** Clear pathway from AIST 2026 camera-ready to Paper 2 submission (EMNLP / COLING) and thesis defense
-- **Allocated Time:** 1.5 Minutes
-- **Key Visual:** 4 Sequential Milestone Cards (Milestone 1: Current AIST 2026, Milestone 2: Sept-Oct 2026 Paper 2, Milestone 3: Nov 2026 Pre-Defense, Milestone 4: Dec 2026 Master's Defense).
+### Slide 20: Current Progress — LNCS Acceptance & September Meeting Agenda
+- **Slide Title:** Current Progress: LNCS Acceptance & September Meeting Agenda
+- **Bilingual Subtitle:** 论文录用进展、9月课题组汇报演示计划与后续工作推进安排
+- **Allocated Time:** 2.0 Minutes
+- **Key Visual:** 4 Sequential Milestone Cards:
+  1. Milestone 1: Accepted Springer LNCS (Paper 1 formally accepted to AIST 2026; camera-ready finalized).
+  2. Milestone 2: Meeting Agenda - Live System Demonstration (Interactive 4-tab Gradio platform prepared for today's meeting).
+  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 302 automated passing tests).
+  4. Milestone 4: Next Steps - Guidance Requested from Prof. Guo (Paper 2 positioning, thesis draft review timeline).
 
-#### Spoken Script (Chinese)
-> 第20页规划了至年底答辩的清晰路线图：
-> - 里程碑1（当前）：AIST 2026会议录用论文终稿已就绪，保持论文正文（`paper.tex`）百分之百完备；
-> - 里程碑2（2026年9月-10月）：全力推进第二篇论文撰写，重点围绕“Kazakh-FEVER基准与四象限信任核验机制”，目标投递EMNLP 2026 Findings或LREC-COLING 2026；
-> - 里程碑3（2026年11月）：完成学位论文第5、6章最终修订，撰写中哈英三语论文摘要，参加课题组内部预答辩与学院盲审；
-> - 里程碑4（2026年12月）：正式参加硕士学位论文答辩，现场向答辩委员会演示四标签页系统，并全面开源代码与基准数据集。
+#### Spoken Script (Chinese - for Prof. Guo)
+> 接下来向郭老师汇报第20页：本课题的核心录用进展、今天组会的系统演示议程，以及后续科研与答辩规划：
+> 
+> 首先，向郭老师非常高兴地汇报【里程碑 1：Springer LNCS 正式录用（Paper 1 Accepted）】：
+> 我们的第一篇长文《Morphologically-Grounded AI Detection in Low-Resource Kazakh》已正式被国际知名系列 Springer LNCS（AIST 2026）录用！论文的最终出版版本（Camera-Ready）已全部核验定稿，相关算法代码与实验模型检查点已完整提交归档。该工作在审稿阶段获得了国际同行评审专家的高度认可，标志着我们提出的双流FST跨注意力动态门控架构与Kaz-MAGE多领域评测基准，获得了国际学术界的正式承认。
+> 
+> 其次，向郭老师介绍【里程碑 2：今天组会的现场系统演示议程（Live System Demo Agenda）】：
+> 为直观展示本课题的工程化落地与实用价值，我们为今天与郭老师的汇报专门准备了四标签页Gradio学术交互系统的实机演示：
+> - Tab 1（检测与可解释性）：我们将现场输入一篇长篇哈萨克语文章，实时演示句子级风险热力图、可解释性自然语言推理依据，以及形态/语义动态门控权重（$g$）的自适应分配；
+> - Tab 2（形态FST解析实验室）：现场展示输入任意哈萨克语复杂词汇时，83条FST规则如何清晰解构词根与15级派生/屈折词缀链；
+> - Tab 3（基准评测浏览器）：交互式展示Kaz-MAGE 2x2多领域测试矩阵、跨生成器泛化评测及完整消融实验对比表；
+> - Tab 4（四象限事实核验信任矩阵）：现场输入真实新闻与虚假篡改样例，展示毫秒级BM25证据检索、NLI三分类概率推断及最终Q1-Q4可信度徽章。
+> 
+> 接着是【里程碑 3：9月科研与工程进展（整体完成度约85%）】：
+> 截至9月中旬，我们已构建了包含10,000+条高质量样本的多领域评测数据集（涵盖新闻、维基百科及真实电商评论）；完成了中亚首个哈萨克语事实核验基准Kazakh-FEVER（涵盖36篇精选长文与120条金标断言，NLI Macro-F1达到100.0%）；在工程健壮性方面，实现了内存受限在1.4GB以内的微批次流式推理，并且整个代码仓库已通过302项自动化单元与回归测试（302/302全绿），零装饰性表情，严格保证学术工程严谨性。
+> 
+> 最后是【里程碑 4：请郭老师指导讨论的关键议题（Strategic Guidance Requests）】：
+> 针对后续工作，我特别期盼郭老师给予两点战略指引：
+> 1. 第二篇顶会论文（Paper 2）的立意与选刊方向：我们将以Kazakh-FEVER基准与四象限信任核验矩阵为核心撰写新稿件，请教郭老师：是作为资源基准论文（Resource & Benchmark）投递LREC-COLING，还是作为AI生成检测与事实核验联合建模方法论文投递EMNLP 2026 Findings？
+> 2. 学位论文终稿节奏与预答辩安排：目前学位论文正文1至4章已完全定稿，第5章（系统工程落地）与第6章（总结与展望）正紧密完善中，期望请郭老师确定课题组内部预答辩审查与后续学院盲审递交的时间节点。
+
+#### Spoken Script (English - Bilingual Defense Context)
+> Slide 20 outlines our latest academic achievements and roadmap forward:
+> 1. Milestone 1 (Accepted Springer LNCS): Paper 1 has been officially accepted into Springer LNCS (AIST 2026), with the camera-ready version finalized and open-source assets archived.
+> 2. Milestone 2 (Meeting Agenda - Live Demo): An interactive 4-tab Gradio platform is ready for today's live demonstration, showcasing real-time sentence heatmaps, morphological FST parsing, Kaz-MAGE analytics, and Kazakh-FEVER trust verification.
+> 3. Milestone 3 (September Progress): Overall thesis completion has reached ~85%, anchored by 10,000+ benchmark samples, 120 verified claims, and a comprehensive 302-test regression suite.
+> 4. Milestone 4 (Next Steps): Explicit guidance requested from Professor Guo on Paper 2 narrative framing (LREC-COLING vs. EMNLP Findings) and the timeline for internal thesis review of Chapters 5 and 6.
 
 ---
 
@@ -401,3 +441,24 @@ This presentation is designed for the formal Master's thesis progress review and
 ### Q4: How does the 25,000-word document chunker guarantee no OOM on modest hardware?
 **Model Answer:**
 > "Standard chunking approaches attempt to batch all document chunks simultaneously, which leads to quadratic memory growth in attention mechanisms. In `SentencePreservingChunker`, we implement defensive micro-batching: chunks (with a maximum length of 256 tokens and a 1-sentence sliding overlap) are processed in fixed batches of 16 chunks. Intermediate tensor activations are immediately freed after computing chunk logits. As demonstrated in Figure 9, peak VRAM remains strictly capped at under 1.4 GB regardless of whether the document has 1,000 words or 25,000 words. On CPU systems, processing completes in under 12 seconds."
+
+### Q5: How do the three methodological innovations in Figure 15 interlock, and why is a monolithic end-to-end model insufficient?
+**Model Answer:**
+> "A monolithic neural detector fails on Kazakh because synthetic text artifacts operate across three distinct linguistic scales that cannot be conflated into a single scalar prediction:
+> 1. Sub-word & Morpheme Scale: In agglutinative languages, out-of-domain collapse stems from subword vocabulary shifts. Innovation 1 isolates invariant morphological legality via the 83-rule FST cross-attention stream.
+> 2. Discourse & Document Scale: Real-world academic integrity violations involve stealth local injections where 95% of a paper is authentic human writing and 5% is machine-generated. A whole-document embedding dilutes this local signal. Innovation 2 uses 10 abbreviation guards, sliding-window chunking, and adaptive worst-case Top-K pooling to pinpoint exact tampering spans without memory explosion.
+> 3. Semantic & World Knowledge Scale: Style and veracity are orthogonal; a text can be stylistically synthetic yet factually accurate, or human-authored yet malicious disinformation. Innovation 3 decouples origin from veracity via Kazakh-FEVER retrieval and the Four-Quadrant Trust Matrix.
+> These three innovations interlock serially: Stage 1 produces calibrated sentence logits and FST affixes; Stage 2 aggregates them into document scores while identifying anomalous spans; Stage 3 extracts claims from anomalous spans to verify factual veracity against authoritative sources."
+
+### Q6: What is the core scientific distinction and contribution boundary between the accepted Springer LNCS Paper 1 and Paper 2?
+**Model Answer:**
+> "The accepted Springer LNCS Paper 1 focuses on the fundamental morphological detection problem: establishing the dual-stream FST cross-attention architecture, proving the +42.18% cross-domain AUC gain on our ACL Kaz-MAGE benchmark, and formalizing the sentence-preserving chunking mechanism. It solves the question: 'How do we reliably detect synthetic Kazakh text across domains without catastrophic degradation?'
+> Paper 2 addresses the higher-order factual verification and trust problem: introducing Central Asia's first Kazakh-FEVER benchmark, the 36-article reference corpus, 120 verified claims, and the Four-Quadrant Trust Matrix ($Risk_{Trust} = \alpha P(AI) + (1-\alpha) P(Ref)$). It answers: 'Given detected text, how do we distinguish harmless AI drafting from malicious disinformation?' This modular separation allows Paper 1 to stand as a rigorous computational linguistics foundation, while Paper 2 delivers a groundbreaking resource and factual integrity framework for high-impact venues such as EMNLP Findings or LREC-COLING."
+
+### Q7: In the live Gradio system demonstration for today's meeting, how is explainability conveyed to non-technical users?
+**Model Answer:**
+> "Non-technical stakeholders, such as academic integrity officers or journal editors, cannot act on opaque confidence percentages alone. In our 4-tab Gradio platform, we provide three transparent levels of interpretability:
+> 1. Visual Heatmap: Tab 1 renders color-coded sentence-level risk highlighting, where green denotes verified human writing and amber/red flags synthetic or tampered sections, allowing instant visual inspection of localized insertions.
+> 2. Morphological Inspection: Tab 2 provides an interactive FST decomposition tree, displaying exactly which suffixes and inflectional transitions were parsed, proving why the model arrived at its decision based on linguistic legality.
+> 3. Evidence Grounding: Tab 4 presents the retrieved gold reference sentences alongside the NLI inference badge and four-quadrant actionable recommendations (e.g., 'Publishable with Citation' vs. 'Manual Fact Verification Required')."
+
