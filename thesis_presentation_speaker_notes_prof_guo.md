@@ -44,16 +44,16 @@ This presentation guide is structured for candidate Daulet's formal Master's the
   3. Methodological Innovations & System Architecture
   4. Empirical Results & Ablation Studies
   5. System Implementation & Interactive Demonstration
-  6. Comprehensive Method Framework, Publication Progress & Future Work
+  6. Conclusion, Research Contributions & Future Work
 
 #### Spoken Script (English)
 > Our presentation is organized into six structured chapters:
 > First, I will introduce the Research Background and Core Motivation, highlighting the unique linguistic challenges of agglutinative morphology in Central Asia and the growing threat of generative disinformation.
 > Second, I will review Related Work and explain the structural failure modes of mainstream Western detection paradigms and English-centric fact-checking corpora.
-> Third, I will present our Research Content and System Architecture, focusing on our three core technical innovations.
+> Third, I will present our Research Content and System Architecture, introducing our comprehensive methodological framework in Figure 3 and detailing our three core technical innovations.
 > Fourth, I will detail our Empirical Evaluation, including our ACL Kaz-MAGE benchmark, long-document stress tests, Kazakh-FEVER factual verification, and component ablations.
 > Fifth, I will showcase our Engineering Implementation, spanning our 4-tab Gradio platform, Hugging Face Spaces cloud package, and 303 automated regression tests.
-> Finally, I will present our comprehensive methodological innovations framework in Figure 15, announce our Paper 1 acceptance in Springer LNCS, outline our agenda for today's live demonstration, and request Professor Guo's strategic guidance for our final defense.
+> Finally, I will summarize our overall thesis contributions, report our manuscript writing progress (~85% complete), announce our Paper 1 acceptance in Springer LNCS, outline our agenda for today's live demonstration, and request Professor Guo's strategic guidance for our final defense.
 
 ---
 
@@ -121,22 +121,21 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ---
 
-### Slide 7: Research Content Overview — Three Interlocking Technical Innovations
-- **Slide Title:** Research Content Overview: Three Interlocking Technical Innovations
+### Slide 7: Research Content Overview — Comprehensive Methodological Framework
+- **Slide Title:** Research Content Overview: Comprehensive Methodological Framework
 - **Subtitle:** A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification
-- **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 3 (Tripartite Framework Diagram); 3 Topic Summary Cards:
-  - Topic 1: Dual-Stream Morphological Cross-Attention & SupCon Loss
-  - Topic 2: Multi-Paragraph Sentence-Preserving Chunking & Dynamic Top-K Engine
-  - Topic 3: Kazakh-FEVER Benchmark & Four-Quadrant Trust Matrix
+- **Allocated Time:** 2.0 Minutes
+- **Key Visual:** Figure 3 (Comprehensive Methodological Innovations Framework): Stage 1 Inputs & Knowledge -> Innovation 1: Sentence Gating -> Innovation 2: Document Top-K Engine -> Innovation 3: Fact-Checking Trust Matrix -> Integrated Research Contributions.
 
 #### Spoken Script (English)
-> Slide 7 introduces Chapter 3: our core research methodology and technical architecture.
-> As illustrated in Figure 3, our defense framework addresses the problem through three interlocking innovations spanning three distinct linguistic tiers:
-> Tier 1 operates at the Sentence Level: Topic 1 introduces a dual-stream neural architecture that couples KazRoBERTa dense semantic embeddings with an 83-rule FST morphological stream via learned dynamic gating and Supervised Contrastive Loss, elevating out-of-domain detection AUC from 57.62% to 99.80%.
-> Tier 2 operates at the Document Level: Topic 2 introduces a sliding-window sentence-preserving chunker protected by 10 Kazakh abbreviation guards, coupled with an adaptive Top-K worst-chunk pooling engine that detects localized synthetic paragraphs across documents up to 25,000 words.
-> Tier 3 operates at the Epistemic Trust Level: Topic 3 introduces the Kazakh-FEVER retrieval pipeline and the Four-Quadrant Trust Matrix, decoupling stylistic AI markers from factual veracity.
-> Together, these three innovations form a unified, end-to-end defense system.
+> Entering Chapter 3 on Slide 7, I present our core methodology: Figure 3, which illustrates our Comprehensive Methodological Innovations Framework.
+> In response to Professor Guo's insightful guidance, this diagram establishes the end-to-end scientific pipeline connecting low-level morphological representations, document-level discourse chunking, and high-level epistemic fact verification.
+> Let us trace the technical workflow across its three interlocking stages:
+> Starting on the left with Stage 1 (Input and Knowledge Base): The system ingests raw multi-domain Kazakh text up to 25,000 words. The text is parsed by our 83-rule FST analyzer covering 128 morphological tags to extract root derivations and inflectional suffix chains, while simultaneously interfacing with our 36-article reference knowledge base containing 1,248 annotated gold sentences.
+> Next, Innovation 1 (Sentence-Level Morpho-Gating): To overcome catastrophic out-of-domain degradation, we construct a dual-stream feature representation: 768-dimensional KazRoBERTa semantic embeddings h_sem, and 256-dimensional FST BiLSTM morphological embeddings h_morph projected via W_proj. A learned dimension-wise gating vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g) dynamically balances semantics and morphology: h_fused = g * h_sem + (1 - g) * (W_proj h_morph). Optimized with Supervised Contrastive Loss, this innovation delivers a 99.80% cross-domain ROC-AUC.
+> Progressing to Innovation 2 (Document-Level Chunking and Adaptive Top-K Engine): To resolve the 512-token truncation barrier and counter localized synthetic injections, we deploy 10 Kazakh abbreviation regex guards—protecting terms like "т.б.", "мыс.", "ғ.", and "жж."—alongside a 256-token sliding window with 1-sentence overlap. Document risk is aggregated via our adaptive worst-case Top-K formula K = max(1, min(k_cfg, ceil(0.25 * M))), bounding GPU VRAM under 1.4 GB and achieving 100% localization precision in 25,000-word hybrid documents.
+> Finally, Innovation 3 (Kazakh-FEVER Four-Quadrant Trust Matrix): To decouple synthetic style from factual truth, factual claims extracted from anomalous spans are queried against our knowledge base via BM25 retrieval (91.67% Evidence Recall@3), evaluated by our 3-way NLI cross-encoder, and mapped into our Trust Matrix via dual-risk formula Risk_Trust = alpha * P_AI + (1 - alpha) * P_Refute. This achieves 100% NLI Macro-F1 across all quadrants.
+> In summary, these three innovations form a seamless, mathematically principled hierarchy: morphology prevents domain collapse, chunking defeats length truncation, and the trust matrix ensures factual truth. In the following three slides—Slides 8, 9, and 10—I will walk through the detailed mathematical formulation and experimental verification of each individual innovation.
 
 ---
 
@@ -331,21 +330,39 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ---
 
-### Slide 19: Methodological Innovations — Comprehensive Technical Framework
-- **Slide Title:** Methodological Innovations: Comprehensive Technical Framework
-- **Subtitle:** Comprehensive Technical Framework for Morphologically-Grounded Kazakh AI Text Detection and Factual Verification
-- **Allocated Time:** 2.5 Minutes
-- **Key Visual:** Figure 15 (Comprehensive Methodological Innovations Framework): Stage 1 Inputs & Knowledge -> Innovation 1: Sentence-Level Morpho-Gating -> Innovation 2: Document-Level Chunking & Top-K Engine -> Innovation 3: Fact-Checking Trust Matrix -> Integrated Research Contributions.
+### Slide 19: Conclusion — Summary of Thesis Contributions & Writing Progress
+- **Slide Title:** Conclusion: Summary of Thesis Contributions & Writing Progress
+- **Subtitle:** Master's thesis completion estimated at 85%; core theoretical, empirical, and engineering milestones achieved
+- **Allocated Time:** 2.0 Minutes
+- **Key Visual:** Two Structured Academic Cards: Left Card (Four Primary Academic Contributions); Right Card (Master's Thesis Manuscript Status ~85% Complete).
+  - Left Card (Four Primary Academic Contributions):
+    1. Algorithmic Contribution: Dual-stream 83-rule FST dynamic morphological cross-attention (+42.18% cross-domain AUC gain).
+    2. Methodological Contribution: Long-document sliding window with 10 Kazakh abbreviation guards and adaptive worst-case Top-K pooling (100% localization up to 25,000 words).
+    3. Societal Contribution: Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix decoupling AI style from factual veracity.
+    4. Institutional Impact: Open-source production deployment with 4-tab Gradio platform, Hugging Face Space, and 303 automated tests.
+  - Right Card (Master's Thesis Manuscript Status ~85% Complete):
+    - Chapter 1: Introduction (100% Complete)
+    - Chapter 2: Related Work (100% Complete)
+    - Chapter 3: Methodology (100% Complete)
+    - Chapter 4: Experiments & Benchmarks (100% Complete)
+    - Chapter 5: System Implementation & UI (90% Complete)
+    - Chapter 6: Conclusion & Future Outlook (70% Complete)
 
 #### Spoken Script (English)
-> Professor Guo and committee members, Slide 19 represents the theoretical centerpiece of this thesis: Figure 15, which illustrates our Comprehensive Methodological Innovations Framework.
-> In response to Professor Guo's insightful guidance, this diagram establishes the end-to-end scientific pipeline connecting low-level morphological representations, document-level discourse chunking, and high-level epistemic fact verification.
-> Let us trace the technical workflow across its three interlocking stages:
-> Starting on the left with Stage 1 (Input and Knowledge Base): The system ingests raw multi-domain Kazakh text up to 25,000 words. The text is parsed by our 83-rule FST analyzer covering 128 morphological tags to extract root derivations and inflectional suffix chains, while simultaneously interfacing with our 36-article reference knowledge base containing 1,248 annotated gold sentences.
-> Next, Innovation 1 (Sentence-Level Morpho-Gating): To overcome catastrophic out-of-domain degradation, we construct a dual-stream feature representation: 768-dimensional KazRoBERTa semantic embeddings h_sem, and 256-dimensional FST BiLSTM morphological embeddings h_morph projected via W_proj. A learned dimension-wise gating vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g) dynamically balances semantics and morphology: h_fused = g * h_sem + (1 - g) * (W_proj h_morph). Optimized with Supervised Contrastive Loss, this innovation delivers a 99.80% cross-domain ROC-AUC.
-> Progressing to Innovation 2 (Document-Level Chunking and Adaptive Top-K Engine): To resolve the 512-token truncation barrier and counter localized synthetic injections, we deploy 10 Kazakh abbreviation regex guards—protecting terms like "т.б.", "мыс.", "ғ.", and "жж."—alongside a 256-token sliding window with 1-sentence overlap. Document risk is aggregated via our adaptive worst-case Top-K formula K = max(1, min(k_cfg, ceil(0.25 * M))), bounding GPU VRAM under 1.4 GB and achieving 100% localization precision in 25,000-word hybrid documents.
-> Finally, Innovation 3 (Kazakh-FEVER Four-Quadrant Trust Matrix): To decouple synthetic style from factual truth, factual claims extracted from anomalous spans are queried against our knowledge base via BM25 retrieval (91.67% Evidence Recall@3), evaluated by our 3-way NLI cross-encoder, and mapped into our Trust Matrix via dual-risk formula Risk_Trust = alpha * P_AI + (1 - alpha) * P_Refute. This achieves 100% NLI Macro-F1 across all quadrants.
-> In summary, these three innovations form a seamless, mathematically principled hierarchy: morphology prevents domain collapse, chunking defeats length truncation, and the trust matrix ensures factual truth.
+> Turning to Chapter 6 on Slide 19, I summarize the primary research contributions of this thesis and report on our dissertation manuscript writing progress.
+> As displayed on the left card, this thesis delivers four primary academic contributions:
+> First, our Algorithmic Contribution: We pioneered the integration of rule-based 83-rule FST morphological representations with pretrained transformer backbones via learned dynamic cross-attention gating, completely eliminating out-of-domain collapse with an absolute +42.18% ROC-AUC gain.
+> Second, our Methodological Contribution: We engineered the first sentence-preserving chunker protected by 10 Kazakh abbreviation guards and dynamic Top-K worst-chunk pooling, achieving 100% localization precision for localized synthetic injections across long documents up to 25,000 words under a strictly bounded 1.4 GB VRAM envelope.
+> Third, our Societal Contribution: We constructed Central Asia's first evidence-grounded factual verification benchmark, Kazakh-FEVER, and established the Four-Quadrant Trust Matrix, decoupling stylistic generative probability from factual veracity to safeguard against high-risk hallucinations.
+> Fourth, our Institutional Impact: We delivered a fully reproducible, open-source 4-tab Gradio system and Hugging Face Space cloud deployment, backed by 303 passing automated tests and institutional zero-decorative-emoji typography to serve university academic integrity offices.
+> Looking at the right card, our Master's thesis manuscript is currently estimated at 85% overall completion:
+> - Chapter 1 (Introduction) is 100% complete, establishing the linguistic motivation, research scope, and problem formulation.
+> - Chapter 2 (Related Work) is 100% complete, comprehensively surveying SOTA detectors, LLM watermarking, and fact-checking corpora.
+> - Chapter 3 (Methodology) is 100% complete, detailing the formal mathematical foundations of Topics 1, 2, and 3.
+> - Chapter 4 (Experiments & Benchmarks) is 100% complete, analyzing our ACL Kaz-MAGE 2x2 matrix, Kazakh-FEVER results, and component ablation studies.
+> - Chapter 5 (System Implementation & UI) is 90% complete, with the Gradio dashboard, cloud packaging, and runtime profiling fully documented.
+> - Chapter 6 (Conclusion & Future Outlook) is 70% complete, with final synthesis, ethical guidelines, and publication trajectories underway.
+> With our core scientific milestones accomplished and our dissertation nearing full completion, let us proceed to Slide 20 to review our accepted Springer LNCS publication, our live demonstration agenda for today's meeting, and our defense preparation roadmap.
 
 ---
 
@@ -444,7 +461,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 **Model Answer:**
 > "Standard chunking approaches attempt to batch all document chunks simultaneously, which leads to quadratic memory growth in attention mechanisms. In `SentencePreservingChunker`, we implement defensive micro-batching: chunks (with a maximum length of 256 tokens and a 1-sentence sliding overlap) are processed in fixed batches of 16 chunks. Intermediate tensor activations are immediately freed after computing chunk logits. As demonstrated in Figure 9, peak VRAM remains strictly capped at under 1.4 GB regardless of whether the document has 1,000 words or 25,000 words. On CPU systems, processing completes in under 12 seconds."
 
-### Q5: How do the three methodological innovations in Figure 15 interlock, and why is a monolithic end-to-end model insufficient?
+### Q5: How do the three methodological innovations in Figure 3 interlock, and why is a monolithic end-to-end model insufficient?
 **Model Answer:**
 > "A monolithic neural detector fails on Kazakh because synthetic text artifacts operate across three distinct linguistic scales that cannot be conflated into a single scalar prediction:
 > 1. Sub-word and Morpheme Scale: In agglutinative languages, out-of-domain collapse stems from subword vocabulary shifts. Innovation 1 isolates invariant morphological legality via the 83-rule FST cross-attention stream.

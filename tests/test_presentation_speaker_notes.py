@@ -51,6 +51,25 @@ class TestPresentationSpeakerNotes(unittest.TestCase):
                 f"Slide {idx} must not contain Chinese spoken script"
             )
 
+    def test_slide_7_methodological_framework(self):
+        """Verify Slide 7 contains Comprehensive Methodological Framework and Figure 3."""
+        slide_splits = re.split(r"### Slide \d+:", self.content)[1:]
+        self.assertEqual(len(slide_splits), 23)
+        slide_7 = slide_splits[6]
+        self.assertIn("Comprehensive Methodological Framework", slide_7)
+        self.assertIn("Figure 3", slide_7)
+
+    def test_slide_19_contributions_and_progress(self):
+        """Verify Slide 19 contains thesis contributions and manuscript writing progress."""
+        slide_splits = re.split(r"### Slide \d+:", self.content)[1:]
+        self.assertEqual(len(slide_splits), 23)
+        slide_19 = slide_splits[18]
+        self.assertIn("Summary of Thesis Contributions & Writing Progress", slide_19)
+        self.assertIn("Manuscript Status", slide_19)
+        self.assertIn("85%", slide_19)
+        self.assertIn("Chapter 1", slide_19)
+        self.assertIn("Chapter 6", slide_19)
+
     def test_english_only_in_spoken_scripts(self):
         """Verify there are zero Chinese characters in any Spoken Script block."""
         scripts = re.findall(
@@ -71,7 +90,7 @@ class TestPresentationSpeakerNotes(unittest.TestCase):
 
     def test_key_technical_anchors(self):
         """Verify vital technical milestones, frameworks, and figures are articulated."""
-        self.assertIn("Figure 15", self.content)
+        self.assertIn("Figure 3", self.content)
         self.assertIn("Springer LNCS", self.content)
         self.assertIn("AIST 2026", self.content)
         self.assertIn("Gradio", self.content)
