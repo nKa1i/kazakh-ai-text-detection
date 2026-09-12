@@ -1,6 +1,6 @@
 # scripts/generate_presentation_figures.py
 """
-Generate 14 High-Impact Publication Figures for Master's Thesis Presentation.
+Generate 15 High-Impact Publication Figures for Master's Thesis Presentation.
 
 Topic: Morphologically-Grounded Kazakh AI Text Detection & Factual Verification
 Institution: Northwestern Polytechnical University (NPU) & Al-Farabi KazNU
@@ -1245,11 +1245,311 @@ def generate_fig14(output_dir):
 
 
 # ==============================================================================
+# Figure 15: Comprehensive Methodological Innovations Framework
+# ==============================================================================
+def generate_fig15(output_dir):
+    fig, ax = plt.subplots(figsize=(14.5, 6.2), facecolor="white")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+    ax.axis("off")
+
+    # Title & Subtitle
+    ax.text(2, 95.8, "Comprehensive Methodological Innovations Framework: Kazakh AI Text Detection & Verification",
+            fontsize=13, fontweight="bold", color=SLATE)
+    ax.text(2, 91.5, "End-to-End Scientific Architecture: Morphological Inductive Bias -> Sentence Gating -> Document Top-K Engine -> Fact-Checking Trust Matrix",
+            fontsize=9.5, color=MUTED_GRAY)
+
+    # -------------------------------------------------------------------------
+    # Column 1: Stage 1: Input & Knowledge Sources
+    # -------------------------------------------------------------------------
+    box1 = patches.FancyBboxPatch((2.0, 14.5), 21.0, 73.5, boxstyle="round,pad=0.4,rounding_size=1.0",
+                                  edgecolor="#94A3B8", facecolor="#F8FAFC", linewidth=1.4)
+    ax.add_patch(box1)
+
+    badge1 = patches.FancyBboxPatch((3.0, 81.5), 19.0, 5.5, boxstyle="round,pad=0.2,rounding_size=0.6",
+                                    edgecolor=SLATE, facecolor=SLATE, linewidth=1)
+    ax.add_patch(badge1)
+    ax.text(12.5, 84.25, "STAGE 1: INPUT & KNOWLEDGE", ha="center", va="center",
+            fontsize=8.2, fontweight="bold", color="white")
+
+    # Card 1.1: Raw Kazakh Text Ingestion
+    c1_1 = patches.FancyBboxPatch((3.2, 61.0), 18.6, 18.5, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#CBD5E1", facecolor="white", linewidth=0.9)
+    ax.add_patch(c1_1)
+    ax.text(4.2, 76.5, "Raw Kazakh Text Ingestion", fontsize=8.0, fontweight="bold", color=SLATE)
+    ax.text(4.2, 73.5, "- Multi-genre: News, Wiki, Reviews", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 70.8, "- Scale: 1 sent up to 25k words", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 68.1, "- Rich agglutinative morphology", fontsize=7.2, color=SLATE)
+    p1_1 = patches.FancyBboxPatch((4.2, 62.5), 16.6, 4.0, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#94A3B8", facecolor="#F1F5F9", linewidth=0.7)
+    ax.add_patch(p1_1)
+    ax.text(12.5, 64.5, "Raw Document: X = [w_1, ..., w_L]", ha="center", va="center",
+            fontsize=7.0, fontweight="bold", color=SLATE)
+
+    # Card 1.2: 83-Rule FST Dictionary
+    c1_2 = patches.FancyBboxPatch((3.2, 39.7), 18.6, 18.5, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#CBD5E1", facecolor="white", linewidth=0.9)
+    ax.add_patch(c1_2)
+    ax.text(4.2, 55.2, "83-Rule FST Morpho-Dict", fontsize=8.0, fontweight="bold", color=SLATE)
+    ax.text(4.2, 52.2, "- Finite-State Transducer parser", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 49.5, "- Stem + affix sequence tagging", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 46.8, "- Inflectional & case chains", fontsize=7.2, color=SLATE)
+    p1_2 = patches.FancyBboxPatch((4.2, 41.2), 16.6, 4.0, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#94A3B8", facecolor="#F1F5F9", linewidth=0.7)
+    ax.add_patch(p1_2)
+    ax.text(12.5, 43.2, r"Morpheme Vocab: $|V_{\mathrm{morph}}| = 128$", ha="center", va="center",
+            fontsize=7.0, fontweight="bold", color=SLATE)
+
+    # Card 1.3: 36-Article Reference Corpus
+    c1_3 = patches.FancyBboxPatch((3.2, 18.4), 18.6, 18.5, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#CBD5E1", facecolor="white", linewidth=0.9)
+    ax.add_patch(c1_3)
+    ax.text(4.2, 33.9, "36-Article Reference Corpus", fontsize=8.0, fontweight="bold", color=SLATE)
+    ax.text(4.2, 30.9, "- Curated encyclopedic text", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 28.2, "- 1,248 verified gold sentences", fontsize=7.2, color=SLATE)
+    ax.text(4.2, 25.5, "- Grounding for fact verification", fontsize=7.2, color=SLATE)
+    p1_3 = patches.FancyBboxPatch((4.2, 19.9), 16.6, 4.0, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#94A3B8", facecolor="#F1F5F9", linewidth=0.7)
+    ax.add_patch(p1_3)
+    ax.text(12.5, 21.9, "Evidence Base: Kazakh-FEVER", ha="center", va="center",
+            fontsize=7.0, fontweight="bold", color=SLATE)
+
+    # -------------------------------------------------------------------------
+    # Column 2: Innovation 1: Sentence-Level Morpho-Gating
+    # -------------------------------------------------------------------------
+    box2 = patches.FancyBboxPatch((25.5, 14.5), 23.0, 73.5, boxstyle="round,pad=0.4,rounding_size=1.0",
+                                  edgecolor="#93C5FD", facecolor="#EFF6FF", linewidth=1.4)
+    ax.add_patch(box2)
+
+    badge2 = patches.FancyBboxPatch((26.5, 81.5), 21.0, 5.5, boxstyle="round,pad=0.2,rounding_size=0.6",
+                                    edgecolor=NAVY, facecolor=NAVY, linewidth=1)
+    ax.add_patch(badge2)
+    ax.text(37.0, 84.25, "INNOVATION 1: SENTENCE GATING", ha="center", va="center",
+            fontsize=8.2, fontweight="bold", color="white")
+
+    # Card 2.1: Dual-Stream Representations
+    c2_1 = patches.FancyBboxPatch((26.7, 65.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#BFDBFE", facecolor="white", linewidth=0.9)
+    ax.add_patch(c2_1)
+    ax.text(27.7, 77.0, "1. Dual-Stream Representations", fontsize=7.8, fontweight="bold", color=NAVY)
+    ax.text(27.7, 74.3, r"- KazRoBERTa: $h_{\mathrm{sem}} \in \mathbb{R}^{768}$", fontsize=7.1, color=SLATE)
+    ax.text(27.7, 71.9, r"- FST BiLSTM: $h_{\mathrm{morph}} \in \mathbb{R}^{256}$", fontsize=7.1, color=SLATE)
+    p2_1 = patches.FancyBboxPatch((27.7, 66.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#BFDBFE", facecolor="#EFF6FF", linewidth=0.7)
+    ax.add_patch(p2_1)
+    ax.text(37.0, 68.7, r"Projection: $W_{\mathrm{proj}} h_{\mathrm{morph}} \to \mathbb{R}^{768}$", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=NAVY)
+
+    # Card 2.2: Dynamic Learned Gating
+    c2_2 = patches.FancyBboxPatch((26.7, 49.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#BFDBFE", facecolor="white", linewidth=0.9)
+    ax.add_patch(c2_2)
+    ax.text(27.7, 61.0, "2. Dynamic Learned Gating", fontsize=7.8, fontweight="bold", color=NAVY)
+    ax.text(27.7, 58.3, r"- Gate: $g = \sigma(W_g [h_{\mathrm{sem}}; W_{\mathrm{proj}} h_{\mathrm{m}}] + b_g)$", fontsize=6.9, color=SLATE)
+    ax.text(27.7, 55.9, r"- Dimension-wise gating: $g \in [0, 1]^d$", fontsize=7.1, color=SLATE)
+    p2_2 = patches.FancyBboxPatch((27.7, 50.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#BFDBFE", facecolor="#EFF6FF", linewidth=0.7)
+    ax.add_patch(p2_2)
+    ax.text(37.0, 52.7, r"$h_{\mathrm{fuse}} = g \odot h_{\mathrm{sem}} + (1-g) \odot (W_{\mathrm{proj}} h_{\mathrm{m}})$", ha="center", va="center",
+            fontsize=6.6, fontweight="bold", color=NAVY)
+
+    # Card 2.3: Supervised Contrastive Loss
+    c2_3 = patches.FancyBboxPatch((26.7, 33.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#BFDBFE", facecolor="white", linewidth=0.9)
+    ax.add_patch(c2_3)
+    ax.text(27.7, 45.0, "3. Supervised Contrastive Loss", fontsize=7.8, fontweight="bold", color=NAVY)
+    ax.text(27.7, 42.3, r"- $\mathcal{L}_{\mathrm{Total}} = \mathcal{L}_{\mathrm{BCE}} + \lambda \mathcal{L}_{\mathrm{SupCon}}$", fontsize=7.1, color=SLATE)
+    ax.text(27.7, 39.9, r"- Projection head: $z \in \mathbb{R}^{128}$ (unit sphere)", fontsize=7.1, color=SLATE)
+    p2_3 = patches.FancyBboxPatch((27.7, 34.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#BFDBFE", facecolor="#EFF6FF", linewidth=0.7)
+    ax.add_patch(p2_3)
+    ax.text(37.0, 36.7, "Hyperspherical Semantic Clustering", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=NAVY)
+
+    # Card 2.4: Sentence AI Probability
+    c2_4 = patches.FancyBboxPatch((26.7, 17.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#BFDBFE", facecolor="white", linewidth=0.9)
+    ax.add_patch(c2_4)
+    ax.text(27.7, 29.0, "4. Sentence AI Probability", fontsize=7.8, fontweight="bold", color=NAVY)
+    ax.text(27.7, 26.3, r"- $P_{\mathrm{AI}}(s_i) = \sigma(W_{\mathrm{cls}} h_{\mathrm{fused}} + b)$", fontsize=7.1, color=SLATE)
+    ax.text(27.7, 23.9, "- 99.80% Cross-Domain ROC-AUC", fontsize=7.1, color=SLATE)
+    p2_4 = patches.FancyBboxPatch((27.7, 18.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#BFDBFE", facecolor="#EFF6FF", linewidth=0.7)
+    ax.add_patch(p2_4)
+    ax.text(37.0, 20.7, r"Calibrated Score: $P_{\mathrm{AI}}(s_i) \in [0, 1]$", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=NAVY)
+
+    # -------------------------------------------------------------------------
+    # Column 3: Innovation 2: Document-Level Top-K Engine
+    # -------------------------------------------------------------------------
+    box3 = patches.FancyBboxPatch((51.0, 14.5), 23.0, 73.5, boxstyle="round,pad=0.4,rounding_size=1.0",
+                                  edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=1.4)
+    ax.add_patch(box3)
+
+    badge3 = patches.FancyBboxPatch((52.0, 81.5), 21.0, 5.5, boxstyle="round,pad=0.2,rounding_size=0.6",
+                                    edgecolor=TEAL, facecolor=TEAL, linewidth=1)
+    ax.add_patch(badge3)
+    ax.text(62.5, 84.25, "INNOVATION 2: DOCUMENT TOP-K", ha="center", va="center",
+            fontsize=8.2, fontweight="bold", color="white")
+
+    # Card 3.1: 10 Abbreviation Guards
+    c3_1 = patches.FancyBboxPatch((52.2, 65.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#99F6E4", facecolor="white", linewidth=0.9)
+    ax.add_patch(c3_1)
+    ax.text(53.2, 77.0, "1. 10 Abbreviation Guards", fontsize=7.8, fontweight="bold", color=TEAL)
+    ax.text(53.2, 74.3, "- Regex: 'т.б.', 'ж.б.', 'мыс.', 'ғ.', 'жж.'", fontsize=7.1, color=SLATE)
+    ax.text(53.2, 71.9, "- Protects Kazakh abbreviation periods", fontsize=7.1, color=SLATE)
+    p3_1 = patches.FancyBboxPatch((53.2, 66.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=0.7)
+    ax.add_patch(p3_1)
+    ax.text(62.5, 68.7, "Prevents False Sentence Splits", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=TEAL)
+
+    # Card 3.2: Sentence Sliding Window
+    c3_2 = patches.FancyBboxPatch((52.2, 49.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#99F6E4", facecolor="white", linewidth=0.9)
+    ax.add_patch(c3_2)
+    ax.text(53.2, 61.0, "2. Sentence Sliding Window", fontsize=7.8, fontweight="bold", color=TEAL)
+    ax.text(53.2, 58.3, "- Window size: 256 words (tokens)", fontsize=7.1, color=SLATE)
+    ax.text(53.2, 55.9, "- Stride overlap: 1 complete sentence", fontsize=7.1, color=SLATE)
+    p3_2 = patches.FancyBboxPatch((53.2, 50.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=0.7)
+    ax.add_patch(p3_2)
+    ax.text(62.5, 52.7, "Exact Character Span Offsets", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=TEAL)
+
+    # Card 3.3: Dynamic Worst-Case Top-K
+    c3_3 = patches.FancyBboxPatch((52.2, 33.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#99F6E4", facecolor="white", linewidth=0.9)
+    ax.add_patch(c3_3)
+    ax.text(53.2, 45.0, "3. Worst-Case Top-K Pooling", fontsize=7.8, fontweight="bold", color=TEAL)
+    ax.text(53.2, 42.8, r"- $K = \max(1, \min(k_{\mathrm{cfg}}, \lceil 0.25 M \rceil))$", fontsize=6.8, color=SLATE)
+    ax.text(53.2, 40.1, r"- $S_{\mathrm{doc}} = \frac{1}{K} \sum_{j=1}^K s_{(j)}$ (worst-case)", fontsize=6.8, color=SLATE)
+    p3_3 = patches.FancyBboxPatch((53.2, 34.6), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=0.7)
+    ax.add_patch(p3_3)
+    ax.text(62.5, 36.5, "Micro-Batched: VRAM < 1.4 GB", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=TEAL)
+
+    # Card 3.4: Document Score & Tamper Spans
+    c3_4 = patches.FancyBboxPatch((52.2, 17.5), 20.6, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#99F6E4", facecolor="white", linewidth=0.9)
+    ax.add_patch(c3_4)
+    ax.text(53.2, 29.0, "4. Doc AI Score & Tamper Spans", fontsize=7.8, fontweight="bold", color=TEAL)
+    ax.text(53.2, 26.3, r"- Document score: $P(\mathrm{AI}) = S_{\mathrm{doc}}$", fontsize=7.1, color=SLATE)
+    ax.text(53.2, 23.9, "- Localizes stealth injected chunks", fontsize=7.1, color=SLATE)
+    p3_4 = patches.FancyBboxPatch((53.2, 18.8), 18.6, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=0.7)
+    ax.add_patch(p3_4)
+    ax.text(62.5, 20.7, "Tamper Localization & Provenance", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=TEAL)
+
+    # -------------------------------------------------------------------------
+    # Column 4: Innovation 3: Fact-Checking Trust Matrix
+    # -------------------------------------------------------------------------
+    box4 = patches.FancyBboxPatch((76.5, 14.5), 21.5, 73.5, boxstyle="round,pad=0.4,rounding_size=1.0",
+                                  edgecolor="#FDE68A", facecolor="#FFFBEB", linewidth=1.4)
+    ax.add_patch(box4)
+
+    badge4 = patches.FancyBboxPatch((77.5, 81.5), 19.5, 5.5, boxstyle="round,pad=0.2,rounding_size=0.6",
+                                    edgecolor=AMBER, facecolor=AMBER, linewidth=1)
+    ax.add_patch(badge4)
+    ax.text(87.25, 84.25, "INNOVATION 3: TRUST MATRIX", ha="center", va="center",
+            fontsize=8.2, fontweight="bold", color="white")
+
+    # Card 4.1: Claim Extraction & BM25
+    c4_1 = patches.FancyBboxPatch((77.7, 65.5), 19.1, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#FDE68A", facecolor="white", linewidth=0.9)
+    ax.add_patch(c4_1)
+    ax.text(78.7, 77.0, "1. Claim Extraction & BM25", fontsize=7.8, fontweight="bold", color=AMBER)
+    ax.text(78.7, 74.3, "- Factual statement parser", fontsize=7.1, color=SLATE)
+    ax.text(78.7, 71.9, "- BM25 stem-normalized retrieval", fontsize=7.1, color=SLATE)
+    p4_1 = patches.FancyBboxPatch((78.7, 66.8), 17.1, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#FDE68A", facecolor="#FFFBEB", linewidth=0.7)
+    ax.add_patch(p4_1)
+    ax.text(87.25, 68.7, "Top-3 Evidence from 36 Articles", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=AMBER)
+
+    # Card 4.2: 3-Way Cross-Encoder NLI
+    c4_2 = patches.FancyBboxPatch((77.7, 49.5), 19.1, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#FDE68A", facecolor="white", linewidth=0.9)
+    ax.add_patch(c4_2)
+    ax.text(78.7, 61.0, "2. 3-Way Cross-Encoder NLI", fontsize=7.8, fontweight="bold", color=AMBER)
+    ax.text(78.7, 58.3, r"- $[CLS]\ \mathrm{Claim}\ [SEP]\ \mathrm{Ev}\ [SEP]$", fontsize=6.9, color=SLATE)
+    ax.text(78.7, 55.9, "- KazRoBERTa cross-attentive NLI", fontsize=7.1, color=SLATE)
+    p4_2 = patches.FancyBboxPatch((78.7, 50.8), 17.1, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#FDE68A", facecolor="#FFFBEB", linewidth=0.7)
+    ax.add_patch(p4_2)
+    ax.text(87.25, 52.7, r"$P(\mathrm{Supp}), P(\mathrm{Refute}), P(\mathrm{NEI})$", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=AMBER)
+
+    # Card 4.3: Dual-Risk Scorer
+    c4_3 = patches.FancyBboxPatch((77.7, 33.5), 19.1, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#FDE68A", facecolor="white", linewidth=0.9)
+    ax.add_patch(c4_3)
+    ax.text(78.7, 45.0, "3. Dual-Risk Scorer", fontsize=7.8, fontweight="bold", color=AMBER)
+    ax.text(78.7, 42.3, r"- $\mathrm{Risk}_{\mathrm{Trust}} = \alpha P(\mathrm{AI}) + (1-\alpha) P(\mathrm{Ref})$", fontsize=6.7, color=SLATE)
+    ax.text(78.7, 39.9, r"- Calibrated weight: $\alpha = 0.5$", fontsize=7.1, color=SLATE)
+    p4_3 = patches.FancyBboxPatch((78.7, 34.8), 17.1, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#FDE68A", facecolor="#FFFBEB", linewidth=0.7)
+    ax.add_patch(p4_3)
+    ax.text(87.25, 36.7, "Decoupled Origin vs Veracity", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=AMBER)
+
+    # Card 4.4: Four-Quadrant Decision
+    c4_4 = patches.FancyBboxPatch((77.7, 17.5), 19.1, 14.0, boxstyle="round,pad=0.2,rounding_size=0.5",
+                                  edgecolor="#FDE68A", facecolor="white", linewidth=0.9)
+    ax.add_patch(c4_4)
+    ax.text(78.7, 29.0, "4. Four-Quadrant Decision", fontsize=7.8, fontweight="bold", color=AMBER)
+    ax.text(78.7, 26.3, "- Q1: Verified Human | Q2: Disinfo", fontsize=6.9, color=SLATE)
+    ax.text(78.7, 23.9, "- Q3: Benign AI | Q4: Malicious", fontsize=6.9, color=SLATE)
+    p4_4 = patches.FancyBboxPatch((78.7, 18.8), 17.1, 3.8, boxstyle="round,pad=0.1,rounding_size=0.4",
+                                  edgecolor="#FDE68A", facecolor="#FFFBEB", linewidth=0.7)
+    ax.add_patch(p4_4)
+    ax.text(87.25, 20.7, "100.0% Macro-F1 Fact Check", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=AMBER)
+
+    # -------------------------------------------------------------------------
+    # Connecting Arrows Between Stages
+    # -------------------------------------------------------------------------
+    ax.annotate("", xy=(25.3, 51.0), xytext=(23.2, 51.0),
+                arrowprops=dict(arrowstyle="->", color=NAVY, lw=2.0))
+    ax.text(24.25, 54.8, "Raw Text &\nFST Affixes", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=NAVY)
+
+    ax.annotate("", xy=(50.8, 51.0), xytext=(48.7, 51.0),
+                arrowprops=dict(arrowstyle="->", color=TEAL, lw=2.0))
+    ax.text(49.75, 54.8, "Sentence\n" + r"$P_{\mathrm{AI}}(s_i)$", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=TEAL)
+
+    ax.annotate("", xy=(76.3, 51.0), xytext=(74.2, 51.0),
+                arrowprops=dict(arrowstyle="->", color=AMBER, lw=2.0))
+    ax.text(75.25, 54.8, "Doc AI &\nClaims", ha="center", va="center",
+            fontsize=6.8, fontweight="bold", color=AMBER)
+
+    # -------------------------------------------------------------------------
+    # Footer Banner
+    # -------------------------------------------------------------------------
+    footer = patches.FancyBboxPatch((2.0, 3.5), 96.0, 8.5, boxstyle="round,pad=0.3,rounding_size=0.8",
+                                    edgecolor=BORDER_GRAY, facecolor=LIGHT_BG, linewidth=1.1)
+    ax.add_patch(footer)
+    ax.text(50.0, 8.2, "Integrated Research Contributions: 99.80% Cross-Domain ROC-AUC (Kaz-MAGE)  |  100.0% Macro-F1 Fact Verification  |  Sub-1.4 GB Bounded VRAM",
+            ha="center", va="center", fontsize=8.2, fontweight="bold", color=NAVY)
+    ax.text(50.0, 5.2, "Northwestern Polytechnical University (NPU) & Al-Farabi Kazakh National University (KazNU)  |  Master's Defense 2026",
+            ha="center", va="center", fontsize=7.4, color=MUTED_GRAY)
+
+    fig_path = os.path.join(output_dir, "fig15_methodological_innovations_framework.png")
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[OK] Generated: {fig_path}")
+
+
+# ==============================================================================
 # Master Execution Routine
 # ==============================================================================
 def main():
     output_dir = ensure_output_dir("presentation_figures")
-    print(f"Generating 14 publication-grade figures in: {output_dir}")
+    print(f"Generating 15 publication-grade figures in: {output_dir}")
 
     generators = [
         ("fig01_subword_vs_fst.png", generate_fig01),
@@ -1266,12 +1566,13 @@ def main():
         ("fig12_ablation_study_barchart.png", generate_fig12),
         ("fig13_gradio_dashboard_panels.png", generate_fig13),
         ("fig14_cloud_deployment_pipeline.png", generate_fig14),
+        ("fig15_methodological_innovations_framework.png", generate_fig15),
     ]
 
     for fname, func in generators:
         func(output_dir)
 
-    print("All 14 publication figures successfully generated at 300 DPI.")
+    print("All 15 publication figures successfully generated at 300 DPI.")
 
 
 if __name__ == "__main__":

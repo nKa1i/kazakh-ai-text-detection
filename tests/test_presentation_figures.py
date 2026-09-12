@@ -17,6 +17,7 @@ EXPECTED_FIGURES = [
     "fig12_ablation_study_barchart.png",
     "fig13_gradio_dashboard_panels.png",
     "fig14_cloud_deployment_pipeline.png",
+    "fig15_methodological_innovations_framework.png",
 ]
 
 
