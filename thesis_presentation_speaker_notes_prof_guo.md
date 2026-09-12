@@ -14,7 +14,7 @@ This presentation is designed for the formal Master's thesis progress review and
 1. **Linguistic Inductive Prior (Topic 1):** Overcoming catastrophic out-of-domain degradation in agglutinative Turkic NLP through an 83-rule Finite State Transducer (FST) dynamic cross-attention mechanism (+42.18% OOD AUC gain).
 2. **Syntactic Boundary Preservation (Topic 2):** Overcoming the 512-token truncation bottleneck with a 10-guard regex sentence-preserving chunker and dynamic Top-K worst-chunk pooling (100% localization in hybrid documents up to 25,000 words).
 3. **Evidence-Grounded Factual Verification (Topic 3):** Constructing Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix to decouple AI stylistic probability from factual veracity.
-4. **Engineering and Institutional Rigor:** 302/302 automated regression tests passing, Hugging Face Spaces cloud package, sub-1.2s cold start, zero emojis, and complete committee itemized resolutions.
+4. **Engineering and Institutional Rigor:** 302/303 automated regression tests passing, Hugging Face Spaces cloud package, sub-1.2s cold start, zero emojis, and complete committee itemized resolutions.
 
 ---
 
@@ -289,7 +289,7 @@ This presentation is designed for the formal Master's thesis progress review and
 
 ### Slide 18: System Demonstration — Cloud Packaging, Hugging Face Spaces & Test Rigor
 - **Slide Title:** System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor
-- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 302 passing tests
+- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 303 passing tests
 - **Allocated Time:** 1.5 Minutes
 - **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (302 / 302 Automated Test Suite, < 1.2s Cold-Start Latency, 100% Zero Emoji Design); Hugging Face Spaces feature box.
 
@@ -340,7 +340,7 @@ This presentation is designed for the formal Master's thesis progress review and
 - **Key Visual:** 4 Sequential Milestone Cards:
   1. Milestone 1: Accepted Springer LNCS (Paper 1 formally accepted to AIST 2026; camera-ready finalized).
   2. Milestone 2: Meeting Agenda - Live System Demonstration (Interactive 4-tab Gradio platform prepared for today's meeting).
-  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 302 automated passing tests).
+  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 303 automated passing tests).
   4. Milestone 4: Next Steps - Guidance Requested from Prof. Guo (Paper 2 positioning, thesis draft review timeline).
 
 #### Spoken Script (Chinese - for Prof. Guo)
