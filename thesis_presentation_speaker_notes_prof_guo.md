@@ -14,7 +14,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 1. **Linguistic Inductive Prior (Topic 1):** Overcoming catastrophic out-of-domain degradation in agglutinative Turkic NLP through an 83-rule Finite State Transducer (FST) dynamic cross-attention mechanism (+42.18% OOD AUC gain).
 2. **Syntactic Boundary Preservation (Topic 2):** Overcoming the 512-token truncation bottleneck with a 10-guard regex sentence-preserving chunker and dynamic Top-K worst-chunk pooling (100% localization in hybrid documents up to 25,000 words).
 3. **Evidence-Grounded Factual Verification (Topic 3):** Constructing Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix to decouple AI stylistic probability from factual veracity.
-4. **Engineering and Institutional Rigor:** 303 automated regression tests passing, standalone Hugging Face Spaces cloud package, sub-1.2s cold start, zero decorative emojis, and itemized committee review resolutions.
+4. **Engineering and Institutional Rigor:** 311 automated regression tests passing, standalone Hugging Face Spaces cloud package, sub-1.2s cold start, zero decorative emojis, and itemized committee review resolutions.
 
 ---
 
@@ -52,7 +52,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > Second, I will review Related Work and explain the structural failure modes of mainstream Western detection paradigms and English-centric fact-checking corpora.
 > Third, I will present our Research Content and System Architecture, introducing our comprehensive methodological framework in Figure 3 and detailing our three core technical innovations.
 > Fourth, I will detail our Empirical Evaluation, including our ACL Kaz-MAGE benchmark, long-document stress tests, Kazakh-FEVER factual verification, and component ablations.
-> Fifth, I will showcase our Engineering Implementation, spanning our 4-tab Gradio platform, Hugging Face Spaces cloud package, and 303 automated regression tests.
+> Fifth, I will showcase our Engineering Implementation, spanning our 4-tab Gradio platform, Hugging Face Spaces cloud package, and 311 automated regression tests.
 > Finally, I will summarize our overall thesis contributions, report our manuscript writing progress (~85% complete), announce our Paper 1 acceptance in Springer LNCS, outline our agenda for today's live demonstration, and request Professor Guo's strategic guidance for our final defense.
 
 ---
@@ -316,9 +316,9 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ### Slide 18: System Demonstration — Cloud Packaging, Hugging Face Spaces & Test Rigor
 - **Slide Title:** System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor
-- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 303 passing tests
+- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 311 passing tests
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (303 Automated Passing Tests, < 1.2s Cold-Start Latency, 100% Zero Decorative Emoji Design); Hugging Face Spaces feature box.
+- **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (311 Automated Passing Tests, < 1.2s Cold-Start Latency, 100% Zero Decorative Emoji Design); Hugging Face Spaces feature box.
 
 #### Spoken Script (English)
 > Slide 18 demonstrates our software engineering rigor and cloud deployment architecture.
@@ -326,7 +326,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > 1. Instant Cloud Launch: Decoupled from heavy local checkpoint dependencies, the bundle uses an optimized offline heuristic and FST engine, achieving a cold start latency under 1.2 seconds on standard CPU hardware.
 > 2. Multi-Format Ingestion: The system cleanly parses `.txt`, `.docx`, and `.pdf` uploads, protected by a 10 MB file size limit and a 25,000-word soft cap to prevent denial-of-service memory exhaustion.
 > 3. Dynamic Bilingual Interface: Users can toggle seamlessly between Kazakh and English with instant UI re-rendering.
-> 4. Complete Test Verification: Our codebase is backed by 303 automated unit, integration, and regression tests—all passing with zero errors. Furthermore, the UI strictly adheres to professional typography with zero decorative emojis, conforming to institutional publication standards.
+> 4. Complete Test Verification: Our codebase is backed by 311 automated unit, integration, and regression tests—all passing with zero errors. Furthermore, the UI strictly adheres to professional typography with zero decorative emojis, conforming to institutional publication standards.
 
 ---
 
@@ -339,7 +339,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
     1. Algorithmic Contribution: Dual-stream 83-rule FST dynamic morphological cross-attention (+42.18% cross-domain AUC gain).
     2. Methodological Contribution: Long-document sliding window with 10 Kazakh abbreviation guards and adaptive worst-case Top-K pooling (100% localization up to 25,000 words).
     3. Societal Contribution: Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix decoupling AI style from factual veracity.
-    4. Institutional Impact: Open-source production deployment with 4-tab Gradio platform, Hugging Face Space, and 303 automated tests.
+    4. Institutional Impact: Open-source production deployment with 4-tab Gradio platform, Hugging Face Space, and 311 automated tests.
   - Right Card (Master's Thesis Manuscript Status ~85% Complete):
     - Chapter 1: Introduction (100% Complete)
     - Chapter 2: Related Work (100% Complete)
@@ -354,7 +354,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > First, our Algorithmic Contribution: We pioneered the integration of rule-based 83-rule FST morphological representations with pretrained transformer backbones via learned dynamic cross-attention gating, completely eliminating out-of-domain collapse with an absolute +42.18% ROC-AUC gain.
 > Second, our Methodological Contribution: We engineered the first sentence-preserving chunker protected by 10 Kazakh abbreviation guards and dynamic Top-K worst-chunk pooling, achieving 100% localization precision for localized synthetic injections across long documents up to 25,000 words under a strictly bounded 1.4 GB VRAM envelope.
 > Third, our Societal Contribution: We constructed Central Asia's first evidence-grounded factual verification benchmark, Kazakh-FEVER, and established the Four-Quadrant Trust Matrix, decoupling stylistic generative probability from factual veracity to safeguard against high-risk hallucinations.
-> Fourth, our Institutional Impact: We delivered a fully reproducible, open-source 4-tab Gradio system and Hugging Face Space cloud deployment, backed by 303 passing automated tests and institutional zero-decorative-emoji typography to serve university academic integrity offices.
+> Fourth, our Institutional Impact: We delivered a fully reproducible, open-source 4-tab Gradio system and Hugging Face Space cloud deployment, backed by 311 passing automated tests and institutional zero-decorative-emoji typography to serve university academic integrity offices.
 > Looking at the right card, our Master's thesis manuscript is currently estimated at 85% overall completion:
 > - Chapter 1 (Introduction) is 100% complete, establishing the linguistic motivation, research scope, and problem formulation.
 > - Chapter 2 (Related Work) is 100% complete, comprehensively surveying SOTA detectors, LLM watermarking, and fact-checking corpora.
@@ -373,7 +373,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 - **Key Visual:** 4 Sequential Milestone Cards:
   1. Milestone 1: Accepted Springer LNCS (Paper 1 formally accepted to AIST 2026; camera-ready finalized).
   2. Milestone 2: Meeting Agenda - Live System Demonstration (Interactive 4-tab Gradio platform prepared for today's meeting).
-  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 303 automated passing tests).
+  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 311 automated passing tests).
   4. Milestone 4: Next Steps - Guidance Requested from Prof. Guo (Paper 2 positioning, thesis draft review timeline).
 
 #### Spoken Script (English)
@@ -384,7 +384,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > - On Tab 2, we will inspect the FST Morphological Lab, demonstrating root and suffix chain decomposition on complex agglutinative words.
 > - On Tab 3, we will review the interactive Kaz-MAGE 2x2 matrix and empirical ablation results.
 > - On Tab 4, we will run the Kazakh-FEVER fact verification module, demonstrating millisecond BM25 retrieval, 3-way NLI prediction, and Four-Quadrant Trust badge mapping.
-> Third, Milestone 3: As of September, our overall thesis progress stands at approximately 85% completion. Our 10,000-sample multi-domain corpus is curated, Kazakh-FEVER benchmark annotations are finalized, and our engineering codebase is protected by 303 passing automated tests with sub-1.4 GB memory limits.
+> Third, Milestone 3: As of September, our overall thesis progress stands at approximately 85% completion. Our 10,000-sample multi-domain corpus is curated, Kazakh-FEVER benchmark annotations are finalized, and our engineering codebase is protected by 311 passing automated tests with sub-1.4 GB memory limits.
 > Fourth, Milestone 4: We are now positioned to finalize our second paper and complete the final chapters of the dissertation, for which I look forward to Professor Guo's strategic guidance.
 
 ---
@@ -421,7 +421,7 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > 2. On Long-Document Truncation: We developed `SentencePreservingChunker` with dynamic Top-K pooling, achieving 100% localization of stealth AI injections across 25,000-word documents under 1.4 GB VRAM. [RESOLVED]
 > 3. On Conflating Veracity with Style: We developed the Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix, decoupling AI drafting probability from factual correctness. [RESOLVED]
 > Addressing Reviewer 2 from the International Committee:
-> 1. On Reproducibility and Deployment: We built a standalone Hugging Face Spaces cloud package with one-command deployment, backed by 303 passing tests. [RESOLVED]
+> 1. On Reproducibility and Deployment: We built a standalone Hugging Face Spaces cloud package with one-command deployment, backed by 311 passing tests. [RESOLVED]
 > 2. On Linguistic Justification: We grounded the architecture in an 83-rule FST engine, with ablation studies proving a +42.18% cross-domain AUC gain over pure neural baselines. [RESOLVED]
 > 3. On Societal Impact and Fair Thresholding: We calibrated our operating decision threshold to 0.9980 to eliminate false positives against human writers, backed by plain-language linguistic explanations in the UI. [RESOLVED]
 
