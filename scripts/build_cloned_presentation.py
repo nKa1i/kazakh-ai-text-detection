@@ -45,7 +45,7 @@ BORDER_LIGHT = RGBColor(226, 232, 240)     # #E2E8F0 - Divider lines & card bord
 
 CARD_BG_WHITE = RGBColor(255, 255, 255)    # #FFFFFF - Crisp white cards
 CARD_BG_ALT = RGBColor(248, 250, 252)      # #F8FAFC - Soft light gray card fill
-CARD_BG_BLUE = RGBColor(238, 244, 255)     # #EEF4FF - Soft blue tinted card fill
+CARD_BG_BLUE = RGBColor(239, 246, 255)     # #EFF6FF - Soft blue tinted card fill
 CARD_BG_GREEN = RGBColor(240, 253, 244)    # #F0FDF4 - Soft green tinted card fill
 
 FONT_TITLE = "Arial"
@@ -584,48 +584,39 @@ def populate_slide_06(slide):
 
 
 def populate_slide_07(slide):
-    """Slide 7: Research Content — Tripartite Technical Innovations"""
+    """Slide 7: Research Content — Comprehensive Methodological Framework"""
     add_slide_header(
         slide,
-        "Research Content Overview: Three Interlocking Technical Innovations",
+        "Research Content Overview: Comprehensive Methodological Framework",
         "A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification"
     )
     add_figure_with_caption(
-        slide, "fig03_tripartite_framework.png",
+        slide, "fig03_end_to_end_pipeline.png",
         left=0.60, top=2.05, width=5.85, height=4.35,
-        caption_text="Figure 3. Tripartite Hierarchical Research Framework for Kazakh AI Text Detection & Factual Verification."
+        caption_text="Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification."
     )
-    # 3 Topic Summary Cards stacked on right
+    # Right Column: Two Callout Cards
     add_callout_box(
-        slide, left=6.65, top=2.05, width=6.08, height=1.48,
-        title="TOPIC 1: Dual-Stream Morphological Gated Cross-Attention",
+        slide, left=6.65, top=2.05, width=6.08, height=2.25,
+        title="Three-Tier Methodological Innovations",
         points=[
-            "- Core Hypothesis: Explicit morphological FST inductive bias regularizes semantic encoders.",
-            "- Architecture: KazRoBERTa semantics + 83-Rule FST morphemes + Dynamic Gate + SupCon Loss.",
-            "- Breakthrough: Resolves Q3 OOD domain collapse from 57.62% to 99.80% AUC (+42.18%)."
+            "1. Sentence-Level Morpho-Gating: Fuses KazRoBERTa embeddings with an 83-rule FST morphological transducer via dynamic learned gating, solving OOD domain collapse.",
+            "2. Document Sliding Window & Top-K: First sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words.",
+            "3. Kazakh-FEVER & Trust Matrix: First evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via a 4-quadrant decision model."
         ],
-        accent_color=TEAL_ACCENT, bg_color=CARD_BG_BLUE
-    )
-    add_callout_box(
-        slide, left=6.65, top=3.68, width=6.08, height=1.48,
-        title="TOPIC 2: Sentence-Preserving Chunking & Dynamic Top-K Pooling",
-        points=[
-            "- Core Hypothesis: Long documents require syntactic preservation and worst-chunk sensitivity.",
-            "- Architecture: 10 Kazakh abbreviation regex guards + sliding window + Dynamic Top-K pooling.",
-            "- Breakthrough: 100% localization of malicious AI paragraphs in 25k-word hybrid documents."
-        ],
-        accent_color=AMBER_ACCENT, bg_color=CARD_BG_WHITE
+        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE
     )
     add_callout_box(
-        slide, left=6.65, top=5.31, width=6.08, height=1.48,
-        title="TOPIC 3: Evidence-Grounded Kazakh-FEVER & Four-Quadrant Trust Matrix",
+        slide, left=6.65, top=4.45, width=6.08, height=2.35,
+        title="Integrated Empirical & Societal Breakthroughs",
         points=[
-            "- Core Hypothesis: Stylistic detection must be coupled with external factual grounding.",
-            "- Architecture: 36-article knowledge corpus + BM25 retrieval + NLI cross-encoder + Dual-Risk Scorer.",
-            "- Breakthrough: First Central Asian framework separating truthful AI summaries from human rumors."
+            "- Cross-Domain Generalization: +42.18% ROC-AUC improvement on out-of-domain colloquial text over standard transformer baselines.",
+            "- Stealth Tamper Localization: 100% precision in identifying isolated synthetic paragraphs inserted into long human documents.",
+            "- Fact Verification Precision: 100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory."
         ],
-        accent_color=GREEN_ACCENT, bg_color=CARD_BG_GREEN
+        accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE
     )
+
 
 
 def populate_slide_08(slide):
@@ -779,7 +770,7 @@ def populate_slide_11(slide):
             "- Calibrated Threshold: 0.9980",
             "- Trained on RTX 3090 / A100 GPUs",
             "- Inference: <45ms per sentence on CPU",
-            "- 288/288 unit/integration tests verified"
+            "- 311/311 unit/integration tests verified"
         ],
         accent_color=NAVY_PRIMARY, bg_color=CARD_BG_WHITE
     )
@@ -1086,7 +1077,7 @@ def populate_slide_18(slide):
     add_slide_header(
         slide,
         "System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor",
-        "Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 288 passing tests"
+        "Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 311 passing tests"
     )
     add_figure_with_caption(
         slide, "fig14_cloud_deployment_pipeline.png",
@@ -1095,7 +1086,7 @@ def populate_slide_18(slide):
     )
     # Right side: 3 stat cards in a row + cloud packaging card below
     add_card(slide, left=6.65, top=2.05, width=1.92, height=1.85,
-             title="Automated Test Suite", value_str="288 / 288",
+             title="Automated Test Suite", value_str="311 / 311",
              subtitle="Passing unit & integration tests with 0 regressions",
              accent_color=GREEN_ACCENT, bg_color=CARD_BG_GREEN)
     add_card(slide, left=8.72, top=2.05, width=1.92, height=1.85,
@@ -1103,9 +1094,9 @@ def populate_slide_18(slide):
              subtitle="Sub-second initialization with CPU/GPU dual paths",
              accent_color=BLUE_ACCENT, bg_color=CARD_BG_WHITE)
     add_card(slide, left=10.79, top=2.05, width=1.94, height=1.85,
-             title="Zero Emoji Design", value_str="100%",
-             subtitle="Strict typography compliant with academic standards",
-             accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE)
+             title="Multi-Format Ingestion", value_str="3 Formats",
+             subtitle="Defensive parsing for .txt, .docx, .pdf with 10MB memory guards",
+             accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE)
 
     add_callout_box(
         slide, left=6.65, top=4.05, width=6.08, height=2.75,
@@ -1129,7 +1120,7 @@ def populate_slide_19(slide):
     )
     add_callout_box(
         slide, left=0.60, top=2.05, width=6.65, height=4.75,
-        title="Three Primary Academic Contributions of the Thesis",
+        title="Four Primary Academic Contributions",
         points=[
             "1. Algorithmic Contribution: Dual-Stream Morphological Cross-Attention:",
             "   Pioneered the integration of rule-based FST morphological representations with transformer semantic backbones via learned dynamic gating, solving the OOD domain collapse (+42.18% gain).",
@@ -1313,7 +1304,7 @@ def populate_slide_22(slide):
         [
             "1",
             "Engineering Rigor & Reproducibility:\nExperimental pipeline must be strictly reproducible with full code access.",
-            "Created standalone Hugging Face Spaces bundle (hf_space/); 288/288 passing tests; sub-second cold start.",
+            "Created standalone Hugging Face Spaces bundle (hf_space/); 311/311 passing tests; sub-second cold start.",
             "[✓] RESOLVED"
         ],
         [

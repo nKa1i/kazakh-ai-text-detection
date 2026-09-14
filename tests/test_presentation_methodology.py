@@ -35,13 +35,19 @@ class TestPresentationMethodology(unittest.TestCase):
 
         pic_s7 = pictures_s7[0]
         self.assertAlmostEqual(pic_s7.left.inches, 0.60, delta=0.05)
-        self.assertAlmostEqual(pic_s7.top.inches, 1.85, delta=0.05)
-        self.assertAlmostEqual(pic_s7.width.inches, 12.133, delta=0.05)
-        self.assertAlmostEqual(pic_s7.height.inches, 4.85, delta=0.05)
+        self.assertAlmostEqual(pic_s7.top.inches, 2.05, delta=0.05)
+        self.assertAlmostEqual(pic_s7.width.inches, 5.85, delta=0.05)
+        self.assertAlmostEqual(pic_s7.height.inches, 4.35, delta=0.05)
 
         s7_text = " ".join(s.text_frame.text for s in s7.shapes if s.has_text_frame)
         self.assertIn("Comprehensive Methodological Framework", s7_text)
-        self.assertIn("Figure 3", s7_text)
+        self.assertIn("Figure 3. Overall Methodological Innovation Framework", s7_text)
+        self.assertIn("Three-Tier Methodological Innovations", s7_text)
+        self.assertIn("Integrated Empirical & Societal Breakthroughs", s7_text)
+        self.assertIn("Sentence-Level Morpho-Gating", s7_text)
+        self.assertIn("Document Sliding Window & Top-K", s7_text)
+        self.assertIn("Kazakh-FEVER & Trust Matrix", s7_text)
+        self.assertIn("Cross-Domain Generalization", s7_text)
 
         # Slide 7: Check protected shapes
         s7_names = [s.name for s in s7.shapes]
@@ -49,6 +55,37 @@ class TestPresentationMethodology(unittest.TestCase):
         self.assertIn("直接连接符 6", s7_names)
         self.assertIn("矩形 4", s7_names)
         self.assertIn("矩形 29", s7_names)
+
+        # ---------------------------------------------------------------------
+        # Slide 18 (Index 17): System Demonstration & Cloud Packaging
+        # ---------------------------------------------------------------------
+        s18 = prs.slides[17]
+        pictures_s18 = [s for s in s18.shapes if s.shape_type == 13]
+        self.assertGreater(len(pictures_s18), 0, "Slide 18 must contain Figure 14 picture")
+
+        pic_s18 = pictures_s18[0]
+        self.assertAlmostEqual(pic_s18.left.inches, 0.60, delta=0.05)
+        self.assertAlmostEqual(pic_s18.top.inches, 2.05, delta=0.05)
+        self.assertAlmostEqual(pic_s18.width.inches, 5.85, delta=0.05)
+        self.assertAlmostEqual(pic_s18.height.inches, 4.35, delta=0.05)
+
+        s18_text = " ".join(s.text_frame.text for s in s18.shapes if s.has_text_frame)
+        self.assertIn("Figure 14. Hugging Face Spaces Cloud Deployment Architecture", s18_text)
+        self.assertIn("311 / 311", s18_text)
+        self.assertIn("Automated Test Suite", s18_text)
+        self.assertIn("3 Formats", s18_text)
+        self.assertIn("Multi-Format Ingestion", s18_text)
+        self.assertIn("311 passing tests", s18_text)
+        self.assertNotIn("Zero Emoji", s18_text)
+        self.assertNotIn("zero emoji", s18_text.lower())
+
+        # Slide 18: Check protected shapes
+        s18_names = [s.name for s in s18.shapes]
+        self.assertIn("灯片编号占位符 10", s18_names)
+        self.assertIn("直接连接符 6", s18_names)
+        self.assertIn("矩形 4", s18_names)
+        self.assertIn("矩形 29", s18_names)
+
 
         # ---------------------------------------------------------------------
         # Slide 19 (Index 18): Conclusion — Contributions & Writing Progress

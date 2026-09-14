@@ -28,13 +28,17 @@ from pptx.enum.shapes import MSO_SHAPE
 # -----------------------------------------------------------------------------
 NAVY_PRIMARY = RGBColor(30, 58, 138)       # #1E3A8A - Deep Academic Navy Blue
 BLUE_ACCENT = RGBColor(37, 99, 235)        # #2563EB - Royal Blue Accent
+TEAL_ACCENT = RGBColor(13, 148, 136)       # #0D9488 - Topic 1 / FST Morphology
 AMBER_ACCENT = RGBColor(217, 119, 6)       # #D97706 - Amber Accent
 GREEN_ACCENT = RGBColor(22, 163, 74)       # #16A34A - Green Accent
+PURPLE_ACCENT = RGBColor(124, 58, 237)     # #7C3AED - System Engineering & Cloud
+SLATE_TITLE = RGBColor(15, 23, 42)         # #0F172A - Slide title & primary headers
 SLATE_BODY = RGBColor(51, 65, 85)          # #334155 - Standard body prose
 SLATE_MUTED = RGBColor(100, 116, 139)      # #64748B - Subtitles & captions
 WHITE = RGBColor(255, 255, 255)            # #FFFFFF - Crisp white
 
 CARD_BG_WHITE = RGBColor(255, 255, 255)
+CARD_BG_BLUE = RGBColor(239, 246, 255)     # #EFF6FF - Soft blue tinted card fill
 CARD_BG_GREEN = RGBColor(240, 253, 244)    # #F0FDF4 - Subtle mint
 BORDER_LIGHT = RGBColor(226, 232, 240)     # #E2E8F0 - Clean border
 
@@ -218,14 +222,66 @@ def add_callout_box(slide, left, top, width, height, title, items,
                 p.space_before = Pt(2.0)
 
 
-def update_slide_07(slide, fig_path):
+def add_card(slide, left, top, width, height, title, value_str, subtitle,
+             accent_color=BLUE_ACCENT, bg_color=CARD_BG_WHITE, border_color=BORDER_LIGHT):
+    """Adds a statistical callout card with an accent strip on the left."""
+    box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(left), Inches(top), Inches(width), Inches(height))
+    box.fill.solid()
+    box.fill.fore_color.rgb = bg_color
+    box.line.color.rgb = border_color
+    box.line.width = Pt(1)
+
+    strip = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(left), Inches(top), Inches(0.08), Inches(height))
+    strip.fill.solid()
+    strip.fill.fore_color.rgb = accent_color
+    strip.line.fill.background()
+
+    tb = slide.shapes.add_textbox(Inches(left + 0.14), Inches(top + 0.08), Inches(width - 0.20), Inches(height - 0.16))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+
+    p_val = tf.paragraphs[0]
+    p_val.text = value_str
+    p_val.font.name = FONT_TITLE
+    p_val.font.size = Pt(19)
+    p_val.font.bold = True
+    p_val.font.color.rgb = accent_color
+
+    p_tit = tf.add_paragraph()
+    p_tit.text = title
+    p_tit.font.name = FONT_TITLE
+    p_tit.font.size = Pt(10.5)
+    p_tit.font.bold = True
+    p_tit.font.color.rgb = SLATE_TITLE
+    p_tit.space_before = Pt(2)
+
+    if subtitle:
+        p_sub = tf.add_paragraph()
+        p_sub.text = subtitle
+        p_sub.font.name = FONT_BODY
+        p_sub.font.size = Pt(9.0)
+        p_sub.font.color.rgb = SLATE_MUTED
+        p_sub.space_before = Pt(2)
+
+
+def update_slide_07(slide, fig_path=None):
     """
     Updates Slide 7 (Index 6: Chapter 3 Methodology Anchor):
     - Updates slide header to Comprehensive Methodological Framework.
     - Cleans up legacy content shapes below top > 1.2 in (protecting tracker & slide num).
-    - Embeds Figure 15 across full width (left=0.60", top=1.85", width=12.133", height=4.85").
+    - Embeds Figure 3 on left (left=0.60", top=2.05", width=5.85", height=4.35").
     - Adds formal caption below figure (Figure 3. Overall Methodological Innovation Framework...).
+    - Adds two callout cards on the right (width=6.08", left=6.65"):
+      * Card 1: Three-Tier Methodological Innovations (top=2.05", height=2.25")
+      * Card 2: Integrated Empirical & Societal Breakthroughs (top=4.45", height=2.35")
     """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if fig_path is None:
+        fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
+        if not os.path.isfile(fig_path):
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_tripartite_framework.png")
+
     if not os.path.isfile(fig_path):
         raise FileNotFoundError(f"Framework figure image file not found: {fig_path}")
 
@@ -236,7 +292,7 @@ def update_slide_07(slide, fig_path):
         "A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification"
     )
 
-    # 2. Remove legacy shapes below top > Inches(1.2) while protecting nav/branding elements
+    # 2. Remove legacy shapes below top > Inches(1.20) while protecting nav/branding elements
     for shape in list(slide.shapes):
         if shape == header_tb:
             continue
@@ -247,16 +303,16 @@ def update_slide_07(slide, fig_path):
             continue
         remove_shape(shape)
 
-    # 3. Insert Figure 15 picture across full slide width
+    # 3. Insert Figure 3 picture on left
     left = Inches(0.60)
-    top = Inches(1.85)
-    width = Inches(12.133)
-    height = Inches(4.85)
+    top = Inches(2.05)
+    width = Inches(5.85)
+    height = Inches(4.35)
     slide.shapes.add_picture(fig_path, left, top, width, height)
 
     # 4. Add formal caption textbox below picture
-    caption_top = top + height + Inches(0.04)  # ~6.74 in
-    caption_height = Inches(0.32)
+    caption_top = Inches(6.44)
+    caption_height = Inches(0.30)
     caption_box = slide.shapes.add_textbox(left, caption_top, width, caption_height)
     tf = caption_box.text_frame
     tf.word_wrap = True
@@ -268,6 +324,114 @@ def update_slide_07(slide, fig_path):
     p.font.italic = True
     p.font.color.rgb = SLATE_MUTED
     p.alignment = PP_ALIGN.CENTER
+
+    # 5. Right column Callout Cards
+    add_callout_box(
+        slide, left=6.65, top=2.05, width=6.08, height=2.25,
+        title="Three-Tier Methodological Innovations",
+        items=[
+            "1. Sentence-Level Morpho-Gating: Fuses KazRoBERTa embeddings with an 83-rule FST morphological transducer via dynamic learned gating, solving OOD domain collapse.",
+            "2. Document Sliding Window & Top-K: First sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words.",
+            "3. Kazakh-FEVER & Trust Matrix: First evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via a 4-quadrant decision model."
+        ],
+        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE
+    )
+
+    add_callout_box(
+        slide, left=6.65, top=4.45, width=6.08, height=2.35,
+        title="Integrated Empirical & Societal Breakthroughs",
+        items=[
+            "- Cross-Domain Generalization: +42.18% ROC-AUC improvement on out-of-domain colloquial text over standard transformer baselines.",
+            "- Stealth Tamper Localization: 100% precision in identifying isolated synthetic paragraphs inserted into long human documents.",
+            "- Fact Verification Precision: 100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory."
+        ],
+        accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE
+    )
+
+
+def update_slide_18(slide, fig_path=None):
+    """
+    Updates Slide 18 (Index 17: System Demonstration & Cloud Packaging):
+    - Updates slide header to System Demonstration with 311 passing tests.
+    - Cleans up legacy content shapes below top > 1.2 in (protecting tracker & slide num).
+    - Embeds Figure 14 on left (left=0.60", top=2.05", width=5.85", height=4.35").
+    - Adds formal caption below figure.
+    - Adds 3 stat cards on top right:
+      * Card 1: Automated Test Suite (311 / 311)
+      * Card 2: Cold-Start Latency (< 1.2s)
+      * Card 3: Multi-Format Ingestion (3 Formats)
+    - Adds Hugging Face Spaces Cloud Package callout box on bottom right.
+    """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if fig_path is None:
+        fig_path = os.path.join(project_root, "presentation_figures", "fig14_cloud_deployment_pipeline.png")
+
+    if not os.path.isfile(fig_path):
+        raise FileNotFoundError(f"Figure 14 image file not found: {fig_path}")
+
+    # 1. Update header textbox
+    header_tb = update_slide_header(
+        slide,
+        "System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor",
+        "Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 311 passing tests"
+    )
+
+    # 2. Remove legacy shapes below top > Inches(1.20) while protecting nav/branding elements
+    for shape in list(slide.shapes):
+        if shape == header_tb:
+            continue
+        if shape.name in PROTECTED_SHAPE_NAMES:
+            continue
+        if shape.top < Inches(1.20):
+            continue
+        remove_shape(shape)
+
+    # 3. Insert Figure 14 picture on left
+    left = Inches(0.60)
+    top = Inches(2.05)
+    width = Inches(5.85)
+    height = Inches(4.35)
+    slide.shapes.add_picture(fig_path, left, top, width, height)
+
+    # 4. Add formal caption textbox below picture
+    caption_box = slide.shapes.add_textbox(left, Inches(6.44), width, Inches(0.30))
+    tf = caption_box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    p = tf.paragraphs[0]
+    p.text = "Figure 14. Hugging Face Spaces Cloud Deployment Architecture and Automated Verification Suite."
+    p.font.name = FONT_TITLE
+    p.font.size = Pt(8.5)
+    p.font.italic = True
+    p.font.color.rgb = SLATE_MUTED
+    p.alignment = PP_ALIGN.CENTER
+
+    # 5. Right top 3 stat cards
+    add_card(slide, left=6.65, top=2.05, width=1.92, height=1.85,
+             title="Automated Test Suite", value_str="311 / 311",
+             subtitle="Passing unit & integration tests with 0 regressions",
+             accent_color=GREEN_ACCENT, bg_color=CARD_BG_GREEN)
+    add_card(slide, left=8.72, top=2.05, width=1.92, height=1.85,
+             title="Cold-Start Latency", value_str="< 1.2s",
+             subtitle="Sub-second initialization with CPU/GPU dual paths",
+             accent_color=BLUE_ACCENT, bg_color=CARD_BG_WHITE)
+    add_card(slide, left=10.79, top=2.05, width=1.94, height=1.85,
+             title="Multi-Format Ingestion", value_str="3 Formats",
+             subtitle="Defensive parsing for .txt, .docx, .pdf with 10MB memory guards",
+             accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE)
+
+    # 6. Right bottom callout box
+    add_callout_box(
+        slide, left=6.65, top=4.05, width=6.08, height=2.75,
+        title="Hugging Face Spaces Cloud Package (hf_space/) Features",
+        items=[
+            "1. Standalone Self-Contained Bundle: Completely decoupled from heavy local weights; includes mock fallbacks and lightweight models for seamless cloud hosting.",
+            "2. Defensive File Ingestion Engine: Safely ingests .txt, .docx, and .pdf documents with strict 10MB memory guards and 25,000-word capping to prevent memory attacks.",
+            "3. Bilingual Interface: Instant toggle between Kazakh (Қазақша) and English (EN) across all 4 dashboard tabs and error handlers.",
+            "4. Git Version Control: Committed to main (commit de10db5) and mirrored for 1-click push to Hugging Face Spaces repository."
+        ],
+        accent_color=PURPLE_ACCENT, bg_color=CARD_BG_WHITE
+    )
 
 
 def update_slide_19(slide):
@@ -438,14 +602,16 @@ def update_slide_20(slide):
                     p.space_before = Pt(2.5)
 
 
-def update_presentation(ppt_path, fig_path=None):
-    """Main function to update Slides 7, 19, and 20 in the presentation."""
+def update_presentation(ppt_path, fig_path=None, fig14_path=None):
+    """Main function to update Slides 7, 18, 19, and 20 in the presentation."""
     if not os.path.isfile(ppt_path):
         raise FileNotFoundError(f"Presentation file not found: {ppt_path}")
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if fig_path is None:
-        fig_path = os.path.join(project_root, "presentation_figures", "fig15_methodological_innovations_framework.png")
+        fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
+        if not os.path.isfile(fig_path):
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_tripartite_framework.png")
 
     if not os.path.isfile(fig_path):
         raise FileNotFoundError(f"Framework figure not found at: {fig_path}")
@@ -461,6 +627,11 @@ def update_presentation(ppt_path, fig_path=None):
     print("Updating Slide 7 (Index 6: Methodological Framework)...")
     s7 = prs.slides[6]
     update_slide_07(s7, fig_path)
+
+    # Slide 18 (Index 17: Deployment Architecture & Test Rigor)
+    print("Updating Slide 18 (Index 17: Deployment Architecture & Test Rigor)...")
+    s18 = prs.slides[17]
+    update_slide_18(s18, fig14_path)
 
     # Slide 19 (Index 18: Chapter 6 Conclusion Anchor)
     print("Updating Slide 19 (Index 18: Contributions & Manuscript Status)...")
@@ -484,17 +655,26 @@ def update_presentation(ppt_path, fig_path=None):
     except Exception as e:
         print(f"Warning: could not mirror presentation to {mirror_path}: {e}")
 
+    # Mirror to Desktop Kazakh_AI_Detection_Thesis_Progress_Prof_Guo.pptx if applicable
+    desktop_mirror_path = os.path.join(os.path.expanduser("~"), "Desktop", "Kazakh_AI_Detection_Thesis_Progress_Prof_Guo.pptx")
+    try:
+        shutil.copyfile(ppt_path, desktop_mirror_path)
+        print(f"Mirrored presentation to Desktop: {desktop_mirror_path}")
+    except Exception as e:
+        print(f"Warning: could not mirror presentation to {desktop_mirror_path}: {e}")
+
     print("Presentation update completed successfully.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Update Slides 7, 19, and 20 of AnekeshD_Progress.pptx.")
+    parser = argparse.ArgumentParser(description="Update Slides 7, 18, 19, and 20 of AnekeshD_Progress.pptx.")
     default_ppt = os.path.join(os.path.expanduser("~"), "Desktop", "AnekeshD_Progress.pptx")
     parser.add_argument("--ppt-path", default=default_ppt, help="Path to AnekeshD_Progress.pptx")
-    parser.add_argument("--fig-path", "--fig15-path", dest="fig_path", default=None, help="Path to framework figure image file")
+    parser.add_argument("--fig-path", "--fig15-path", "--fig03-path", dest="fig_path", default=None, help="Path to framework figure image file")
+    parser.add_argument("--fig14-path", default=None, help="Path to cloud deployment figure image file")
     args = parser.parse_args()
 
-    update_presentation(args.ppt_path, args.fig_path)
+    update_presentation(args.ppt_path, args.fig_path, args.fig14_path)
 
 
 if __name__ == "__main__":

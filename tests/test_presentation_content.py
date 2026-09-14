@@ -91,6 +91,40 @@ class TestPresentationContent(unittest.TestCase):
                             f"Slide {idx+1} contains decorative emoji: '{ch}' (U+{code:04X})"
                         )
 
+    def test_slide_07_split_layout_and_cards(self):
+        s7 = self.prs.slides[6]
+        pictures = [s for s in s7.shapes if s.shape_type == 13]
+        self.assertGreater(len(pictures), 0, "Slide 7 must contain Figure 3 picture")
+        pic = pictures[0]
+        self.assertAlmostEqual(pic.left.inches, 0.60, delta=0.05)
+        self.assertAlmostEqual(pic.top.inches, 2.05, delta=0.05)
+        self.assertAlmostEqual(pic.width.inches, 5.85, delta=0.05)
+        self.assertAlmostEqual(pic.height.inches, 4.35, delta=0.05)
+
+        s7_text = " ".join(s.text_frame.text for s in s7.shapes if s.has_text_frame)
+        self.assertIn("Three-Tier Methodological Innovations", s7_text)
+        self.assertIn("Integrated Empirical & Societal Breakthroughs", s7_text)
+        self.assertIn("Sentence-Level Morpho-Gating", s7_text)
+        self.assertIn("Document Sliding Window & Top-K", s7_text)
+        self.assertIn("Kazakh-FEVER & Trust Matrix", s7_text)
+        self.assertIn("Cross-Domain Generalization", s7_text)
+        self.assertIn("Figure 3", s7_text)
+
+    def test_slide_18_cards_and_zero_emoji_absence(self):
+        s18 = self.prs.slides[17]
+        pictures = [s for s in s18.shapes if s.shape_type == 13]
+        self.assertGreater(len(pictures), 0, "Slide 18 must contain Figure 14 picture")
+
+        s18_text = " ".join(s.text_frame.text for s in s18.shapes if s.has_text_frame)
+        self.assertIn("311 / 311", s18_text)
+        self.assertIn("Automated Test Suite", s18_text)
+        self.assertIn("3 Formats", s18_text)
+        self.assertIn("Multi-Format Ingestion", s18_text)
+        self.assertIn("311 passing tests", s18_text)
+        self.assertNotIn("Zero Emoji", s18_text)
+        self.assertNotIn("zero emoji", s18_text.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
+
