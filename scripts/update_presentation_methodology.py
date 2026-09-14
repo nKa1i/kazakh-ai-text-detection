@@ -349,6 +349,90 @@ def update_slide_07(slide, fig_path=None):
     )
 
 
+def update_slide_08(slide, fig_path=None):
+    """
+    Updates Slide 8 (Index 7: Topic 1 Architecture):
+    - Replaces Figure 4 picture on left with squarish fig04_morpho_gate_arch.png.
+    - Preserves right-column mathematical & engineering callout cards and navigation shapes.
+    """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if fig_path is None:
+        fig_path = os.path.join(project_root, "presentation_figures", "fig04_morpho_gate_arch.png")
+    if not os.path.isfile(fig_path):
+        raise FileNotFoundError(f"Figure 4 not found at: {fig_path}")
+
+    # Remove any existing picture or caption on the left column (left < 6.5 in, top > 1.8 in)
+    for shape in list(slide.shapes):
+        if shape.name in PROTECTED_SHAPE_NAMES or shape.top < Inches(1.20):
+            continue
+        if shape.left < Inches(6.50) and shape.top > Inches(1.80):
+            remove_shape(shape)
+
+    # Insert squarish Figure 4
+    left = Inches(0.60)
+    top = Inches(2.05)
+    width = Inches(5.85)
+    height = Inches(4.35)
+    slide.shapes.add_picture(fig_path, left, top, width, height)
+
+    # Add formal caption below
+    caption_top = Inches(6.44)
+    caption_height = Inches(0.30)
+    caption_box = slide.shapes.add_textbox(left, caption_top, width, caption_height)
+    tf = caption_box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    p = tf.paragraphs[0]
+    p.text = "Figure 4. Dual-Stream Morphological Gated Cross-Attention Architecture with SupCon Optimization."
+    p.font.name = FONT_TITLE
+    p.font.size = Pt(8.5)
+    p.font.italic = True
+    p.font.color.rgb = SLATE_MUTED
+    p.alignment = PP_ALIGN.CENTER
+
+
+def update_slide_17(slide, fig_path=None):
+    """
+    Updates Slide 17 (Index 16: Topic 3 Gradio System Demo):
+    - Replaces Figure 13 picture on left with squarish fig13_gradio_dashboard_panels.png.
+    - Preserves right-column 4 tab cards and navigation shapes.
+    """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if fig_path is None:
+        fig_path = os.path.join(project_root, "presentation_figures", "fig13_gradio_dashboard_panels.png")
+    if not os.path.isfile(fig_path):
+        raise FileNotFoundError(f"Figure 13 not found at: {fig_path}")
+
+    # Remove any existing picture or caption on the left column (left < 6.5 in, top > 1.8 in)
+    for shape in list(slide.shapes):
+        if shape.name in PROTECTED_SHAPE_NAMES or shape.top < Inches(1.20):
+            continue
+        if shape.left < Inches(6.50) and shape.top > Inches(1.80):
+            remove_shape(shape)
+
+    # Insert squarish Figure 13
+    left = Inches(0.60)
+    top = Inches(2.05)
+    width = Inches(5.85)
+    height = Inches(4.35)
+    slide.shapes.add_picture(fig_path, left, top, width, height)
+
+    # Add formal caption below
+    caption_top = Inches(6.44)
+    caption_height = Inches(0.30)
+    caption_box = slide.shapes.add_textbox(left, caption_top, width, caption_height)
+    tf = caption_box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
+    p = tf.paragraphs[0]
+    p.text = "Figure 13. Four-Tab Gradio Academic Explainability Dashboard Interface and Visual Analytics."
+    p.font.name = FONT_TITLE
+    p.font.size = Pt(8.5)
+    p.font.italic = True
+    p.font.color.rgb = SLATE_MUTED
+    p.alignment = PP_ALIGN.CENTER
+
+
 def update_slide_18(slide, fig_path=None):
     """
     Updates Slide 18 (Index 17: System Demonstration & Cloud Packaging):
@@ -627,6 +711,16 @@ def update_presentation(ppt_path, fig_path=None, fig14_path=None):
     print("Updating Slide 7 (Index 6: Methodological Framework)...")
     s7 = prs.slides[6]
     update_slide_07(s7, fig_path)
+
+    # Slide 8 (Index 7: Topic 1 Architecture Figure 4)
+    print("Updating Slide 8 (Index 7: Dual-Stream Architecture Figure 4)...")
+    s8 = prs.slides[7]
+    update_slide_08(s8)
+
+    # Slide 17 (Index 16: Gradio Dashboard Demo Figure 13)
+    print("Updating Slide 17 (Index 16: Gradio UI Figure 13)...")
+    s17 = prs.slides[16]
+    update_slide_17(s17)
 
     # Slide 18 (Index 17: Deployment Architecture & Test Rigor)
     print("Updating Slide 18 (Index 17: Deployment Architecture & Test Rigor)...")
