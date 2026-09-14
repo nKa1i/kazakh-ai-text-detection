@@ -125,17 +125,29 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 - **Slide Title:** Research Content Overview: Comprehensive Methodological Framework
 - **Subtitle:** A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Figure 3 (Comprehensive Methodological Innovations Framework): Stage 1 Inputs & Knowledge -> Innovation 1: Sentence Gating -> Innovation 2: Document Top-K Engine -> Innovation 3: Fact-Checking Trust Matrix -> Integrated Research Contributions.
+- **Key Visual:** Split visual architecture:
+  - Left Column: Figure 3 (Squarish Tripartite Research Framework: End-to-End Pipeline) organized into 4 sequential tiers:
+    - Tier 1: Linguistic Inputs & Knowledge Corpora (Raw Kazakh Corpora, 83-Rule FST Morpho-Dict, 36-Article Kazakh-FEVER)
+    - Tier 2: Sentence-Level Dynamic Gating & Representation (KazRoBERTa Semantic in R^768, Dynamic Gating Unit g = sigma(W_g[h_sem; W_proj h_morph]), FST Affix BiLSTM in R^256, Dual Loss: BCE + SupCon)
+    - Tier 3: Document Sliding Window & Worst-Case Top-K Pooling (10 Abbreviation Regex Guards e.g. 'т.б.', 'ж.б.', 'ғ.', 256 tokens context length with 1-sentence fixed overlap, Worst-Case Top-K K = max(1, floor(0.2*N)))
+    - Tier 4: Fact Verification & Four-Quadrant Trust Matrix (Claim Extraction via BM25 evidential retrieval Top-5 candidate passages, 3-Way NLI Cross-Encoder, Four-Quadrant Matrix for Joint Decision P_AI vs R_fact)
+    - Caption: Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification.
+  - Right Column: Two structured academic takeaway cards:
+    - Top Card (Three-Tier Methodological Innovations): 1. Sentence-Level Morpho-Gating (fuses KazRoBERTa with 83-rule FST transducer, solving OOD domain collapse); 2. Document Sliding Window & Top-K (first sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words); 3. Kazakh-FEVER & Trust Matrix (first evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via 4-quadrant decision model).
+    - Bottom Card (Integrated Empirical & Societal Breakthroughs): Cross-Domain Generalization (+42.18% ROC-AUC improvement over standard transformer baselines); Stealth Tamper Localization (100% precision in identifying isolated synthetic paragraphs inserted into long human documents); Fact Verification Precision (100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory).
 
 #### Spoken Script (English)
-> Entering Chapter 3 on Slide 7, I present our core methodology: Figure 3, which illustrates our Comprehensive Methodological Innovations Framework.
-> In response to Professor Guo's insightful guidance, this diagram establishes the end-to-end scientific pipeline connecting low-level morphological representations, document-level discourse chunking, and high-level epistemic fact verification.
-> Let us trace the technical workflow across its three interlocking stages:
-> Starting on the left with Stage 1 (Input and Knowledge Base): The system ingests raw multi-domain Kazakh text up to 25,000 words. The text is parsed by our 83-rule FST analyzer covering 128 morphological tags to extract root derivations and inflectional suffix chains, while simultaneously interfacing with our 36-article reference knowledge base containing 1,248 annotated gold sentences.
-> Next, Innovation 1 (Sentence-Level Morpho-Gating): To overcome catastrophic out-of-domain degradation, we construct a dual-stream feature representation: 768-dimensional KazRoBERTa semantic embeddings h_sem, and 256-dimensional FST BiLSTM morphological embeddings h_morph projected via W_proj. A learned dimension-wise gating vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g) dynamically balances semantics and morphology: h_fused = g * h_sem + (1 - g) * (W_proj h_morph). Optimized with Supervised Contrastive Loss, this innovation delivers a 99.80% cross-domain ROC-AUC.
-> Progressing to Innovation 2 (Document-Level Chunking and Adaptive Top-K Engine): To resolve the 512-token truncation barrier and counter localized synthetic injections, we deploy 10 Kazakh abbreviation regex guards—protecting terms like "т.б.", "мыс.", "ғ.", and "жж."—alongside a 256-token sliding window with 1-sentence overlap. Document risk is aggregated via our adaptive worst-case Top-K formula K = max(1, min(k_cfg, ceil(0.25 * M))), bounding GPU VRAM under 1.4 GB and achieving 100% localization precision in 25,000-word hybrid documents.
-> Finally, Innovation 3 (Kazakh-FEVER Four-Quadrant Trust Matrix): To decouple synthetic style from factual truth, factual claims extracted from anomalous spans are queried against our knowledge base via BM25 retrieval (91.67% Evidence Recall@3), evaluated by our 3-way NLI cross-encoder, and mapped into our Trust Matrix via dual-risk formula Risk_Trust = alpha * P_AI + (1 - alpha) * P_Refute. This achieves 100% NLI Macro-F1 across all quadrants.
-> In summary, these three innovations form a seamless, mathematically principled hierarchy: morphology prevents domain collapse, chunking defeats length truncation, and the trust matrix ensures factual truth. In the following three slides—Slides 8, 9, and 10—I will walk through the detailed mathematical formulation and experimental verification of each individual innovation.
+> Entering Chapter 3 on Slide 7, I present our comprehensive methodological framework, structured as an integrated split layout.
+> On the left, Figure 3 organizes our end-to-end architecture into four sequential tiers; on the right, two structured academic cards synthesize our three-tier methodological innovations and their empirical breakthroughs.
+> Walking through the 4-tier pipeline on the left:
+> Starting with Tier 1 (Linguistic Inputs & Knowledge Corpora): The system ingests raw multi-domain Kazakh text up to 25,000 words. Input tokens are parsed through our 83-rule FST morphological dictionary covering 128 morphological tags to extract root derivations and phonotactic suffix chains, while simultaneously connecting with our 36-article Kazakh-FEVER reference knowledge base containing 1,248 annotated gold sentences.
+> Moving to Tier 2 (Sentence-Level Dynamic Gating & Representation): To overcome catastrophic out-of-domain collapse, we fuse 768-dimensional KazRoBERTa semantic embeddings h_sem with 256-dimensional FST BiLSTM morphological embeddings h_morph via a learned dynamic gating vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g), optimized under joint Binary Cross-Entropy and Supervised Contrastive Loss.
+> Moving to Tier 3 (Document Sliding Window & Worst-Case Top-K Pooling): To resolve the 512-token truncation barrier and detect localized stealth injections, we deploy 10 Kazakh abbreviation regex guards—protecting terms like "т.б.", "ж.б.", "ғ.", and "жж."—alongside a 256-token sliding window with 1-sentence overlap and adaptive worst-case Top-K pooling K = max(1, floor(0.2 * N)), strictly bounding GPU VRAM under 1.4 GB.
+> Finally, in Tier 4 (Fact Verification & Four-Quadrant Trust Matrix): Factual claims from anomalous spans are queried against our knowledge base via BM25 retrieval across Top-5 candidate passages, evaluated by our 3-way NLI cross-encoder, and mapped into our Four-Quadrant Trust Matrix to decouple AI drafting style from factual truthfulness.
+> Looking now to the right side of the slide:
+> The top card highlights our Three-Tier Methodological Innovations: sentence-level morpho-gating to halt domain collapse, document-level abbreviation-guarded sliding window chunking to defeat length truncation, and the Kazakh-FEVER trust matrix to decouple style from veracity.
+> The bottom card highlights our Integrated Empirical and Societal Breakthroughs: delivering a +42.18% ROC-AUC leap on out-of-domain colloquial text, 100% precision in pinpointing isolated synthetic paragraphs in 25,000-word documents, and 100.0% Macro-F1 on factual verification under bounded sub-1.4 GB memory.
+> In the next three slides—Slides 8, 9, and 10—I will walk through the formal mathematical equations and architectural mechanics of each innovation in detail.
 
 ---
 
@@ -318,15 +330,35 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 - **Slide Title:** System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor
 - **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 311 passing tests
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 14 (CI/CD and deployment architecture); 3 Stat Cards (311 Automated Passing Tests, < 1.2s Cold-Start Latency, 100% Zero Decorative Emoji Design); Hugging Face Spaces feature box.
+- **Key Visual:** Split visual architecture:
+  - Left Column: Figure 14 (Cloud Deployment & Production CI/CD Pipeline Architecture) structured into 4 sequential stages:
+    - Stage 1: Multi-Format Ingestion Engine (Safe stream parsing for `.txt`, `.docx`, `.pdf`; 10MB memory protection upload guards; 25,000-word streaming buffer cap; Strict Unicode & UTF-8 normalization; Static AST linting & syntax verification).
+    - Stage 2: Automated Test Suite Rigor (311 / 311 unit & regression tests passing; 83-Rule FST verbal parser validation; Sliding window chunking & Top-K tests; 3-way NLI fact verification test suite; 100% CI pass rate in < 15 seconds).
+    - Stage 3: Containerized Serving Engine (Hugging Face Spaces Docker container; Python 3.12 modern lightweight runtime; Distilled weights with no external DB needed; Sub-1.2s cold-start initialization; Bounded VRAM footprint < 1.4 GB).
+    - Stage 4: Interactive Production Serving (Live Gradio 4.x web UI platform; Sub-85ms single-sentence inference; 25,000-word document processing engine; Real-time Four-Quadrant report card; Committee defense & demonstration ready).
+    - Caption: Figure 14. Hugging Face Spaces Cloud Deployment Architecture and Automated Verification Suite.
+  - Right Column:
+    - Top Metric Cards:
+      1. 311 / 311 Automated Test Suite (Passing unit & integration tests with 0 regressions).
+      2. < 1.2s Cold-Start Latency (Sub-second initialization with CPU/GPU dual paths).
+      3. 3 Formats Multi-Format Ingestion (Defensive parsing for `.txt`, `.docx`, `.pdf` with 10MB memory guards).
+    - Bottom Feature Box: Hugging Face Spaces Cloud Package (`hf_space/`) Features:
+      1. Standalone Self-Contained Bundle: Completely decoupled from heavy local weights; includes mock fallbacks and lightweight models for seamless cloud hosting.
+      2. Defensive File Ingestion Engine: Safely ingests `.txt`, `.docx`, and `.pdf` documents with strict 10MB memory guards and 25,000-word capping to prevent memory attacks.
+      3. Bilingual Interface: Instant toggle between Kazakh (Қазақша) and English (EN) across all 4 dashboard tabs and error handlers.
+      4. Git Version Control: Committed to main (commit de10db5) and mirrored for 1-click push to Hugging Face Spaces repository.
 
 #### Spoken Script (English)
-> Slide 18 demonstrates our software engineering rigor and cloud deployment architecture.
-> We engineered a standalone deployment bundle in `hf_space/` with four production guarantees:
-> 1. Instant Cloud Launch: Decoupled from heavy local checkpoint dependencies, the bundle uses an optimized offline heuristic and FST engine, achieving a cold start latency under 1.2 seconds on standard CPU hardware.
-> 2. Multi-Format Ingestion: The system cleanly parses `.txt`, `.docx`, and `.pdf` uploads, protected by a 10 MB file size limit and a 25,000-word soft cap to prevent denial-of-service memory exhaustion.
-> 3. Dynamic Bilingual Interface: Users can toggle seamlessly between Kazakh and English with instant UI re-rendering.
-> 4. Complete Test Verification: Our codebase is backed by 311 automated unit, integration, and regression tests—all passing with zero errors. Furthermore, the UI strictly adheres to professional typography with zero decorative emojis, conforming to institutional publication standards.
+> Slide 18 demonstrates our software engineering rigor and production deployment pipeline.
+> As visualized on the left in Figure 14, our cloud deployment and CI/CD architecture operates through four disciplined production stages:
+> First, Stage 1 is our Multi-Format Ingestion Engine: In authentic university integrity audits and editorial workflows, users submit materials across diverse formats. We engineered defensive stream parsers for `.txt`, `.docx`, and `.pdf` documents, fortified with 10MB upload memory protection guards and a 25,000-word streaming buffer cap. This guarantees that malformed inputs, decompression bombs, or unbounded payloads cannot trigger memory exhaustion or denial-of-service vulnerabilities.
+> Second, Stage 2 is our Automated Test Suite Rigor: Prior to any release, our CI pipeline executes 311 automated unit, integration, and regression tests. These tests thoroughly validate our 83-rule FST morphological parser, abbreviation-guarded sliding window chunker, and 3-way NLI fact verification pipeline, running to completion in under 15 seconds with a 100% pass rate.
+> Third, Stage 3 is our Containerized Serving Engine: Packaged as a self-contained Docker container for Hugging Face Spaces under Python 3.12, the runtime uses distilled weights and embedded offline heuristics without external database dependencies, ensuring sub-1.2 second cold-start initialization and bounding GPU memory under 1.4 GB.
+> Fourth, Stage 4 is our Interactive Production Serving: The platform runs a reactive Gradio 4.x web UI, delivering sub-85ms inference on single sentences, full 25,000-word document processing, and live Four-Quadrant trust report cards.
+> Turning to the right side of the slide:
+> The three top metric cards reflect this production readiness: 311 out of 311 tests passing with zero regressions, sub-1.2 second cold start, and native support for all 3 standard document formats.
+> Below, our Hugging Face Spaces cloud bundle in `hf_space/` is fully standalone, provides instant bilingual toggling between Kazakh and English across all tabs, and is tracked under Git version control for one-click deployment.
+> With our models, pipeline, and interactive platform rigorously validated, let us turn to Chapter 6 to synthesize our thesis contributions and review our progress.
 
 ---
 
