@@ -270,17 +270,18 @@ def update_slide_07(slide, fig_path=None):
     Updates Slide 7 (Index 6: Chapter 3 Methodology Anchor):
     - Updates slide header to Comprehensive Methodological Framework.
     - Cleans up legacy content shapes below top > 1.2 in (protecting tracker & slide num).
-    - Embeds Figure 3 on left (left=0.60", top=2.05", width=5.85", height=4.35").
-    - Adds formal caption below figure (Figure 3. Overall Methodological Innovation Framework...).
-    - Adds two callout cards on the right (width=6.08", left=6.65"):
-      * Card 1: Three-Tier Methodological Innovations (top=2.05", height=2.25")
-      * Card 2: Integrated Empirical & Societal Breakthroughs (top=4.45", height=2.35")
+    - Embeds Figure 3 (3-column Methodological Innovation Framework) across full width:
+      left = Inches(0.60), top = Inches(1.85), width = Inches(12.133), height = Inches(4.85).
+    - Adds formal caption below figure:
+      "Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification."
     """
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if fig_path is None:
-        fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
+        fig_path = os.path.join(project_root, "presentation_figures", "fig15_methodological_innovations_framework.png")
         if not os.path.isfile(fig_path):
-            fig_path = os.path.join(project_root, "presentation_figures", "fig03_tripartite_framework.png")
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_methodological_innovation_framework.png")
+        if not os.path.isfile(fig_path):
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
 
     if not os.path.isfile(fig_path):
         raise FileNotFoundError(f"Framework figure image file not found: {fig_path}")
@@ -289,7 +290,7 @@ def update_slide_07(slide, fig_path=None):
     header_tb = update_slide_header(
         slide,
         "Research Content Overview: Comprehensive Methodological Framework",
-        "A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification"
+        "A unified 3-column architecture spanning edge ingestion, dual-stream feature fusion with ablated baselines, and 3-tier portal verification"
     )
 
     # 2. Remove legacy shapes below top > Inches(1.20) while protecting nav/branding elements
@@ -303,15 +304,15 @@ def update_slide_07(slide, fig_path=None):
             continue
         remove_shape(shape)
 
-    # 3. Insert Figure 3 picture on left
+    # 3. Insert Figure 3 picture full width
     left = Inches(0.60)
-    top = Inches(2.05)
-    width = Inches(5.85)
-    height = Inches(4.35)
+    top = Inches(1.85)
+    width = Inches(12.133)
+    height = Inches(4.85)
     slide.shapes.add_picture(fig_path, left, top, width, height)
 
     # 4. Add formal caption textbox below picture
-    caption_top = Inches(6.44)
+    caption_top = Inches(6.75)
     caption_height = Inches(0.30)
     caption_box = slide.shapes.add_textbox(left, caption_top, width, caption_height)
     tf = caption_box.text_frame
@@ -324,29 +325,6 @@ def update_slide_07(slide, fig_path=None):
     p.font.italic = True
     p.font.color.rgb = SLATE_MUTED
     p.alignment = PP_ALIGN.CENTER
-
-    # 5. Right column Callout Cards
-    add_callout_box(
-        slide, left=6.65, top=2.05, width=6.08, height=2.25,
-        title="Three-Tier Methodological Innovations",
-        items=[
-            "1. Sentence-Level Morpho-Gating: Fuses KazRoBERTa embeddings with an 83-rule FST morphological transducer via dynamic learned gating, solving OOD domain collapse.",
-            "2. Document Sliding Window & Top-K: First sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words.",
-            "3. Kazakh-FEVER & Trust Matrix: First evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via a 4-quadrant decision model."
-        ],
-        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE
-    )
-
-    add_callout_box(
-        slide, left=6.65, top=4.45, width=6.08, height=2.35,
-        title="Integrated Empirical & Societal Breakthroughs",
-        items=[
-            "- Cross-Domain Generalization: +42.18% ROC-AUC improvement on out-of-domain colloquial text over standard transformer baselines.",
-            "- Stealth Tamper Localization: 100% precision in identifying isolated synthetic paragraphs inserted into long human documents.",
-            "- Fact Verification Precision: 100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory."
-        ],
-        accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE
-    )
 
 
 def update_slide_08(slide, fig_path=None):
@@ -693,9 +671,11 @@ def update_presentation(ppt_path, fig_path=None, fig14_path=None):
 
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if fig_path is None:
-        fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
+        fig_path = os.path.join(project_root, "presentation_figures", "fig15_methodological_innovations_framework.png")
         if not os.path.isfile(fig_path):
-            fig_path = os.path.join(project_root, "presentation_figures", "fig03_tripartite_framework.png")
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_methodological_innovation_framework.png")
+        if not os.path.isfile(fig_path):
+            fig_path = os.path.join(project_root, "presentation_figures", "fig03_end_to_end_pipeline.png")
 
     if not os.path.isfile(fig_path):
         raise FileNotFoundError(f"Framework figure not found at: {fig_path}")

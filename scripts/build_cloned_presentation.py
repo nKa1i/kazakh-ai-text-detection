@@ -588,34 +588,14 @@ def populate_slide_07(slide):
     add_slide_header(
         slide,
         "Research Content Overview: Comprehensive Methodological Framework",
-        "A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification"
+        "A unified 3-column architecture spanning edge ingestion, dual-stream feature fusion with ablated baselines, and 3-tier portal verification"
     )
     add_figure_with_caption(
-        slide, "fig03_end_to_end_pipeline.png",
-        left=0.60, top=2.05, width=5.85, height=4.35,
+        slide, "fig15_methodological_innovations_framework.png",
+        left=0.60, top=1.85, width=12.133, height=4.85,
         caption_text="Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification."
     )
-    # Right Column: Two Callout Cards
-    add_callout_box(
-        slide, left=6.65, top=2.05, width=6.08, height=2.25,
-        title="Three-Tier Methodological Innovations",
-        points=[
-            "1. Sentence-Level Morpho-Gating: Fuses KazRoBERTa embeddings with an 83-rule FST morphological transducer via dynamic learned gating, solving OOD domain collapse.",
-            "2. Document Sliding Window & Top-K: First sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words.",
-            "3. Kazakh-FEVER & Trust Matrix: First evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via a 4-quadrant decision model."
-        ],
-        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE
-    )
-    add_callout_box(
-        slide, left=6.65, top=4.45, width=6.08, height=2.35,
-        title="Integrated Empirical & Societal Breakthroughs",
-        points=[
-            "- Cross-Domain Generalization: +42.18% ROC-AUC improvement on out-of-domain colloquial text over standard transformer baselines.",
-            "- Stealth Tamper Localization: 100% precision in identifying isolated synthetic paragraphs inserted into long human documents.",
-            "- Fact Verification Precision: 100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory."
-        ],
-        accent_color=TEAL_ACCENT, bg_color=CARD_BG_WHITE
-    )
+
 
 
 

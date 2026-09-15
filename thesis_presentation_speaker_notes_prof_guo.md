@@ -123,31 +123,31 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ### Slide 7: Research Content Overview — Comprehensive Methodological Framework
 - **Slide Title:** Research Content Overview: Comprehensive Methodological Framework
-- **Subtitle:** A unified hierarchical framework spanning sentence-level morpho-gating, document-level chunk aggregation, and evidence-grounded trust verification
+- **Subtitle:** A unified 3-column architecture spanning edge ingestion, dual-stream feature fusion with ablated baselines, and 3-tier portal verification
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Split visual architecture:
-  - Left Column: Figure 3 (Squarish Tripartite Research Framework: End-to-End Pipeline) organized into 4 sequential tiers:
-    - Tier 1: Linguistic Inputs & Knowledge Corpora (Raw Kazakh Corpora, 83-Rule FST Morpho-Dict, 36-Article Kazakh-FEVER)
-    - Tier 2: Sentence-Level Dynamic Gating & Representation (KazRoBERTa Semantic in R^768, Dynamic Gating Unit g = sigma(W_g[h_sem; W_proj h_morph]), FST Affix BiLSTM in R^256, Dual Loss: BCE + SupCon)
-    - Tier 3: Document Sliding Window & Worst-Case Top-K Pooling (10 Abbreviation Regex Guards e.g. 'т.б.', 'ж.б.', 'ғ.', 256 tokens context length with 1-sentence fixed overlap, Worst-Case Top-K K = max(1, floor(0.2*N)))
-    - Tier 4: Fact Verification & Four-Quadrant Trust Matrix (Claim Extraction via BM25 evidential retrieval Top-5 candidate passages, 3-Way NLI Cross-Encoder, Four-Quadrant Matrix for Joint Decision P_AI vs R_fact)
-    - Caption: Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification.
-  - Right Column: Two structured academic takeaway cards:
-    - Top Card (Three-Tier Methodological Innovations): 1. Sentence-Level Morpho-Gating (fuses KazRoBERTa with 83-rule FST transducer, solving OOD domain collapse); 2. Document Sliding Window & Top-K (first sentence-preserving chunker with 10 Kazakh abbreviation guards and dynamic worst-chunk Top-K aggregation up to 25k words); 3. Kazakh-FEVER & Trust Matrix (first evidence-grounded fact verification corpus for Kazakh, decoupling origin detection from factual veracity via 4-quadrant decision model).
-    - Bottom Card (Integrated Empirical & Societal Breakthroughs): Cross-Domain Generalization (+42.18% ROC-AUC improvement over standard transformer baselines); Stealth Tamper Localization (100% precision in identifying isolated synthetic paragraphs inserted into long human documents); Fact Verification Precision (100.0% Macro-F1 across 36 verified encyclopedic topics with sub-1.4 GB bounded memory).
+- **Key Visual:** Figure 3 (Overall Methodological Innovation Framework) organized into 3 publication-grade architectural columns:
+  - Column 1 (Edge & Ingestion Subsystem): Input Text & Segmentation node (.txt, .docx, .pdf multi-format ingestion, 10 abbreviation regex guards, L=256 token windowing with 1-sentence overlap); 83-Rule FST parsing node producing morpheme sequences; Client ingestion endpoints (Web and API clients) with in-memory guards bounded under 1.4 GB VRAM; Edge serving device with numbered badge 1.
+  - Column 2 (Core Detection & Verification Engine):
+    - Left Sub-Column (Processing Modules): Contextual Semantic stream (KazRoBERTa 12-layer backbone yielding h_sem in R^768); Morphological Inductive stream (83-rule FST transducer with BiLSTM morpheme embeddings projected via W_proj into R^768); Ablated Baselines node (perplexity and standard subword BPE exhibiting severe root fragmentation and -42.18% OOD collapse, explicitly excluded).
+    - Right Sub-Column (Core Processing & Classifier): Feature Fusion and Dynamic Gating Unit computing gate g = sigma(W_g [h_sem; W_proj h_morph] + b_g) and fused representation h_fused; Transformer Encoder & Top-K aggregation engine (4 layers, 4 heads, d_model=64) with dynamic worst-case Top-K pooling K = max(1, floor(0.25 * N)), dual-loss optimization (BCE + SupCon in R^128 hypersphere), global pooling yielding y_hat in [0, 1], empirical metrics (ROC-AUC = 0.9980, Kaspi OOD gain = +42.18%, Tamper precision = 100%, latency < 85ms), and numbered badge 2.
+  - Column 3 (Portals & Deployment): Response Delivery via Gradio 4-tab dashboard and Telegram bot; 3-tier quantitative Threshold Alert Levels:
+    - CRITICAL (y_hat >= 0.70): Synthetic / Malicious text, flag for immediate inspection.
+    - WARNING (0.40 <= y_hat < 0.70): Ambiguous / Hybrid text, manual editorial review required.
+    - NORMAL (y_hat < 0.40): Authentic human text, certified publication safe.
+  - Caption: Figure 3. Overall Methodological Innovation Framework for Kazakh AI-Generated Text Detection and Factual Verification.
 
 #### Spoken Script (English)
-> Entering Chapter 3 on Slide 7, I present our comprehensive methodological framework, structured as an integrated split layout.
-> On the left, Figure 3 organizes our end-to-end architecture into four sequential tiers; on the right, two structured academic cards synthesize our three-tier methodological innovations and their empirical breakthroughs.
-> Walking through the 4-tier pipeline on the left:
-> Starting with Tier 1 (Linguistic Inputs & Knowledge Corpora): The system ingests raw multi-domain Kazakh text up to 25,000 words. Input tokens are parsed through our 83-rule FST morphological dictionary covering 128 morphological tags to extract root derivations and phonotactic suffix chains, while simultaneously connecting with our 36-article Kazakh-FEVER reference knowledge base containing 1,248 annotated gold sentences.
-> Moving to Tier 2 (Sentence-Level Dynamic Gating & Representation): To overcome catastrophic out-of-domain collapse, we fuse 768-dimensional KazRoBERTa semantic embeddings h_sem with 256-dimensional FST BiLSTM morphological embeddings h_morph via a learned dynamic gating vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g), optimized under joint Binary Cross-Entropy and Supervised Contrastive Loss.
-> Moving to Tier 3 (Document Sliding Window & Worst-Case Top-K Pooling): To resolve the 512-token truncation barrier and detect localized stealth injections, we deploy 10 Kazakh abbreviation regex guards—protecting terms like "т.б.", "ж.б.", "ғ.", and "жж."—alongside a 256-token sliding window with 1-sentence overlap and adaptive worst-case Top-K pooling K = max(1, floor(0.2 * N)), strictly bounding GPU VRAM under 1.4 GB.
-> Finally, in Tier 4 (Fact Verification & Four-Quadrant Trust Matrix): Factual claims from anomalous spans are queried against our knowledge base via BM25 retrieval across Top-5 candidate passages, evaluated by our 3-way NLI cross-encoder, and mapped into our Four-Quadrant Trust Matrix to decouple AI drafting style from factual truthfulness.
-> Looking now to the right side of the slide:
-> The top card highlights our Three-Tier Methodological Innovations: sentence-level morpho-gating to halt domain collapse, document-level abbreviation-guarded sliding window chunking to defeat length truncation, and the Kazakh-FEVER trust matrix to decouple style from veracity.
-> The bottom card highlights our Integrated Empirical and Societal Breakthroughs: delivering a +42.18% ROC-AUC leap on out-of-domain colloquial text, 100% precision in pinpointing isolated synthetic paragraphs in 25,000-word documents, and 100.0% Macro-F1 on factual verification under bounded sub-1.4 GB memory.
-> In the next three slides—Slides 8, 9, and 10—I will walk through the formal mathematical equations and architectural mechanics of each innovation in detail.
+> Entering Chapter 3 on Slide 7, I present our comprehensive methodological framework, illustrated in Figure 3 as a unified three-column systems architecture.
+> As recommended by Professor Guo, this end-to-end framework maps our technical innovations from client ingestion to core transformer reasoning and actionable deployment portals.
+> On the left, in Column 1, the Edge and Ingestion Subsystem receives multi-genre Kazakh text and documents in .txt, .docx, or .pdf format. Our SentencePreservingChunker protects Kazakh punctuation with 10 abbreviation regex guards for terms like "т.б." and "ж.б.", slicing text into 256-token windows with 1-sentence overlap. In parallel, our 83-rule FST transducer parses each word into structured morpheme chains across 128 morphological tags. Web and REST API clients operate under strict in-memory guards, bounding peak memory to under 1.4 GB. From Badge 1, preprocessed tokens and morpheme sequences flow directly into our detection engine.
+> In the center, Column 2 houses our Core Detection and Verification Engine.
+> In the Processing Modules sub-column, we maintain two parallel representations: the Contextual Semantic stream via 12-layer KazRoBERTa producing h_sem in R^768, and the Morphological Inductive stream via an 83-rule FST BiLSTM producing projected embeddings in R^768. Below them, we explicitly identify the Ablated Baselines—showing how standard subword BPE and perplexity-only detectors slice Kazakh roots, leading to catastrophic domain collapse with a 42.18% drop, which we rigorously exclude.
+> In the Core Processing sub-column, our Dynamic Gating Unit computes a learned dimension-wise gate g, softly combining semantic and morphological representations into h_fused. This feeds our Transformer Encoder and Document Top-K Engine at Badge 2, which applies worst-case Top-K pooling K = max(1, floor(0.25 * N)) and joint Supervised Contrastive Loss to output calibrated probability y_hat. Our architecture achieves a 0.9980 ROC-AUC, a +42.18% gain on colloquial text, 100% tamper precision, and sub-85ms latency.
+> Finally, on the right in Column 3, our Portals layer delivers results via an interactive 4-tab Gradio web portal and Telegram bot. The scalar probability y_hat is mapped directly into our Three-Tier Quantitative Threshold Alert Levels:
+> First, Red CRITICAL for y_hat >= 0.70, denoting synthetic or malicious content that requires immediate inspection;
+> Second, Orange WARNING between 0.40 and 0.70, flagging ambiguous or hybrid documents for editorial verification;
+> And Third, Green NORMAL below 0.40, certifying natural human text as safe for routine publishing.
+> In Slides 8 through 10, I will now detail the formal mathematical formulations for each of these three core innovations.
 
 ---
 
