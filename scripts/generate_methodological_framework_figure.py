@@ -29,6 +29,9 @@ PILL_TEAL = "#0D9488"   # Output tensor pill
 PILL_GRAY = "#64748B"   # Excluded pill
 
 
+SX = 6.0 / 14.5  # Coordinate scaling factor for 14.5x6.0 figure (1 data unit in Y = 2.4167 units in X)
+
+
 def draw_pill(ax, x, y, width, height, text, bg_color=PILL_TEAL, text_color="white", fontsize=7.2, bold=True):
     """Draws a rounded status pill with centered text."""
     pill = patches.FancyBboxPatch(
@@ -46,65 +49,179 @@ def draw_pill(ax, x, y, width, height, text, bg_color=PILL_TEAL, text_color="whi
 
 
 def draw_badge(ax, x, y, radius, number_str, bg_color="#1E3A8A", text_color="white"):
-    """Draws a numbered circular badge."""
-    circle = patches.Circle((x, y), radius, facecolor=bg_color, edgecolor="white", linewidth=1.5, zorder=8)
-    ax.add_patch(circle)
+    """Draws a numbered circular badge with true 1:1 physical circular geometry."""
+    badge = patches.Ellipse(
+        (x, y), width=2 * radius * SX, height=2 * radius,
+        facecolor=bg_color, edgecolor="white", linewidth=1.5, zorder=8
+    )
+    ax.add_patch(badge)
     ax.text(x, y, number_str, ha="center", va="center", fontsize=9.5, fontweight="bold", color=text_color, zorder=9)
 
 
 def draw_icon_circle(ax, x, y, radius, bg_color="#F97316", icon_type="camera"):
-    """Draws a circular icon container with crisp vector glyphs."""
-    circle = patches.Circle((x, y), radius, facecolor=bg_color, edgecolor="none", zorder=5)
+    """Draws a circular icon container with true 1:1 physical circular geometry and crisp vector glyphs."""
+    circle = patches.Ellipse(
+        (x, y), width=2 * radius * SX, height=2 * radius,
+        facecolor=bg_color, edgecolor="none", zorder=5
+    )
     ax.add_patch(circle)
     
     if icon_type == "camera":
         # Video / camera glyph
-        rect = patches.Rectangle((x - radius*0.48, y - radius*0.3), radius*0.62, radius*0.6, facecolor="white", zorder=6)
+        cw = 0.62 * radius * SX
+        ch = 0.50 * radius
+        rect = patches.FancyBboxPatch(
+            (x - 0.36 * radius * SX, y - ch / 2.0), cw, ch,
+            boxstyle="round,pad=0.02,rounding_size=0.08",
+            facecolor="white", edgecolor="none", zorder=6
+        )
         ax.add_patch(rect)
         wedge = patches.Polygon([
-            [x + radius*0.18, y - radius*0.1],
-            [x + radius*0.52, y - radius*0.32],
-            [x + radius*0.52, y + radius*0.32],
-            [x + radius*0.18, y + radius*0.1]
+            [x + 0.24 * radius * SX, y - 0.12 * radius],
+            [x + 0.50 * radius * SX, y - 0.28 * radius],
+            [x + 0.50 * radius * SX, y + 0.28 * radius],
+            [x + 0.24 * radius * SX, y + 0.12 * radius]
         ], facecolor="white", zorder=6)
         ax.add_patch(wedge)
     elif icon_type == "document":
         # Document / page glyph
-        doc = patches.Rectangle((x - radius*0.36, y - radius*0.48), radius*0.72, radius*0.96, facecolor="white", zorder=6)
+        w = 0.72 * radius * SX
+        h = 0.90 * radius
+        doc = patches.Rectangle(
+            (x - w / 2.0, y - h / 2.0), w, h,
+            facecolor="white", edgecolor="none", zorder=6
+        )
         ax.add_patch(doc)
-        ax.plot([x + radius*0.06, x + radius*0.36], [y + radius*0.18, y + radius*0.48], color=bg_color, lw=1.2, zorder=7)
+        for ly in [-0.22, 0.0, 0.22]:
+            ax.plot(
+                [x - 0.22 * radius * SX, x + 0.22 * radius * SX],
+                [y + ly * radius, y + ly * radius],
+                color=bg_color, lw=1.2, zorder=7
+            )
     elif icon_type == "clock":
         # Clock / window glyph
-        inner = patches.Circle((x, y), radius*0.58, facecolor="none", edgecolor="white", lw=1.5, zorder=6)
+        inner = patches.Ellipse(
+            (x, y), width=2 * radius * 0.65 * SX, height=2 * radius * 0.65,
+            facecolor="none", edgecolor="white", lw=1.5, zorder=6
+        )
         ax.add_patch(inner)
-        ax.plot([x, x], [y, y + radius*0.35], color="white", lw=1.5, zorder=7)
-        ax.plot([x, x + radius*0.28], [y, y], color="white", lw=1.5, zorder=7)
+        ax.plot([x, x], [y, y + radius * 0.38], color="white", lw=1.5, zorder=7)
+        ax.plot([x, x + radius * 0.28 * SX], [y, y], color="white", lw=1.5, zorder=7)
+        crown = patches.Rectangle(
+            (x - 0.10 * radius * SX, y + radius * 0.65),
+            0.20 * radius * SX, 0.12 * radius,
+            facecolor="white", edgecolor="none", zorder=6
+        )
+        ax.add_patch(crown)
+    elif icon_type == "web":
+        # Browser / laptop screen
+        sw = 0.80 * radius * SX
+        sh = 0.54 * radius
+        screen = patches.Rectangle(
+            (x - sw / 2.0, y - 0.16 * radius), sw, sh,
+            facecolor="white", edgecolor="none", zorder=6
+        )
+        ax.add_patch(screen)
+        stand = patches.Rectangle(
+            (x - 0.12 * radius * SX, y - 0.30 * radius),
+            0.24 * radius * SX, 0.14 * radius,
+            facecolor="white", edgecolor="none", zorder=6
+        )
+        ax.add_patch(stand)
+        base = patches.Rectangle(
+            (x - 0.40 * radius * SX, y - 0.36 * radius),
+            0.80 * radius * SX, 0.06 * radius,
+            facecolor="white", edgecolor="none", zorder=6
+        )
+        ax.add_patch(base)
+        ax.plot(
+            [x - sw / 2.0 + 0.06 * radius * SX, x + sw / 2.0 - 0.06 * radius * SX],
+            [y + 0.24 * radius, y + 0.24 * radius],
+            color=bg_color, lw=0.8, zorder=7
+        )
+    elif icon_type == "api":
+        # API / Server stack glyph
+        sb_w = 0.78 * radius * SX
+        sb_h = 0.24 * radius
+        s1 = patches.Rectangle((x - sb_w / 2.0, y + 0.08 * radius), sb_w, sb_h, facecolor="white", zorder=6)
+        s2 = patches.Rectangle((x - sb_w / 2.0, y - 0.26 * radius), sb_w, sb_h, facecolor="white", zorder=6)
+        ax.add_patch(s1)
+        ax.add_patch(s2)
+        for sy_pos in [y + 0.20 * radius, y - 0.14 * radius]:
+            led1 = patches.Ellipse((x + 0.22 * radius * SX, sy_pos), 0.09 * radius * SX, 0.09 * radius, facecolor=bg_color, zorder=7)
+            led2 = patches.Ellipse((x + 0.11 * radius * SX, sy_pos), 0.09 * radius * SX, 0.09 * radius, facecolor=bg_color, zorder=7)
+            ax.add_patch(led1)
+            ax.add_patch(led2)
+    elif icon_type == "semantic":
+        # Semantic text sheet
+        w = 0.65 * radius * SX
+        h = 0.80 * radius
+        doc = patches.Rectangle((x - w / 2.0, y - h / 2.0), w, h, facecolor="white", zorder=6)
+        ax.add_patch(doc)
+        for ly in [-0.20, 0.02, 0.24]:
+            ax.plot([x - 0.20 * radius * SX, x + 0.20 * radius * SX], [y + ly * radius, y + ly * radius], color=bg_color, lw=1.0, zorder=7)
+    elif icon_type == "database":
+        # Stacked database cylinders
+        ew = 0.82 * radius * SX
+        eh = 0.28 * radius
+        for dy in [-0.26, 0.0, 0.26]:
+            disk = patches.Ellipse(
+                (x, y + radius * dy), width=ew, height=eh,
+                facecolor="white", edgecolor=bg_color, lw=0.9, zorder=6
+            )
+            ax.add_patch(disk)
     elif icon_type == "robot":
         # Robot head glyph
+        hw = 1.05 * radius * SX
+        hh = 0.68 * radius
         head = patches.FancyBboxPatch(
-            (x - radius*0.52, y - radius*0.4), radius*1.04, radius*0.75,
-            boxstyle="round,pad=0.05,rounding_size=0.2",
+            (x - hw / 2.0, y - 0.34 * radius), hw, hh,
+            boxstyle="round,pad=0.03,rounding_size=0.15",
             facecolor="white", edgecolor="none", zorder=6
         )
         ax.add_patch(head)
-        ax.add_patch(patches.Circle((x - radius*0.22, y - radius*0.02), radius*0.12, facecolor=bg_color, zorder=7))
-        ax.add_patch(patches.Circle((x + radius*0.22, y - radius*0.02), radius*0.12, facecolor=bg_color, zorder=7))
-        ax.plot([x, x], [y + radius*0.35, y + radius*0.55], color="white", lw=1.5, zorder=6)
-        ax.add_patch(patches.Circle((x, y + radius*0.55), radius*0.1, facecolor="white", zorder=7))
-    elif icon_type == "database":
-        # Cylinder / database stack glyph
-        for dy in [-0.25, 0.05, 0.35]:
-            ellipse = patches.Ellipse((x, y + radius*dy), radius*0.75, radius*0.3, facecolor="white", edgecolor=bg_color, lw=0.8, zorder=6)
-            ax.add_patch(ellipse)
+        eye_l = patches.Ellipse(
+            (x - 0.24 * radius * SX, y + 0.02 * radius),
+            width=2 * 0.11 * radius * SX, height=2 * 0.11 * radius,
+            facecolor=bg_color, edgecolor="none", zorder=7
+        )
+        ax.add_patch(eye_l)
+        eye_r = patches.Ellipse(
+            (x + 0.24 * radius * SX, y + 0.02 * radius),
+            width=2 * 0.11 * radius * SX, height=2 * 0.11 * radius,
+            facecolor=bg_color, edgecolor="none", zorder=7
+        )
+        ax.add_patch(eye_r)
+        ax.plot([x - 0.14 * radius * SX, x + 0.14 * radius * SX], [y - 0.16 * radius, y - 0.16 * radius], color=bg_color, lw=1.2, zorder=7)
+        ax.plot([x, x], [y + 0.34 * radius, y + 0.54 * radius], color="white", lw=1.5, zorder=6)
+        bulb = patches.Ellipse(
+            (x, y + 0.54 * radius),
+            width=2 * 0.10 * radius * SX, height=2 * 0.10 * radius,
+            facecolor="white", edgecolor="none", zorder=7
+        )
+        ax.add_patch(bulb)
+        for ex_sign in [-1, 1]:
+            ear = patches.Rectangle(
+                (x + ex_sign * (hw / 2.0 + 0.02 * radius * SX) - (0.06 * radius * SX if ex_sign == -1 else 0),
+                 y - 0.08 * radius),
+                0.06 * radius * SX, 0.20 * radius,
+                facecolor="white", edgecolor="none", zorder=6
+            )
+            ax.add_patch(ear)
     elif icon_type == "telegram":
-        # Paper airplane / portal glyph
+        # Paper airplane
         plane = patches.Polygon([
-            [x - radius*0.5, y - radius*0.35],
-            [x + radius*0.55, y],
-            [x - radius*0.5, y + radius*0.4],
-            [x - radius*0.15, y]
+            [x - 0.44 * radius * SX, y - 0.30 * radius],
+            [x + 0.52 * radius * SX, y + 0.08 * radius],
+            [x - 0.44 * radius * SX, y + 0.42 * radius],
+            [x - 0.12 * radius * SX, y + 0.04 * radius],
         ], facecolor="white", zorder=6)
         ax.add_patch(plane)
+        ax.plot(
+            [x - 0.12 * radius * SX, x + 0.52 * radius * SX],
+            [y + 0.04 * radius, y + 0.08 * radius],
+            color=bg_color, lw=0.9, zorder=7
+        )
 
 
 def generate_methodological_framework_diagram(output_path="presentation_figures/fig03_methodological_innovation_framework.png"):
@@ -151,10 +268,10 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
         edgecolor="#CBD5E1", facecolor="#F8FAFC", linewidth=0.9
     )
     ax.add_patch(box_doc)
-    draw_icon_circle(ax, 9.5, 78.8, 1.7, bg_color="#8B5CF6", icon_type="document")
-    ax.text(9.5, 74.5, "Input Text", ha="center", va="center", fontsize=8.0, fontweight="bold", color=SLATE)
-    ax.text(9.5, 70.2, "Multi-genre corpus\n& raw documents", ha="center", va="center", fontsize=6.5, color=MUTED_GRAY)
-    ax.text(9.5, 66.5, ".txt · .docx · .pdf", ha="center", va="center", fontsize=6.8, fontweight="bold", color=NAVY)
+    draw_icon_circle(ax, 9.5, 78.2, 2.8, bg_color="#8B5CF6", icon_type="document")
+    ax.text(9.5, 73.2, "Input Text", ha="center", va="center", fontsize=8.0, fontweight="bold", color=SLATE)
+    ax.text(9.5, 69.4, "Multi-genre corpus\n& raw documents", ha="center", va="center", fontsize=6.3, color=MUTED_GRAY)
+    ax.text(9.5, 66.2, ".txt · .docx · .pdf", ha="center", va="center", fontsize=6.6, fontweight="bold", color=NAVY)
 
     # Sub-box 1.2: Sentence Chunking (Bottom-Left)
     box_chunk = patches.FancyBboxPatch(
@@ -163,11 +280,11 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
         edgecolor="#CBD5E1", facecolor="#F8FAFC", linewidth=0.9
     )
     ax.add_patch(box_chunk)
-    draw_icon_circle(ax, 9.5, 60.2, 1.7, bg_color="#3B82F6", icon_type="clock")
-    ax.text(9.5, 55.4, "Sentence\nChunking", ha="center", va="center", fontsize=7.6, fontweight="bold", color=SLATE)
-    ax.text(9.5, 49.0, "10 Abbrev Guards\n(т.б., ж.б., ғ.)\nL=256 tokens\n1-sent overlap",
-            ha="center", va="center", fontsize=6.3, color=SLATE)
-    ax.text(9.5, 42.6, "output -> (N, 256)", ha="center", va="center", fontsize=6.4, fontstyle="italic", color=MUTED_GRAY)
+    draw_icon_circle(ax, 9.5, 60.0, 2.8, bg_color="#3B82F6", icon_type="clock")
+    ax.text(9.5, 54.5, "Sentence\nChunking", ha="center", va="center", fontsize=7.6, fontweight="bold", color=SLATE)
+    ax.text(9.5, 48.2, "10 Abbrev Guards\n(т.б., ж.б., ғ.)\nL=256 tokens\n1-sent overlap",
+            ha="center", va="center", fontsize=6.2, color=SLATE)
+    ax.text(9.5, 42.4, "output -> (N, 256)", ha="center", va="center", fontsize=6.4, fontstyle="italic", color=MUTED_GRAY)
 
     # Sub-box 1.3: FST Morpheme Tiling Node (Right side of top box)
     box_fst = patches.FancyBboxPatch(
@@ -176,10 +293,10 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
         edgecolor="#99F6E4", facecolor="#F0FDFA", linewidth=1.0
     )
     ax.add_patch(box_fst)
-    draw_icon_circle(ax, 20.95, 77.8, 2.0, bg_color="#F97316", icon_type="camera")
-    ax.text(20.95, 72.8, "FST Parsing", ha="center", va="center", fontsize=8.2, fontweight="bold", color=SLATE)
+    draw_icon_circle(ax, 20.95, 77.2, 3.4, bg_color="#F97316", icon_type="camera")
+    ax.text(20.95, 71.2, "FST Parsing", ha="center", va="center", fontsize=8.2, fontweight="bold", color=SLATE)
     ax.text(20.95, 63.8, "83-Rule FST\nTransducer Engine", ha="center", va="center", fontsize=7.2, fontweight="bold", color=TEAL)
-    ax.text(20.95, 55.5, "Stem-affix rule\ndecomposition\n\n|V_morph| = 128",
+    ax.text(20.95, 54.8, "Stem-affix rule\ndecomposition\n\n|V_morph| = 128",
             ha="center", va="center", fontsize=6.6, color=SLATE)
     draw_pill(ax, 16.3, 43.5, 9.3, 4.0, "-> morpheme_seq", bg_color=TEAL, fontsize=6.5)
 
@@ -203,19 +320,19 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
     ax.add_patch(c1_bot_blue)
 
     # Client icons inside blue box
-    draw_icon_circle(ax, 11.5, 29.5, 1.8, bg_color="#F97316", icon_type="camera")
-    ax.text(11.5, 26.0, "Web Client", ha="center", va="center", fontsize=6.8, color=SLATE)
+    draw_icon_circle(ax, 11.5, 29.8, 2.8, bg_color="#F97316", icon_type="web")
+    ax.text(11.5, 25.2, "Web Client", ha="center", va="center", fontsize=6.8, color=SLATE)
 
-    draw_icon_circle(ax, 20.5, 29.5, 1.8, bg_color="#F97316", icon_type="camera")
-    ax.text(20.5, 26.0, "API Client", ha="center", va="center", fontsize=6.8, color=SLATE)
+    draw_icon_circle(ax, 20.5, 29.8, 2.8, bg_color="#F97316", icon_type="api")
+    ax.text(20.5, 25.2, "API Client", ha="center", va="center", fontsize=6.8, color=SLATE)
 
-    ax.text(16.0, 20.5, "Client Ingestion & Memory Guards", ha="center", va="center",
+    ax.text(16.0, 19.8, "Client Ingestion & Memory Guards", ha="center", va="center",
             fontsize=7.2, fontweight="bold", color=NAVY)
-    ax.text(16.0, 16.8, "Max 10MB file · < 1.4 GB VRAM", ha="center", va="center",
+    ax.text(16.0, 16.2, "Max 10MB file · < 1.4 GB VRAM", ha="center", va="center",
             fontsize=6.5, color=MUTED_GRAY)
 
     # Numbered Badge 1 on lower-right of blue box
-    draw_badge(ax, 25.8, 13.8, 1.6, "1", bg_color=NAVY)
+    draw_badge(ax, 25.8, 13.8, 2.4, "1", bg_color=NAVY)
 
     # Edge / Server Serving Node at very bottom
     box_server = patches.FancyBboxPatch(
@@ -236,7 +353,7 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
     ax.text(30.25, 77.2, "HTTP/REST", ha="center", va="center", fontsize=7.0, fontweight="bold", color=SLATE)
 
     # Solid arrow from Badge 1 into Column 2 Feature Streams
-    ax.annotate("", xy=(32.0, 22.0), xytext=(27.4, 15.0),
+    ax.annotate("", xy=(32.0, 22.0), xytext=(26.9, 14.2),
                 arrowprops=dict(arrowstyle="->", color=SLATE, lw=1.5,
                                 connectionstyle="arc3,rad=-0.15"))
 
@@ -335,10 +452,10 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
     ax.add_patch(top_fuse)
 
     # Glyphs side by side at top
-    draw_icon_circle(ax, 64.0, 78.2, 1.4, bg_color="#8B5CF6", icon_type="camera")
-    draw_icon_circle(ax, 70.0, 78.2, 1.4, bg_color="#3B82F6", icon_type="database")
+    draw_icon_circle(ax, 64.0, 78.5, 2.6, bg_color="#8B5CF6", icon_type="semantic")
+    draw_icon_circle(ax, 70.0, 78.5, 2.6, bg_color="#3B82F6", icon_type="database")
 
-    ax.text(67.0, 73.8, "Feature Fusion · Dynamic Gating", ha="center", va="center",
+    ax.text(67.0, 74.0, "Feature Fusion · Dynamic Gating", ha="center", va="center",
             fontsize=7.8, fontweight="bold", color=SLATE)
     ax.text(67.0, 69.8, r"$g = \sigma(W_g [h_{sem}; W_{proj} h_{morph}] + b_g)$",
             ha="center", va="center", fontsize=7.0, fontweight="bold", color=NAVY)
@@ -369,18 +486,18 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
     ax.add_patch(bot_trans)
 
     # Robot / AI icon at top of transformer box
-    draw_icon_circle(ax, 67.0, 44.5, 1.8, bg_color="#EC4899", icon_type="robot")
+    draw_icon_circle(ax, 67.0, 44.0, 2.8, bg_color="#EC4899", icon_type="robot")
 
-    ax.text(67.0, 40.2, "Transformer Encoder & Top-K", ha="center", va="center",
+    ax.text(67.0, 39.5, "Transformer Encoder & Top-K", ha="center", va="center",
             fontsize=8.5, fontweight="bold", color=NAVY)
-    ax.text(67.0, 34.0, r"4 layers · 4 heads · $d_{model}=64$" + "\n" +
+    ax.text(67.0, 33.0, r"4 layers · 4 heads · $d_{model}=64$" + "\n" +
                         r"Document Top-K: $K = \max(1, \lfloor 0.25 \cdot N \rfloor)$" + "\n" +
                         r"Dual-loss: $\mathcal{L}_{BCE} + \lambda \mathcal{L}_{SupCon}$ ($\mathbb{R}^{128}$)" + "\n" +
                         r"global avg pool $\rightarrow \hat{y} \in [0, 1]$",
             ha="center", va="center", fontsize=6.5, color=SLATE)
 
     # Empirical Metrics Bullet Points
-    ax.text(67.0, 20.5, "• Dropout = 0.20 · Temp = 0.07\n"
+    ax.text(67.0, 19.8, "• Dropout = 0.20 · Temp = 0.07\n"
                         "• ROC-AUC = 0.9980 (Macro)\n"
                         "• OOD Kaspi Gain = +42.18%\n"
                         "• Tamper Precision = 100.0%\n"
@@ -388,7 +505,7 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
             ha="center", va="center", fontsize=6.6, fontweight="bold", color=NAVY)
 
     # Numbered Badge 2 on bottom-right of transformer box
-    draw_badge(ax, 75.6, 10.5, 1.6, "2", bg_color=NAVY)
+    draw_badge(ax, 75.6, 10.5, 2.4, "2", bg_color=NAVY)
 
     # =========================================================================
     # CONNECTIONS: Column 2 to Column 3
@@ -429,10 +546,10 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
     ax.text(90.75, 87.5, "Response\nDelivery", ha="center", va="center",
             fontsize=9.2, fontweight="bold", color=SLATE)
 
-    draw_icon_circle(ax, 90.75, 78.5, 2.0, bg_color="#60A5FA", icon_type="telegram")
-    ax.text(90.75, 72.5, "Gradio / Telegram", ha="center", va="center",
+    draw_icon_circle(ax, 90.75, 78.0, 3.6, bg_color="#60A5FA", icon_type="telegram")
+    ax.text(90.75, 72.2, "Gradio / Telegram", ha="center", va="center",
             fontsize=7.6, fontweight="bold", color=NAVY)
-    ax.text(90.75, 64.5, "4-Tab Dashboard\n• Sentence Heatmap\n• 36-Art Kazakh-FEVER\n• No specialized HW\nKazakhstan context",
+    ax.text(90.75, 64.2, "4-Tab Dashboard\n• Sentence Heatmap\n• 36-Art Kazakh-FEVER\n• No specialized HW\nKazakhstan context",
             ha="center", va="center", fontsize=6.2, color=SLATE)
 
     # -------------------------------------------------------------------------
@@ -467,7 +584,7 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
         edgecolor="#B45309", facecolor="#D97706", linewidth=1.0
     )
     ax.add_patch(card_warn)
-    ax.text(90.75, 30.6, "!  WARNING", ha="center", va="center", fontsize=8.2, fontweight="bold", color="white")
+    ax.text(90.75, 30.6, "WARNING", ha="center", va="center", fontsize=8.2, fontweight="bold", color="white")
     ax.text(90.75, 27.0, r"$0.40 \leq \hat{y} < 0.70$", ha="center", va="center", fontsize=7.5, fontweight="bold", color="white")
     ax.text(90.75, 23.4, "Ambiguous / Hybrid\nManual review required", ha="center", va="center", fontsize=5.8, color="#FEF3C7")
 
@@ -478,7 +595,7 @@ def generate_methodological_framework_diagram(output_path="presentation_figures/
         edgecolor="#15803D", facecolor="#16A34A", linewidth=1.0
     )
     ax.add_patch(card_norm)
-    ax.text(90.75, 15.6, "✓  NORMAL", ha="center", va="center", fontsize=8.2, fontweight="bold", color="white")
+    ax.text(90.75, 15.6, "NORMAL", ha="center", va="center", fontsize=8.2, fontweight="bold", color="white")
     ax.text(90.75, 12.0, r"$\hat{y} < 0.40$", ha="center", va="center", fontsize=7.8, fontweight="bold", color="white")
     ax.text(90.75, 8.4, "Natural human text\nRoutine publishing safe", ha="center", va="center", fontsize=5.8, color="#DCFCE7")
 
