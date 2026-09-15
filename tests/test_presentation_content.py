@@ -54,6 +54,11 @@ class TestPresentationContent(unittest.TestCase):
         # Verify Slide 22 Committee comments
         s22 = self.prs.slides[21]
         text_s22 = "".join(s.text_frame.text for s in s22.shapes if s.has_text_frame)
+        for s in s22.shapes:
+            if s.has_table:
+                for row in s.table.rows:
+                    for cell in row.cells:
+                        text_s22 += cell.text
         self.assertIn("Reviewer 1", text_s22)
         self.assertIn("Reviewer 2", text_s22)
         self.assertIn("100.00% AUC", text_s22)
@@ -111,13 +116,83 @@ class TestPresentationContent(unittest.TestCase):
         self.assertGreater(len(pictures), 0, "Slide 18 must contain Figure 14 picture")
 
         s18_text = " ".join(s.text_frame.text for s in s18.shapes if s.has_text_frame)
-        self.assertIn("311 / 311", s18_text)
+        self.assertIn("314 / 314", s18_text)
         self.assertIn("Automated Test Suite", s18_text)
         self.assertIn("3 Formats", s18_text)
         self.assertIn("Multi-Format Ingestion", s18_text)
-        self.assertIn("311 passing tests", s18_text)
+        self.assertIn("314 passing tests", s18_text)
         self.assertNotIn("Zero Emoji", s18_text)
         self.assertNotIn("zero emoji", s18_text.lower())
+
+    def test_slide_01_presenter_notes_cleanup(self):
+        s1 = self.prs.slides[0]
+        self.assertTrue(s1.has_notes_slide)
+        notes = s1.notes_slide.notes_text_frame.text
+        self.assertNotIn("范千悦", notes)
+        self.assertNotIn("陈亚兴", notes)
+        self.assertNotIn("Fan Qianyue", notes)
+        self.assertNotIn("Chen Yaxing", notes)
+        self.assertIn("Daulet", notes)
+
+    def test_slide_02_sequential_contents_ordering(self):
+        s2 = self.prs.slides[1]
+        order = []
+        for s in s2.shapes:
+            num = None
+            if s.shape_type == 6:  # MSO_SHAPE_TYPE.GROUP
+                for sub in s.shapes:
+                    if sub.has_text_frame and sub.text_frame.text.strip()[:2].isdigit():
+                        num = int(sub.text_frame.text.strip()[:2])
+            elif s.has_text_frame and s.text_frame.text.strip()[:2].isdigit():
+                num = int(s.text_frame.text.strip()[:2])
+            if num is not None:
+                order.append(num)
+        self.assertEqual(order, [1, 2, 3, 4, 5, 6], f"Slide 2 chapter iteration order must be [1, 2, 3, 4, 5, 6], got {order}")
+
+    def test_zero_banned_terms_across_deck(self):
+        banned = [
+            "cross-attention", "cross attention", "cross-gate", "fan qianyue", "chen yaxing",
+            "breakthrough", "catastrophic", "eliminates domain collapse", "production-ready",
+            "perfect separation", "perfect auc", "311", "288"
+        ]
+        for idx, slide in enumerate(self.prs.slides):
+            if slide.has_notes_slide and slide.notes_slide.notes_text_frame:
+                notes_lower = slide.notes_slide.notes_text_frame.text.lower()
+                for b in banned:
+                    self.assertNotIn(b, notes_lower, f"Slide {idx+1} notes contain banned term '{b}'")
+            for s in slide.shapes:
+                if s.has_text_frame:
+                    txt_lower = s.text_frame.text.lower()
+                    for b in banned:
+                        self.assertNotIn(b, txt_lower, f"Slide {idx+1} shape {s.name} contains banned term '{b}'")
+                if s.has_table:
+                    for row in s.table.rows:
+                        for cell in row.cells:
+                            cell_lower = cell.text.lower()
+                            for b in banned:
+                                self.assertNotIn(b, cell_lower, f"Slide {idx+1} table cell contains banned term '{b}'")
+
+    def test_slide_08_morphology_gated_fusion_terminology(self):
+        s8 = self.prs.slides[7]
+        s8_text = " ".join(s.text_frame.text for s in s8.shapes if s.has_text_frame)
+        self.assertIn("Dual-Stream Morphology-Aware Gated Fusion", s8_text)
+        self.assertNotIn("Cross-Attention", s8_text)
+
+    def test_slide_09_robust_generalization_restoration(self):
+        s9 = self.prs.slides[8]
+        s9_text = " ".join(s.text_frame.text for s in s9.shapes if s.has_text_frame)
+        self.assertIn("Robust Generalization & Adversarial Rewriting Defense", s9_text)
+        self.assertIn("SentencePreservingChunker", s9_text)
+
+    def test_slide_22_academic_status_badges(self):
+        s22 = self.prs.slides[21]
+        for s in s22.shapes:
+            if s.has_table:
+                for row in s.table.rows:
+                    status = row.cells[3].text
+                    self.assertNotIn("RESOLVED", status)
+                    if status != "Status":
+                        self.assertIn("Addressed in Thesis Chapter", status)
 
 
 if __name__ == "__main__":

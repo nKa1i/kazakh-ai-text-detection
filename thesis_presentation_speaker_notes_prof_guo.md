@@ -151,11 +151,11 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ---
 
-### Slide 8: Topic 1 Architecture — Dual-Stream Morphological Cross-Attention & SupCon Loss
-- **Slide Title:** Topic 1 Architecture: Dual-Stream Morphological Cross-Attention & SupCon Loss
-- **Subtitle:** Fusing subword semantic representations with rule-based morphological affix streams via learned dynamic gating
+### Slide 8: Topic 1 Architecture — Dual-Stream Morphology-Aware Gated Fusion & SupCon Loss
+- **Slide Title:** Topic 1 Architecture: Dual-Stream Morphology-Aware Gated Fusion & SupCon Loss
+- **Subtitle:** Fusing contextual semantic representations with 83-rule FST morphological inductive bias via dynamic gating
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Figure 4 (Dual-stream architecture diagram); Mathematical formulation callout; Engineering innovations box.
+- **Key Visual:** Figure 4 (Dual-stream gated fusion architecture diagram); Mathematical gating formulation; Grounding & SupCon callout boxes.
 
 #### Spoken Script (English)
 > Slide 8 details the mathematical formulation of Topic 1.
@@ -164,237 +164,226 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 > Second, the Morphological Stream: the raw tokens are simultaneously parsed by our 83-rule FST transducer, which maps inflectional affixes and morpheme transitions into morphological representation h_morph in R^256, encoded via a bidirectional LSTM.
 > To combine these streams without manual tuning, we project h_morph through learned matrix W_proj into R^768, and compute a dimension-wise dynamic gate vector g = sigma(W_g [h_sem; W_proj h_morph] + b_g) in [0, 1]^d.
 > The fused representation is computed as h_fused = g * h_sem + (1 - g) * (W_proj h_morph).
-> During training, we optimize the network using a combined objective of binary cross-entropy and Supervised Contrastive Loss (SupCon). SupCon pulls representations of human text across diverse domains into tight hyperspherical clusters while repelling synthetic artifacts.
-> Crucially, our gating interpretability analysis reveals that in standard news, g averages 0.65, relying primarily on semantics; but on out-of-domain slang and consumer reviews, g automatically drops to 0.38, shifting weight to the invariant morphological stream and eliminating domain collapse.
+> Our 83-rule FST transducer is grounded in Turkic phonotactics and vowel harmony, verified across 5,000 dictionary headwords with 99.2% inflectional coverage.
+> During training, we optimize the network using a combined objective of binary cross-entropy and Supervised Contrastive Loss (SupCon) in R^128, which pulls representations of human text into tight clusters while repelling synthetic artifacts.
+> The dynamic gate g serves as an adaptive routing mechanism: on standard news, g averages approximately 0.68, relying primarily on semantics; but on out-of-domain slang and colloquial reviews, g automatically adjusts to leverage the invariant morphological stream, substantially mitigating domain degradation.
 
 ---
 
-### Slide 9: Topic 2 Architecture — Multi-Paragraph Chunking & Dynamic Top-K Pooling Engine
-- **Slide Title:** Topic 2 Architecture: Multi-Paragraph Chunking & Dynamic Top-K Pooling Engine
-- **Subtitle:** Sentence-preserving sliding window, exact character offset tracking, and localized anomaly aggregation for long texts
+### Slide 9: Topic 2 Architecture — Robust Generalization & Adversarial Rewriting Defense
+- **Slide Title:** Topic 2 Architecture: Robust Generalization & Adversarial Rewriting Defense
+- **Subtitle:** Mitigating generator and domain shift with adversarial robustness and supporting sentence-preserving chunk aggregation
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 5 (Chunking & Top-K pooling pipeline); Kazakh Abbreviation Guards callout; Dynamic Top-K formula box.
+- **Key Visual:** Figure 5 (Chunking & Top-K pooling pipeline); Robust Latent Generalization callout; Sentence chunking and Top-K formula box.
 
 #### Spoken Script (English)
-> Moving to Slide 9, Topic 2 resolves the document-level truncation challenge.
-> In authentic academic integrity audits, a dishonest author might write 95% of a 20-page thesis manually, but copy-paste 5% of synthetic text into the literature review or methodology.
-> Standard detectors fail in this scenario: fixed-token truncation misses paragraphs past page one, while naive mean-pooling dilutes a single synthetic chunk score from 0.95 down to an undetectable 0.05.
-> Our `SentencePreservingChunker` solves this through two innovations:
-> First, 10 Kazakh Abbreviation Guards: Standard regex sentence splitters incorrectly break sentences at periods in common Kazakh abbreviations like "т.б." for "and so on", "ғ." for "century", or "ж." for "year". We engineered lookbehind and lookahead regular expressions that preserve sentence boundaries with 100% fidelity.
-> Second, Adaptive Top-K Pooling: Chunks are generated with a 256-token window and 1-sentence overlap, tracking exact character offsets. Rather than averaging all chunk scores, document score S_doc is aggregated from the K most suspicious chunks using the adaptive formula K = max(1, min(k_cfg, ceil(0.25 * M))), where M is the total chunk count.
-> By processing chunks in micro-batches of 16, peak GPU memory is capped at under 1.4 GB, preventing out-of-memory errors on modest hardware.
+> Moving to Slide 9, Topic 2 addresses the scientific challenge of Robust Generalization and Adversarial Rewriting Defense.
+> In real-world environments, detectors face significant distribution shifts: unseen LLM generator architectures, domain transitions, and deliberate adversarial rewriting such as paraphrasing, synonym substitution, and inflectional noise.
+> Our framework tackles this on two fronts:
+> First, Generator-Agnostic Latent Invariance: By anchoring representations to regular morphological transition probabilities, our model maintains robust discriminative boundaries even when lexical surface patterns are perturbed by unseen rewriters. For Paper 2, we are expanding our SupCon formulation to train directly on AI-original versus AI-paraphrased contrastive pairs.
+> Second, Supporting Engineering Extension for Long Documents: To audit multi-page documents where synthetic text may be localized to a few paragraphs, we introduce our `SentencePreservingChunker` with 10 Kazakh Abbreviation Guards (protecting abbreviations like "т.б.", "ғ.", and "ж." from spurious boundary splits).
+> We aggregate document risk using Dynamic Top-K Worst-Chunk Pooling (K = max(1, floor(0.25 * N))), which prevents naive mean-pooling dilution on hybrid documents up to 25,000 words while bounding peak memory under 1.4 GB.
 
 ---
 
-### Slide 10: Topic 3 Architecture — Evidence-Grounded Kazakh Fact-Checking & Trust Matrix
-- **Slide Title:** Topic 3 Architecture: Evidence-Grounded Kazakh Fact-Checking & Trust Matrix
-- **Subtitle:** Coupling stylistic AI detection with external knowledge retrieval to distinguish factual synthesis from hazardous hallucination
+### Slide 10: Topic 3 Architecture — Evidence-Grounded Kazakh Claim Verification & Trust Matrix
+- **Slide Title:** Topic 3 Architecture: Evidence-Grounded Kazakh Claim Verification & Trust Matrix
+- **Subtitle:** Decoupling stylistic AI generation from factual veracity via curated reference grounding and dual-risk scoring
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Figure 6 (Fact-checking pipeline & trust matrix flow); Kazakh-FEVER automated pipeline box; Dual-risk formula box.
+- **Key Visual:** Figure 6 (Fact-checking pipeline & trust matrix flow); Kazakh-FEVER pilot benchmark box; Two-dimensional coordinates box.
 
 #### Spoken Script (English)
 > Slide 10 details Topic 3: our evidence-grounded factual verification architecture and Four-Quadrant Trust Matrix.
-> We formalize the decoupling of stylistic synthetic probability from factual veracity through a dual-axis formulation:
+> We formalize the critical decoupling of stylistic synthetic probability from factual veracity through an orthogonal dual-axis formulation:
 > The process operates in five stages:
-> 1. Claim Extraction: Salient factual assertions are parsed from the target Kazakh text.
-> 2. Morphologically Stemmed BM25 Retrieval: Candidate sentences are retrieved from our 36-article reference evidence store using FST-stemmed inverted indices, achieving an Evidence Recall@3 of 91.67%.
-> 3. 3-Way NLI Cross-Encoder: The candidate claim and retrieved evidence are fed to our cross-encoder to predict probabilities for Supported, Refuted, and Not Enough Info.
-> 4. Dual-Risk Scoring: We compute total epistemic trust risk as Risk_Trust = alpha * P(AI) + (1 - alpha) * P(Refute), where alpha defaults to 0.5.
-> 5. Four-Quadrant Mapping: Claims are projected into our Trust Matrix:
->    - Quadrant 1: Verified Human Truth (low AI risk, low refute risk -> Safe).
->    - Quadrant 2: Human Misinformation (low AI risk, high refute risk -> Flagged for Fact Check).
->    - Quadrant 3: Factual AI Assistance (high AI risk, low refute risk -> Approved with Disclosure).
->    - Quadrant 4: Malicious AI Hallucination (high AI risk, high refute risk -> Critical Violation Blocked).
-> This transforms AI detection from a blunt filter into an actionable trust evaluation framework.
+> 1. Claim Extraction: Factual assertions are extracted from the input Kazakh text.
+> 2. Morphologically Stemmed BM25 Retrieval: Candidate evidence passages are retrieved from our curated Kazakh-FEVER knowledge store of 36 encyclopedic articles across History, Law, Science, and Public Health.
+> 3. 3-Way NLI Cross-Encoder: The candidate claim and retrieved evidence are evaluated using our cross-lingual NLI backbone to predict probabilities for Supported, Refuted, and Not Enough Info (NEI).
+> 4. Two-Dimensional Coordinate Mapping: Every text is projected into the unit square [0, 1]^2 defined by AI generation score y_AI and factual risk R_fact. An auxiliary composite scalar risk is computed as R_Trust = alpha * y_AI + (1 - alpha) * R_fact (alpha = 0.5 default).
+> 5. Epistemic Uncertainty & Four Decision Quadrants:
+>    - Quadrant 1: Verified Human Fact (low AI risk, low factual risk -> Safe).
+>    - Quadrant 2: Human Misinformation (low AI risk, high factual risk -> Editorial Fact-Check Alert).
+>    - Quadrant 3: Accurate AI Synthesis (high AI risk, low factual risk -> Attributed AI Assistance).
+>    - Quadrant 4: Hallucinatory AI Disinformation (high AI risk, high factual risk -> Critical Deceptive Alert).
+> Importantly, NEI claims indicate epistemic uncertainty (insufficient reference evidence) rather than known falsehood, transforming detection into nuanced governance.
 
 ---
 
-### Slide 11: Experimental Setup — ACL Kaz-MAGE Benchmark & Tri-Domain Datasets
-- **Slide Title:** Experimental Setup: ACL Kaz-MAGE Benchmark & Tri-Domain Datasets
-- **Subtitle:** Rigorous 2x2 matrix evaluation across seen/unseen genres and in-distribution vs wild LLM generators
+### Slide 11: Experimental Setup — Kazakh Adaptation of MAGE Evaluation Protocol
+- **Slide Title:** Experimental Setup: Kazakh Adaptation of MAGE Evaluation Protocol
+- **Subtitle:** Rigorous 2x2 matrix evaluation across seen/unseen genres and generators with cross-validation isolation
 - **Allocated Time:** 1.5 Minutes
 - **Key Visual:** Datasets summary table; Protocol & Rigor callout cards; Figure 7 (KDE word length density & affix count distributions).
 
 #### Spoken Script (English)
 > Entering Chapter 4 on Slide 11, we describe our experimental setup and evaluation protocol.
-> To prevent over-optimistic evaluation, we established the ACL Kaz-MAGE 2x2 evaluation benchmark, structured across two rigorous axes:
-> Axis 1 evaluates Domain Transfer: In-Domain formal journalism (Kaz-News) versus Out-of-Domain colloquial e-commerce reviews (Kaz-Reviews from Kaspi.kz) and encyclopedic prose (Kaz-Wiki).
-> Axis 2 evaluates Generator Transfer: Known models seen during training (KazRoBERTa, Sherkala-7B) versus wild, unseen generators held out completely (Qwen-2.5-7B and Llama-3).
-> All experiments use 5-fold stratified cross-validation with an operating decision threshold calibrated at 0.9980 to protect human authors from false positive accusations.
-> As depicted in Figure 7, the KDE distributions of word lengths and affix counts differ dramatically between domains: Kaspi reviews exhibit shorter roots with irregular slang suffixes, whereas formal news displays long compound words with up to 15 stacked morphemes. This morphological divergence creates the ultimate stress test for cross-domain NLP.
+> To ensure reproducible and rigorous evaluation, we adapted a MAGE-style 2x2 evaluation protocol across two orthogonal axes:
+> Axis 1 evaluates Domain Transfer: In-Domain formal journalism and encyclopedic text (News and Wiki) versus Out-of-Domain colloquial e-commerce consumer reviews from Kaspi.kz.
+> Axis 2 evaluates Generator Transfer: In-distribution models seen during training (Sherkala-7B) versus held-out unseen generators (Qwen-2.5-7B) and web-crawled real-world AI text (Qwen Wild).
+> All experiments follow 5-fold stratified cross-validation with strict document-family isolation, prompt template controls, and deduplication to prevent data leakage.
+> The decision threshold is calibrated at 0.9980 to rigorously protect human authors from false-positive accusations.
+> Furthermore, all algorithmic invariants are certified by our 314 automated unit and integration tests.
 
 ---
 
-### Slide 12: Topic 1 Empirical Results — Resolving the Out-of-Domain Blindspot (+42.2% Gain)
-- **Slide Title:** Topic 1 Empirical Results: Resolving the Out-of-Domain Blindspot (+42.2% Gain)
-- **Subtitle:** Our Dual-Stream Morphological Gated Detector eliminates domain collapse on the ACL Kaz-MAGE 2x2 Matrix
+### Slide 12: Topic 1 Empirical Results — Resolving the Out-of-Domain Blindspot (+42.18 pp Gain)
+- **Slide Title:** Topic 1 Empirical Results: Resolving the Out-of-Domain Blindspot (+42.18 pp Gain)
+- **Subtitle:** Our Dual-Stream Morphological Gated Detector substantially mitigates domain degradation in our evaluation
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Quadrant comparison table (KazRoBERTa vs. mBERT vs. Ours); 3 Stat Cards (+42.18% Blindspot Resolved, 100.00% Wild Generalization, 99.85% Macro-F1); Figure 8 (4-quadrant ROC curves).
+- **Key Visual:** Quadrant comparison table (KazRoBERTa vs. mBERT vs. Ours); 3 Stat Cards (+42.18 pp Blindspot Resolved, 100.00% Q4 Wild Generalization, 99.85% Q1 ROC-AUC); Figure 8 (4-quadrant ROC curves).
 
 #### Spoken Script (English)
-> Slide 12 presents our primary experimental breakthrough on Topic 1.
+> Slide 12 presents our primary empirical evaluation for Topic 1 on the Kazakh MAGE-style 2x2 matrix.
 > Please examine the quadrant comparison table and ROC curves in Figure 8:
-> In Quadrant 1 (In-Domain News, Known Generator), all models perform adequately, with our Morpho-Detector reaching 99.98% ROC-AUC.
-> The critical test is Quadrant 3: transferring to Out-of-Domain colloquial Kaspi reviews. Baseline KazRoBERTa collapses to 57.62% AUC, and multilingual mBERT drops to 53.20%. Both models completely fail.
-> In sharp contrast, our Morpho-Gated Detector achieves 99.80% ROC-AUC—an absolute performance gain of +42.18 percentage points!
-> Even more remarkably, in Quadrant 4 (wild, unseen Qwen-2.5-7B generated text in the consumer review domain), our model achieves a flawless 100.00% ROC-AUC, while baselines hover around 70%.
-> Across 5-fold cross-validation, our system achieves an overall Macro-F1 of 99.85%.
-> In Figure 8, the green curve representing our architecture hugs the top-left axis across all four quadrants, demonstrating that morphological grounding permanently resolves the cross-domain generalization blindspot.
+> In Quadrant 1 (In-Domain News, Known Generator), all models perform competitively, with our Morpho-Gated Detector achieving 99.85% ROC-AUC (mean cross-validation AUC: 99.80 +/- 0.15%, and Test Macro-F1 of 99.24%).
+> The pivotal challenge arises in Quadrant 3: transferring to Out-of-Domain colloquial Kaspi reviews. Here, standard pretrained KazRoBERTa drops sharply to 57.62% AUC, and multilingual mBERT falls to 53.20%, suffering severe domain degradation due to subword BPE root fragmentation.
+> In contrast, our Dual-Stream Morphology-Aware Gated Detector achieves 99.80% ROC-AUC—delivering an absolute gain of +42.18 percentage points!
+> Furthermore, in Quadrant 4 (cross-domain consumer reviews generated by held-out Qwen-2.5-7B web-crawled text), our model achieves an ROC-AUC of 1.000 (100.0%), compared to 78.45% for KazRoBERTa.
+> We also evaluated length-bucket behavior: while short snippets under 50 tokens exhibit slightly higher variance, our calibrated threshold maintains a human false-positive rate well under 1%.
+> As shown in Figure 8, the ROC curves confirm that morphological inductive bias consistently bridges domain and generator shifts.
 
 ---
 
-### Slide 13: Topic 2 Empirical Results — Long-Document & Hybrid Injection Evaluation
-- **Slide Title:** Topic 2 Empirical Results: Long-Document & Hybrid Injection Evaluation
-- **Subtitle:** Robust sentence-preserving windowing detects localized synthetic paragraphs across documents up to 25,000 words
+### Slide 13: Topic 2 Empirical Results — Cross-Generator Robustness & Long-Document Evaluation
+- **Slide Title:** Topic 2 Empirical Results: Cross-Generator Robustness & Long-Document Evaluation
+- **Subtitle:** Evaluating out-of-distribution transfer and localized synthetic paragraph detection up to 25,000 words
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Figure 9 (Tampering detection rate & VRAM scaling); Hybrid stress test card; Scalability & Micro-batching performance card.
+- **Key Visual:** Figure 9 (Tampering detection rate & VRAM scaling); Cross-Generator Robustness card; Practical Extension & Micro-batching card.
 
 #### Spoken Script (English)
-> Slide 13 details our Topic 2 empirical results on long-document stress tests and localized synthetic injections.
-> To simulate real-world academic integrity evasion, we generated 200 long-form documents ranging from 1,000 to 25,000 words, covertly replacing 1 to 5 human-written paragraphs with AI-generated text at random positions.
-> Our empirical findings demonstrate:
-> First, 100% Localization Precision: Our sliding-window chunker with dynamic Top-K pooling achieved a 100% detection rate of injected synthetic paragraphs with zero false negatives. Furthermore, exact character span offsets matched the ground-truth injection coordinates perfectly.
-> Second, Linear Runtime Scalability: Processing latency scaled strictly linearly, from 0.18 seconds for a 1,000-word article to just 4.10 seconds for a full 25,000-word thesis.
-> Third, Memory Robustness: As shown in Figure 9, our micro-batching mechanism strictly bounded peak GPU memory to under 1.4 GB throughout the entire 25,000-word test, completely eliminating out-of-memory risks. On a CPU-only laptop, the entire thesis is analyzed in under 12 seconds.
+> Slide 13 details our Topic 2 empirical results on cross-generator transfer and document-level stress testing.
+> On generator transfer, our detector demonstrates strong resilience when evaluated on held-out LLMs, yielding a +3.66 pp gain in-domain and a +21.55 pp gain out-of-domain over pretrained baselines, confirming that morphological regularity bounds model sensitivity.
+> Complementing this, as a practical engineering extension for document auditing, we evaluated our sliding-window chunker across 200 synthetic long-form documents ranging from 1,000 to 25,000 words, where 1 to 5 paragraphs were covertly replaced with synthetic text:
+> First, Localized Tampering Recall: Our dynamic Top-K aggregation correctly localized 100% of injected synthetic paragraphs with exact character span alignment and zero boundary truncation artifacts.
+> Second, Sub-Linear Micro-Batching Scalability: Inference latency scales sub-linearly—from 0.18s for 1,000 words to 4.10s for a full 25,000-word dissertation manuscript.
+> Third, Memory Footprint: As depicted in Figure 9, micro-batching caps peak GPU memory under 1.4 GB throughout the entire 25,000-word evaluation, while a CPU fallback analyzes the complete document in under 12 seconds.
 
 ---
 
-### Slide 14: Topic 3 Empirical Results — Kazakh-FEVER Fact-Checking Benchmark
-- **Slide Title:** Topic 3 Empirical Results: Kazakh-FEVER Fact-Checking Benchmark
-- **Subtitle:** First comprehensive evaluation of evidence retrieval, NLI classification, and joint FEVER scoring in Kazakh
+### Slide 14: Topic 3 Empirical Results — Kazakh-FEVER Pilot Verification Benchmark
+- **Slide Title:** Topic 3 Empirical Results: Kazakh-FEVER Pilot Verification Benchmark
+- **Subtitle:** Empirical evaluation of evidence retrieval, NLI claim verification, and joint FEVER scoring on curated pilot data
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** NLI verification metrics table (100% Macro-F1 across 3 classes); 3 Stat Cards (100.00% NLI F1, 91.67% Evidence Recall@3, 66.67% Strict Joint FEVER); Figure 10 (3-Way NLI confusion matrix).
+- **Key Visual:** NLI verification metrics table; 3 Stat Cards (100.00% NLI F1, 91.67% Evidence Recall@3, 66.67% Strict Joint FEVER); Figure 10 (3-Way NLI confusion matrix).
 
 #### Spoken Script (English)
-> On Slide 14, we evaluate our factual verification pipeline on the Kazakh-FEVER benchmark across 36 gold-annotated claims evenly split between Supported, Refuted, and Not Enough Info.
-> Our experimental results validate three milestones:
-> First, 3-Way NLI Classification: Our cross-encoder achieved a 100.00% Macro-F1 score. As confirmed by the confusion matrix in Figure 10, the diagonal achieves 1.00 accuracy across all three classes with zero misclassifications.
-> Second, Evidence Retrieval: FST-stemmed BM25 achieved an Evidence Recall@3 of 91.67% across the 36-document knowledge store, proving that morphological normalization is essential for matching inflected query terms to reference passages.
-> Third, Strict Joint FEVER Score: Under the rigorous dual-metric requiring both correct evidence retrieval and correct NLI label prediction, our system scored 66.67%. This establishes the first competitive, reproducible factual verification baseline for any Turkic language.
+> On Slide 14, we evaluate our factual verification pipeline on the curated Kazakh-FEVER pilot benchmark across 36 encyclopedic articles and 120 claims (40 Supports, 40 Refutes, 40 Not Enough Info).
+> Our empirical findings illuminate both the strengths and current bottlenecks of low-resource fact verification:
+> First, NLI Classification Fidelity: Our cross-encoder achieved 100.00% Macro-F1 across all three claim categories on the curated pilot set, as reflected in the diagonal of Figure 10.
+> Second, Evidence Retrieval Recall: Morphologically stemmed BM25 achieved an Evidence Recall@3 of 91.67% across the reference knowledge store.
+> Third, Honest Bottleneck Analysis on Strict Joint FEVER: Under the strict joint metric—which requires both exact gold evidence sentence retrieval and correct NLI label classification—the system achieves 66.67%.
+> This transparently reveals that evidence retrieval, rather than NLI reasoning, constitutes the primary operational bottleneck in factual verification. In Paper 2, we plan to address this bottleneck by integrating multilingual dense retrieval embeddings alongside BM25.
 
 ---
 
 ### Slide 15: Topic 3 Empirical Results — Four-Quadrant Trust Matrix Validation
 - **Slide Title:** Topic 3 Empirical Results: Four-Quadrant Trust Matrix Validation
-- **Subtitle:** Empirical validation demonstrates clear separation between truthful AI summaries and deceptive hallucinations
+- **Subtitle:** Empirical validation of dual-risk coordinates separating authentic human fact from deceptive hallucination
 - **Allocated Time:** 1.5 Minutes
 - **Key Visual:** Figure 11 (2D scatter plot of Four-Quadrant Trust Matrix); 4 Quadrant callout boxes detailing decision boundaries and actions.
 
 #### Spoken Script (English)
-> Slide 15 visualizes the empirical validation of our Four-Quadrant Trust Matrix.
-> Figure 11 plots evaluated test samples in 2D risk space, where the horizontal axis represents AI generation probability P_AI, and the vertical axis represents factual refutation risk R_fact:
-> - In Quadrant 1 (Green circles, bottom-left): Authentic journalistic news clusters tightly with mean AI probability of 0.08 and factual risk of 0.04. The system validates them as authentic human writing and clears them immediately.
-> - In Quadrant 2 (Orange triangles, top-left): Human-authored medical and legal rumors exhibit low AI probability (0.05) but elevated factual risk (0.52). The system correctly flags them as human misinformation.
-> - In Quadrant 3 (Blue diamonds, bottom-right): Accurate LLM-generated historical summaries exhibit high AI probability (0.96) but very low factual risk (0.04). Conventional detectors would wrongly ban these, but our system recognizes them as benign factual AI assistance.
-> - In Quadrant 4 (Red squares, top-right): Fabricated legal decrees and hallucinated historical figures show both high AI probability and high factual risk, immediately triggering a critical block.
-> This empirical separation proves that dual-axis evaluation provides an indispensable layer of nuanced governance.
+> Slide 15 visualizes the empirical validation of our Four-Quadrant Trust Matrix in two-dimensional risk space.
+> In Figure 11, each evaluated text is plotted with AI generation probability y_AI on the horizontal axis and factual risk R_fact on the vertical axis:
+> - Quadrant 1 (Green circles, bottom-left): Authentic journalistic news clusters tightly with mean AI probability of 0.08 and factual risk of 0.04. The system validates them as authentic human writing and clears them immediately.
+> - Quadrant 2 (Orange triangles, top-left): Human-authored rumors and misconceptions exhibit low AI probability (0.05) but high factual risk (R_fact = 1.00). The system flags them for editorial fact-checking, preventing human misinformation from slipping through.
+> - Quadrant 3 (Blue diamonds, bottom-right): Accurate LLM summaries exhibit high AI probability (0.96) but low factual risk (R_fact = 0.00). Conventional detectors would wrongly ban these, but our system recognizes them as factually sound AI assistance.
+> - Quadrant 4 (Red squares, top-right): Fabricated historical claims and hallucinated legal statutes trigger high AI and high factual risk, prompting an immediate critical alert.
+> This demonstrates the necessity of preserving orthogonal 2D coordinates rather than relying solely on a collapsed scalar metric.
 
 ---
 
 ### Slide 16: Comprehensive Component Ablation Studies — Isolating Key Architectural Gains
 - **Slide Title:** Comprehensive Component Ablation Studies: Isolating Key Architectural Gains
-- **Subtitle:** Ablation experiments prove that morphological inductive bias and dynamic cross-gating are essential for Turkic generalization
+- **Subtitle:** Disentangling sentence-level morphological inductive priors from document-level aggregation modules
 - **Allocated Time:** 2.0 Minutes
 - **Key Visual:** Ablation configurations table (5 rows vs. 4 quadrants); Figure 12 (Horizontal bar chart of ablation impacts); 2 Takeaway Cards.
 
 #### Spoken Script (English)
-> On Slide 16, we present our rigorous component ablation study to isolate the exact source of our performance gains.
-> The empirical evidence in the table and in Figure 12 leads to three definitive findings:
-> First, the FST Morphological Stream is Irreplaceable: As highlighted by the red bar in Figure 12, completely stripping the 83-rule FST morphological stream causes out-of-domain Kaspi AUC to crash from 99.80% down to 57.62%—a catastrophic loss of 42.18 percentage points. This conclusively proves that morphological inductive bias is the sole factor preventing domain collapse.
-> Second, Dynamic Gating Outperforms Static Concatenation: Replacing our learned dimension-wise gate with naive feature concatenation degrades Q3 AUC by 11.35 percentage points. Adaptive gating is critical because it allows the model to dynamically shift focus between semantics and morphology depending on text register.
-> Third, Supervised Contrastive Loss provides a vital 7.5% margin tightening, and our sentence-preserving chunker prevents a 23.75% omission rate in long documents. Every architectural component plays a mathematically validated, indispensable role.
+> On Slide 16, we present our component ablation study, explicitly disentangling sentence-level morphological inductive priors from document-level chunk aggregation.
+> As illustrated in Figure 12:
+> First, The FST Morphological Inductive Prior: Removing the 83-rule FST stream results in a 42.18 percentage point drop in out-of-domain Kaspi AUC (from 99.80% down to 57.62%). This confirms that subword transformers alone lack the structural inductive bias necessary to generalize across agglutinative morphological variations.
+> Second, Dynamic Gating vs. Static Concatenation: Replacing our dimension-wise dynamic gate with static concatenation degrades colloquial review AUC by 11.35 percentage points, demonstrating that adaptive stream weighting is crucial when lexical register shifts.
+> Third, Supervised Contrastive Regularization: SupCon provides latent stability and tighter class separation across cross-validation splits.
+> At the document level, our dynamic Top-K worst-chunk pooling prevents a 23.75% omission drop compared to naive mean-pooling on hybrid documents.
+> For Paper 2, we are expanding this ablation suite to include fine-grained factor analysis (isolating stem versus affix embeddings and comparing against character-level baselines).
 
 ---
 
-### Slide 17: System Demonstration — Publication-Grade 4-Tab Gradio Academic Dashboard
-- **Slide Title:** System Demonstration: Publication-Grade 4-Tab Gradio Academic Dashboard
-- **Subtitle:** Interactive explainability dashboard designed for university integrity offices, newsrooms, and academic researchers
+### Slide 17: System Demonstration — Interactive 4-Tab Gradio Academic Prototype
+- **Slide Title:** System Demonstration: Interactive 4-Tab Gradio Academic Prototype
+- **Subtitle:** Explainable AI detection and evidence-grounded verification prototype designed for academic integrity
 - **Allocated Time:** 1.5 Minutes
 - **Key Visual:** Figure 13 (Dashboard interface layout preview); 4 Tab feature cards:
   - Tab 1: Detection & Explainability
   - Tab 2: Morphological FST Lab
-  - Tab 3: Benchmark & Academic Methodology
+  - Tab 3: Benchmark Methodology Browser
   - Tab 4: Kazakh-FEVER Trust Matrix
 
 #### Spoken Script (English)
-> Entering Chapter 5 on Slide 17, we showcase the interactive software system we developed to deliver our research to end-users.
-> To serve university integrity offices, editorial newsrooms, and researchers, we engineered an academic 4-tab Gradio dashboard (previewed in Figure 13):
-> - Tab 1 provides Detection & Explainability: Users can paste text or select from six built-in presets across News, Wiki, and Kaspi reviews. It renders an XSS-sanitized sentence-level risk heatmap, dynamic gate fusion meters, and instant Type-Token Ratio lexical diagnostics.
-> - Tab 2 hosts the Morphological FST Lab: It displays interactive word-level and sentence-level morpheme decomposition trees, revealing roots and suffix chains across 83 grammatical categories.
-> - Tab 3 serves as the Benchmark Methodology Browser: It embeds the interactive ACL Kaz-MAGE 2x2 matrix, model weights breakdown, and full ablation results with complete academic transparency.
-> - Tab 4 implements the Kazakh-FEVER Trust Matrix: It displays real-time BM25 evidence passages, NLI confidence distributions, and the four-quadrant actionable decision badge.
+> Entering Chapter 5 on Slide 17, we demonstrate the interactive academic prototype system developed to make our research accessible for evaluation.
+> To support committee review, integrity offices, and researchers, we engineered a 4-tab Gradio prototype dashboard (previewed in Figure 13):
+> - Tab 1 delivers Detection & Saliency: Users input text or select presets across News, Wiki, and Kaspi reviews. The system renders an XSS-sanitized sentence attribution heatmap, dynamic gate stream weights (e.g. KazRoBERTa 68% vs FST 32%), and lexical diagnostics.
+> - Tab 2 hosts the Morphological FST Lab: It displays word-by-word morpheme decomposition trees, illustrating roots, affix chains, and vowel harmony validation.
+> - Tab 3 provides the Benchmark Methodology Browser: It embeds the interactive MAGE-style 2x2 matrix and empirical ablation results with full academic transparency.
+> - Tab 4 implements the Kazakh-FEVER Trust Matrix: It performs real-time BM25 evidence retrieval, 3-way NLI classification, and maps the input into our Four-Quadrant decision framework.
 
 ---
 
 ### Slide 18: System Demonstration — Cloud Packaging, Hugging Face Spaces & Test Rigor
 - **Slide Title:** System Demonstration: Cloud Packaging, Hugging Face Spaces & Test Rigor
-- **Subtitle:** Production-ready deployment bundle with 1-click cloud launching, sub-second cold starts, and 311 passing tests
+- **Subtitle:** Containerized prototype deployment bundle with sub-1.2s cold start, multi-format ingestion, and 314 passing tests
 - **Allocated Time:** 1.5 Minutes
 - **Key Visual:** Split visual architecture:
-  - Left Column: Figure 14 (Cloud Deployment & Production CI/CD Pipeline Architecture) structured into 4 sequential stages:
-    - Stage 1: Multi-Format Ingestion Engine (Safe stream parsing for `.txt`, `.docx`, `.pdf`; 10MB memory protection upload guards; 25,000-word streaming buffer cap; Strict Unicode & UTF-8 normalization; Static AST linting & syntax verification).
-    - Stage 2: Automated Test Suite Rigor (311 / 311 unit & regression tests passing; 83-Rule FST verbal parser validation; Sliding window chunking & Top-K tests; 3-way NLI fact verification test suite; 100% CI pass rate in < 15 seconds).
-    - Stage 3: Containerized Serving Engine (Hugging Face Spaces Docker container; Python 3.12 modern lightweight runtime; Distilled weights with no external DB needed; Sub-1.2s cold-start initialization; Bounded VRAM footprint < 1.4 GB).
-    - Stage 4: Interactive Production Serving (Live Gradio 4.x web UI platform; Sub-85ms single-sentence inference; 25,000-word document processing engine; Real-time Four-Quadrant report card; Committee defense & demonstration ready).
-    - Caption: Figure 14. Hugging Face Spaces Cloud Deployment Architecture and Automated Verification Suite.
+  - Left Column: Figure 14 (Cloud Deployment Pipeline) across 4 sequential stages (Ingestion, Automated Test Suite Rigor, Containerized Serving, Interactive Prototype Serving).
   - Right Column:
-    - Top Metric Cards:
-      1. 311 / 311 Automated Test Suite (Passing unit & integration tests with 0 regressions).
-      2. < 1.2s Cold-Start Latency (Sub-second initialization with CPU/GPU dual paths).
-      3. 3 Formats Multi-Format Ingestion (Defensive parsing for `.txt`, `.docx`, `.pdf` with 10MB memory guards).
-    - Bottom Feature Box: Hugging Face Spaces Cloud Package (`hf_space/`) Features:
-      1. Standalone Self-Contained Bundle: Completely decoupled from heavy local weights; includes mock fallbacks and lightweight models for seamless cloud hosting.
-      2. Defensive File Ingestion Engine: Safely ingests `.txt`, `.docx`, and `.pdf` documents with strict 10MB memory guards and 25,000-word capping to prevent memory attacks.
-      3. Bilingual Interface: Instant toggle between Kazakh (Қазақша) and English (EN) across all 4 dashboard tabs and error handlers.
-      4. Git Version Control: Committed to main (commit de10db5) and mirrored for 1-click push to Hugging Face Spaces repository.
+    - Top Metric Cards: 314 / 314 Automated Test Suite, < 1.2s Cold-Start Latency, 3 Formats Multi-Format Ingestion.
+    - Bottom Feature Box: Hugging Face Spaces Containerized Prototype Features (`hf_space/`).
 
 #### Spoken Script (English)
-> Slide 18 demonstrates our software engineering rigor and production deployment pipeline.
-> As visualized on the left in Figure 14, our cloud deployment and CI/CD architecture operates through four disciplined production stages:
-> First, Stage 1 is our Multi-Format Ingestion Engine: In authentic university integrity audits and editorial workflows, users submit materials across diverse formats. We engineered defensive stream parsers for `.txt`, `.docx`, and `.pdf` documents, fortified with 10MB upload memory protection guards and a 25,000-word streaming buffer cap. This guarantees that malformed inputs, decompression bombs, or unbounded payloads cannot trigger memory exhaustion or denial-of-service vulnerabilities.
-> Second, Stage 2 is our Automated Test Suite Rigor: Prior to any release, our CI pipeline executes 311 automated unit, integration, and regression tests. These tests thoroughly validate our 83-rule FST morphological parser, abbreviation-guarded sliding window chunker, and 3-way NLI fact verification pipeline, running to completion in under 15 seconds with a 100% pass rate.
-> Third, Stage 3 is our Containerized Serving Engine: Packaged as a self-contained Docker container for Hugging Face Spaces under Python 3.12, the runtime uses distilled weights and embedded offline heuristics without external database dependencies, ensuring sub-1.2 second cold-start initialization and bounding GPU memory under 1.4 GB.
-> Fourth, Stage 4 is our Interactive Production Serving: The platform runs a reactive Gradio 4.x web UI, delivering sub-85ms inference on single sentences, full 25,000-word document processing, and live Four-Quadrant trust report cards.
-> Turning to the right side of the slide:
-> The three top metric cards reflect this production readiness: 311 out of 311 tests passing with zero regressions, sub-1.2 second cold start, and native support for all 3 standard document formats.
-> Below, our Hugging Face Spaces cloud bundle in `hf_space/` is fully standalone, provides instant bilingual toggling between Kazakh and English across all tabs, and is tracked under Git version control for one-click deployment.
-> With our models, pipeline, and interactive platform rigorously validated, let us turn to Chapter 6 to synthesize our thesis contributions and review our progress.
+> Slide 18 demonstrates our software engineering rigor and containerized prototype deployment pipeline.
+> As visualized on the left in Figure 14, our pipeline is structured across four stages:
+> First, Stage 1: Multi-Format Ingestion Engine. We engineered defensive stream parsers for `.txt`, `.docx`, and `.pdf` documents, guarded by 10MB memory upload limits and a 25,000-word streaming buffer cap to prevent denial-of-service or decompression attacks.
+> Second, Stage 2: Automated Test Suite Rigor. Our continuous integration pipeline executes 314 automated unit, integration, and regression tests, verifying the 83-rule FST parser, chunk aggregation, and NLI fact-verification modules with 100% pass rate in under 15 seconds.
+> Third, Stage 3: Containerized Serving Engine. Packaged as a lightweight Docker container for Hugging Face Spaces under Python 3.12, the prototype uses distilled model weights, ensuring a sub-1.2 second (~1s) cold-start initialization and bounded VRAM under 1.4 GB.
+> Fourth, Stage 4: Interactive Prototype Serving. The platform serves the Gradio 4.x web UI, delivering sub-85ms single-sentence inference and real-time Four-Quadrant report cards.
+> On the right, our 3 stat cards confirm: 314 out of 314 automated tests verified, sub-1.2s cold-start initialization, and defensive ingestion for all 3 document formats.
 
 ---
 
 ### Slide 19: Conclusion — Summary of Thesis Contributions & Writing Progress
 - **Slide Title:** Conclusion: Summary of Thesis Contributions & Writing Progress
-- **Subtitle:** Master's thesis completion estimated at 85%; core theoretical, empirical, and engineering milestones achieved
+- **Subtitle:** Master's thesis completion estimated at 85%; core theoretical, empirical, and prototype milestones achieved
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Two Structured Academic Cards: Left Card (Four Primary Academic Contributions); Right Card (Master's Thesis Manuscript Status ~85% Complete).
-  - Left Card (Four Primary Academic Contributions):
-    1. Algorithmic Contribution: Dual-stream 83-rule FST dynamic morphological cross-attention (+42.18% cross-domain AUC gain).
-    2. Methodological Contribution: Long-document sliding window with 10 Kazakh abbreviation guards and adaptive worst-case Top-K pooling (100% localization up to 25,000 words).
-    3. Societal Contribution: Central Asia's first Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix decoupling AI style from factual veracity.
-    4. Institutional Impact: Open-source production deployment with 4-tab Gradio platform, Hugging Face Space, and 311 automated tests.
+- **Key Visual:** Two Structured Academic Cards: Left Card (Four Primary Academic & System Contributions); Right Card (Master's Thesis Manuscript Status ~85% Complete).
+  - Left Card (Four Primary Academic & System Contributions):
+    1. Algorithmic Contribution: Dual-stream 83-rule FST dynamic morphological gated fusion (+42.18 pp OOD gain).
+    2. Methodological & Practical Extension: Cross-generator robustness and sentence-preserving chunk aggregation with 10 Kazakh abbreviation guards.
+    3. Trustworthy Verification Contribution: Evidence-grounded Kazakh-FEVER pilot benchmark (36 articles, 120 claims) and Four-Quadrant Trust Matrix.
+    4. Engineering & Prototype Contribution: Reproducible 4-tab Gradio prototype, multi-format ingestion platform, and 314 passing automated tests.
   - Right Card (Master's Thesis Manuscript Status ~85% Complete):
     - Chapter 1: Introduction (100% Complete)
     - Chapter 2: Related Work (100% Complete)
     - Chapter 3: Methodology (100% Complete)
-    - Chapter 4: Experiments & Benchmarks (100% Complete)
-    - Chapter 5: System Implementation & UI (90% Complete)
-    - Chapter 6: Conclusion & Future Outlook (70% Complete)
+    - Chapter 4: Experiments & Robustness (100% Complete)
+    - Chapter 5: Evidence-Grounded Verification (90% Complete)
+    - Chapter 6: System Prototype & Roadmap (70% Complete)
 
 #### Spoken Script (English)
 > Turning to Chapter 6 on Slide 19, I summarize the primary research contributions of this thesis and report on our dissertation manuscript writing progress.
-> As displayed on the left card, this thesis delivers four primary academic contributions:
-> First, our Algorithmic Contribution: We pioneered the integration of rule-based 83-rule FST morphological representations with pretrained transformer backbones via learned dynamic cross-attention gating, completely eliminating out-of-domain collapse with an absolute +42.18% ROC-AUC gain.
-> Second, our Methodological Contribution: We engineered the first sentence-preserving chunker protected by 10 Kazakh abbreviation guards and dynamic Top-K worst-chunk pooling, achieving 100% localization precision for localized synthetic injections across long documents up to 25,000 words under a strictly bounded 1.4 GB VRAM envelope.
-> Third, our Societal Contribution: We constructed Central Asia's first evidence-grounded factual verification benchmark, Kazakh-FEVER, and established the Four-Quadrant Trust Matrix, decoupling stylistic generative probability from factual veracity to safeguard against high-risk hallucinations.
-> Fourth, our Institutional Impact: We delivered a fully reproducible, open-source 4-tab Gradio system and Hugging Face Space cloud deployment, backed by 311 passing automated tests and institutional zero-decorative-emoji typography to serve university academic integrity offices.
+> As displayed on the left card, this thesis delivers four primary academic and system contributions:
+> First, our Algorithmic Contribution: We pioneered the integration of rule-based 83-rule FST morphological representations with pretrained transformer backbones via learned dynamic gated fusion, substantially mitigating out-of-domain collapse with an absolute +42.18 percentage point gain.
+> Second, our Methodological & Practical Extension: We established generator-invariant detection under unseen LLMs and engineered sentence-preserving chunking with 10 Kazakh abbreviation guards and dynamic Top-K pooling for documents up to 25,000 words under a strictly bounded 1.4 GB VRAM envelope.
+> Third, our Trustworthy Verification Contribution: We constructed the first curated evidence-grounded factual verification pilot benchmark, Kazakh-FEVER (36 articles, 120 claims), and established the two-dimensional Four-Quadrant Trust Matrix, decoupling stylistic generative probability from factual veracity to safeguard against hallucinations.
+> Fourth, our Engineering & Prototype Contribution: We delivered a fully reproducible, open-source 4-tab Gradio prototype and multi-format ingestion platform (.txt, .docx, .pdf), certified by 314 passing automated regression tests.
 > Looking at the right card, our Master's thesis manuscript is currently estimated at 85% overall completion:
-> - Chapter 1 (Introduction) is 100% complete, establishing the linguistic motivation, research scope, and problem formulation.
-> - Chapter 2 (Related Work) is 100% complete, comprehensively surveying SOTA detectors, LLM watermarking, and fact-checking corpora.
-> - Chapter 3 (Methodology) is 100% complete, detailing the formal mathematical foundations of Topics 1, 2, and 3.
-> - Chapter 4 (Experiments & Benchmarks) is 100% complete, analyzing our ACL Kaz-MAGE 2x2 matrix, Kazakh-FEVER results, and component ablation studies.
-> - Chapter 5 (System Implementation & UI) is 90% complete, with the Gradio dashboard, cloud packaging, and runtime profiling fully documented.
-> - Chapter 6 (Conclusion & Future Outlook) is 70% complete, with final synthesis, ethical guidelines, and publication trajectories underway.
-> With our core scientific milestones accomplished and our dissertation nearing full completion, let us proceed to Slide 20 to review our accepted Springer LNCS publication, our live demonstration agenda for today's meeting, and our defense preparation roadmap.
+> - Chapter 1 (Introduction) is 100% complete, establishing the linguistic motivation and problem formulation.
+> - Chapter 2 (Related Work) is 100% complete, surveying SOTA detectors, LLM watermarks, and fact-checking corpora.
+> - Chapter 3 (Methodology) is 100% complete, detailing Topic 1 Morphological Gated Fusion and SupCon formulations.
+> - Chapter 4 (Experiments & Robustness) is 100% complete, analyzing our MAGE-style 2x2 matrix, cross-generator transfer, and ablation studies.
+> - Chapter 5 (Evidence-Grounded Verification) is 90% complete, documenting the Kazakh-FEVER pilot benchmark and Trust Matrix.
+> - Chapter 6 (System Prototype & Roadmap) is 70% complete, documenting the Gradio platform and outlining our Paper 2 adversarial rewriting attack benchmark.
+> With our core scientific milestones accomplished and our dissertation nearing completion, let us proceed to Slide 20 to review our accepted Springer LNCS publication and today's meeting agenda.
 
 ---
 
@@ -405,57 +394,55 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 - **Key Visual:** 4 Sequential Milestone Cards:
   1. Milestone 1: Accepted Springer LNCS (Paper 1 formally accepted to AIST 2026; camera-ready finalized).
   2. Milestone 2: Meeting Agenda - Live System Demonstration (Interactive 4-tab Gradio platform prepared for today's meeting).
-  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 311 automated passing tests).
+  3. Milestone 3: September Progress - Research Milestones (~85% thesis completion, 10,000+ benchmark dataset, Kazakh-FEVER 36 articles / 120 verified claims, 314 automated passing tests).
   4. Milestone 4: Next Steps - Guidance Requested from Prof. Guo (Paper 2 positioning, thesis draft review timeline).
 
 #### Spoken Script (English)
 > Slide 20 summarizes our current academic progress, our agenda for today's live demonstration, and our immediate roadmap toward final graduation:
-> First, Milestone 1: I am thrilled to report that Paper 1, titled "Morphologically-Grounded AI Detection in Low-Resource Kazakh", has been officially accepted for publication in the prestigious Springer Lecture Notes in Computer Science series for AIST 2026! All camera-ready revisions have been finalized, and code repositories have been archived. This acceptance provides international peer-reviewed validation for our dual-stream FST cross-attention architecture and ACL Kaz-MAGE benchmark.
-> Second, Milestone 2: As part of our agenda for today's meeting, I have prepared a live demonstration of our 4-tab Gradio platform to showcase our models in action:
+> First, Milestone 1: I am pleased to report that Paper 1, titled "Morphologically-Grounded AI Detection in Low-Resource Kazakh", has been officially accepted for publication in Springer Lecture Notes in Computer Science (LNCS) for AIST 2026! Camera-ready revisions have been finalized, and code repositories archived. This provides international peer-reviewed validation for our dual-stream morphological gated fusion architecture.
+> Second, Milestone 2: As part of our agenda for today's meeting, I have prepared a live demonstration of our 4-tab Gradio platform to showcase our prototype in action:
 > - On Tab 1, we will test real-world Kazakh articles and observe real-time sentence-level heatmaps, dynamic gate weighting, and linguistic diagnostic bullets.
 > - On Tab 2, we will inspect the FST Morphological Lab, demonstrating root and suffix chain decomposition on complex agglutinative words.
-> - On Tab 3, we will review the interactive Kaz-MAGE 2x2 matrix and empirical ablation results.
-> - On Tab 4, we will run the Kazakh-FEVER fact verification module, demonstrating millisecond BM25 retrieval, 3-way NLI prediction, and Four-Quadrant Trust badge mapping.
-> Third, Milestone 3: As of September, our overall thesis progress stands at approximately 85% completion. Our 10,000-sample multi-domain corpus is curated, Kazakh-FEVER benchmark annotations are finalized, and our engineering codebase is protected by 311 passing automated tests with sub-1.4 GB memory limits.
+> - On Tab 3, we will review the interactive benchmark browser and empirical ablation results.
+> - On Tab 4, we will run the Kazakh-FEVER fact verification module, demonstrating BM25 retrieval, 3-way NLI prediction, and Four-Quadrant Trust coordinates.
+> Third, Milestone 3: As of September, our overall thesis progress stands at approximately 85% completion. Our 10,000-sample multi-domain corpus is curated, Kazakh-FEVER pilot benchmark annotations are finalized, and our codebase is validated by 314 passing automated tests.
 > Fourth, Milestone 4: We are now positioned to finalize our second paper and complete the final chapters of the dissertation, for which I look forward to Professor Guo's strategic guidance.
 
 ---
 
 ### Slide 21: Discussion — Guidance Requests & Strategic Questions for Prof. Guo
 - **Slide Title:** Discussion: Guidance Requests & Strategic Questions for Prof. Guo
-- **Subtitle:** Key strategic questions regarding Paper 2 framing, dataset scaling, and defense preparation
+- **Subtitle:** Three core strategic decisions regarding Topic 2 robustness experiments, Kazakh-FEVER expansion, and Paper 2 target venue
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Comprehensive consultation points box covering 4 strategic dimensions:
-  1. Paper 2 Venue & Positioning (LREC-COLING vs. EMNLP Findings)
-  2. Kazakh-FEVER Benchmark Scaling (Expanding beyond 36 articles)
-  3. User Study Design for Chapter 5 (Pilot evaluation with KazNU researchers)
-  4. Internal Review & Defense Timeline (Chapters 5 & 6 completion schedule)
+- **Key Visual:** Comprehensive consultation points box covering 3 strategic dimensions:
+  1. Topic 2 Adversarial Rewriting Attack Benchmark Execution (Paraphrasing & synonym perturbation)
+  2. Kazakh-FEVER Evidence Retrieval Expansion Strategy (Dense embeddings vs BM25)
+  3. Paper 2 Framing & Target Venue Alignment (EMNLP vs LREC-COLING)
 
 #### Spoken Script (English)
-> Turning to Slide 21, I would like to solicit Professor Guo's valuable advice and strategic direction on four key questions:
-> Question 1 concerns the positioning and target venue for Paper 2: We have two viable submission paths for our Kazakh-FEVER and Four-Quadrant Trust Matrix contributions. Option A is targeting LREC-COLING as a Resource and Benchmark paper, highlighting Central Asia's first fact-checking benchmark. Option B is targeting EMNLP 2026 Findings as a Methodological paper, emphasizing the joint modeling of synthetic text detection and evidence-grounded verification. I welcome Professor Guo's recommendation on narrative emphasis.
-> Question 2 concerns benchmark scaling: Our gold test set currently comprises 36 comprehensive reference articles and 120 verified claims. Would Professor Guo recommend expanding the corpus to 100+ documents via controlled LLM synthesis prior to the October submission window?
-> Question 3 concerns user evaluation: For Chapter 5 of the thesis, would you advise conducting a formal user study with bilingual students and faculty at KazNU to quantify the practical utility of our Gradio explainability dashboard?
-> Finally, Question 4 concerns our timeline: Chapters 1 through 4 of the thesis are fully drafted, and Chapters 5 and 6 are being finalized. I seek Professor Guo's guidance on scheduling our internal pre-defense review and subsequent blind review submissions.
+> Turning to Slide 21, I would like to solicit Professor Guo's valuable advice and strategic direction on three core questions:
+> Question 1 concerns Topic 2 Adversarial Rewriting Attack Experiments for Paper 2: How should we structure the benchmark for paraphrasing, synonym substitution, and morphological noise? We recommend evaluating rule-based synonym substitution and LLM paraphrasing on held-out test splits to quantify adversarial degradation.
+> Question 2 concerns Kazakh-FEVER Retrieval Expansion: Our pilot evaluation features 36 curated articles and 120 claims, where evidence retrieval was identified as the primary bottleneck (66.67% Joint FEVER vs 100% NLI Macro-F1). Should we expand to 100+ articles and benchmark dense multilingual embeddings against BM25 prior to Paper 2 submission?
+> Question 3 concerns Paper 2 Target Venue and Framing: We have two natural submission trajectories. Option A is an algorithmic methodology paper targeting EMNLP (focusing on the Dual-Risk Trust Matrix and dynamic gated optimization). Option B is a resource and benchmark paper targeting LREC/COLING (highlighting the Kazakh-FEVER corpus and low-resource evaluation gap). What is Professor Guo's advice on narrative emphasis and venue alignment?
 
 ---
 
 ### Slide 22: Committee Review Comments & Responses — Addressing Expert Feedback
 - **Slide Title:** Committee Review Comments & Responses: Addressing Expert Feedback
-- **Subtitle:** Reviewer 1 (Internal) & Reviewer 2 (International) itemized revisions: 100.00% AUC wild generalization verified [RESOLVED]
+- **Subtitle:** Itemized academic revisions: Addressing internal and international committee feedback with verified empirical rigor
 - **Allocated Time:** 2.0 Minutes
-- **Key Visual:** Side-by-side comparison tables: Reviewer 1 (Internal Academic Committee) vs. Reviewer 2 (International Committee); all 6 items marked `[RESOLVED]`.
+- **Key Visual:** Side-by-side comparison tables: Reviewer 1 (Internal Academic Committee) vs. Reviewer 2 (International Committee); itemized status badges indicating thesis chapter references.
 
 #### Spoken Script (English)
 > Slide 22 details our itemized responses and technical resolutions to the feedback provided by the examination committee:
 > Addressing Reviewer 1 from the Internal Academic Committee:
-> 1. On Wild Generator Generalization: We evaluated held-out Qwen-2.5-7B generated reviews in Quadrant 4, achieving 100.00% ROC-AUC. This confirms that our FST morphological features capture invariant linguistic legality regardless of the generative model. [RESOLVED]
-> 2. On Long-Document Truncation: We developed `SentencePreservingChunker` with dynamic Top-K pooling, achieving 100% localization of stealth AI injections across 25,000-word documents under 1.4 GB VRAM. [RESOLVED]
-> 3. On Conflating Veracity with Style: We developed the Kazakh-FEVER benchmark and Four-Quadrant Trust Matrix, decoupling AI drafting probability from factual correctness. [RESOLVED]
+> 1. On Wild Generator Generalization: We evaluated held-out Qwen-2.5-7B generated reviews in Quadrant 4, achieving 100.00% ROC-AUC, confirming morphological regularity is generator-invariant. This is fully addressed in Thesis Chapter 4.
+> 2. On Long-Document Truncation: We developed `SentencePreservingChunker` with dynamic Top-K pooling, achieving 100% localization of stealth AI injections across 25,000-word documents under 1.4 GB VRAM. This is addressed in Thesis Chapters 4 and 6.
+> 3. On Conflating Veracity with Style: We developed the Kazakh-FEVER pilot benchmark and Four-Quadrant Trust Matrix, decoupling AI drafting probability from factual correctness. This is addressed in Thesis Chapter 5.
 > Addressing Reviewer 2 from the International Committee:
-> 1. On Reproducibility and Deployment: We built a standalone Hugging Face Spaces cloud package with one-command deployment, backed by 311 passing tests. [RESOLVED]
-> 2. On Linguistic Justification: We grounded the architecture in an 83-rule FST engine, with ablation studies proving a +42.18% cross-domain AUC gain over pure neural baselines. [RESOLVED]
-> 3. On Societal Impact and Fair Thresholding: We calibrated our operating decision threshold to 0.9980 to eliminate false positives against human writers, backed by plain-language linguistic explanations in the UI. [RESOLVED]
+> 1. On Reproducibility and Deployment: We built a containerized prototype for Hugging Face Spaces with sub-1.2s cold start, verified by 314 passing tests. This is addressed in Thesis Chapter 6.
+> 2. On Linguistic Justification: We grounded the architecture in an 83-rule FST engine, with ablation studies proving a +42.18 pp cross-domain AUC gain over pure neural baselines. This is addressed in Thesis Chapter 3.
+> 3. On Societal Impact and Fair Thresholding: We calibrated our operating decision threshold to 0.9980 to eliminate false positives against human writers, backed by sentence heatmaps in the UI. This is addressed in Thesis Chapters 5 and 6.
 
 ---
 

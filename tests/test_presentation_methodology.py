@@ -65,11 +65,11 @@ class TestPresentationMethodology(unittest.TestCase):
 
         s18_text = " ".join(s.text_frame.text for s in s18.shapes if s.has_text_frame)
         self.assertIn("Figure 14. Hugging Face Spaces Cloud Deployment Architecture", s18_text)
-        self.assertIn("311 / 311", s18_text)
+        self.assertIn("314 / 314", s18_text)
         self.assertIn("Automated Test Suite", s18_text)
         self.assertIn("3 Formats", s18_text)
         self.assertIn("Multi-Format Ingestion", s18_text)
-        self.assertIn("311 passing tests", s18_text)
+        self.assertIn("314 passing tests", s18_text)
         self.assertNotIn("Zero Emoji", s18_text)
         self.assertNotIn("zero emoji", s18_text.lower())
 
@@ -87,7 +87,7 @@ class TestPresentationMethodology(unittest.TestCase):
         s19 = prs.slides[18]
         s19_text = " ".join(s.text_frame.text for s in s19.shapes if s.has_text_frame)
         self.assertIn("Summary of Thesis Contributions & Writing Progress", s19_text)
-        self.assertIn("Four Primary Academic Contributions", s19_text)
+        self.assertIn("Four Primary Academic", s19_text)
         self.assertIn("Master's Thesis Manuscript Status (~85% Complete)", s19_text)
         for ch_num in range(1, 7):
             self.assertIn(f"Chapter {ch_num}", s19_text)

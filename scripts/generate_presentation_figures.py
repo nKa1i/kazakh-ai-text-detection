@@ -380,7 +380,7 @@ def generate_fig04(output_dir):
     ax.axis("off")
 
     # Title & Subtitle
-    ax.text(50, 96.8, "Dual-Stream Cross-Attention & Dynamic Gating Architecture",
+    ax.text(50, 96.8, "Dual-Stream Morphology-Aware Gated Fusion Architecture",
             ha="center", va="center", fontsize=11, fontweight="bold", color=SLATE)
     ax.text(50, 93.0, "Fusing Pretrained Contextual Semantics with 83-Rule FST Morphological Inductive Bias",
             ha="center", va="center", fontsize=7.2, color=MUTED_GRAY)
@@ -417,7 +417,7 @@ def generate_fig04(output_dir):
     gate_badge = patches.FancyBboxPatch((16, 66.8), 68, 3.4, boxstyle="round,pad=0.2,rounding_size=0.4",
                                         edgecolor=AMBER, facecolor=AMBER, linewidth=0.8)
     ax.add_patch(gate_badge)
-    ax.text(50, 68.5, "Dynamic Cross-Attention Gating Unit", ha="center", va="center",
+    ax.text(50, 68.5, "Dynamic Morphology-Aware Gating Unit", ha="center", va="center",
             fontsize=7.8, fontweight="bold", color="white")
 
     ax.text(50, 62.8, r"$\mathbf{g} = \sigma(\mathbf{W}_g [h_{\mathrm{sem}} \,\|\, \mathbf{W}_{\mathrm{proj}} h_{\mathrm{morph}}] + b_g), \quad \mathbf{g} \in [0, 1]^{768}$",
@@ -1329,7 +1329,7 @@ def generate_fig13(output_dir):
     footer = patches.FancyBboxPatch((2, 2.5), 96, 5.0, boxstyle="round,pad=0.2,rounding_size=0.5",
                                     edgecolor=BORDER_GRAY, facecolor=LIGHT_BG, linewidth=0.8)
     ax.add_patch(footer)
-    ax.text(4, 5.0, "Gradio 4.x Academic UI  |  311 / 311 Passing Tests  |  Bounded VRAM < 1.4 GB",
+    ax.text(4, 5.0, "Gradio 4.x Academic UI  |  314 / 314 Passing Tests  |  Bounded VRAM < 1.4 GB",
             va="center", fontsize=6.8, fontweight="bold", color=TEAL)
     ax.text(96, 5.0, "Zero Decorative Emojis  |  Strict UTF-8",
             ha="right", va="center", fontsize=6.8, color=MUTED_GRAY)
@@ -1373,7 +1373,7 @@ def generate_fig14(output_dir):
             "x": 52.0, "y": 50.0, "w": 45.0, "h": 39.0,
             "color": GREEN, "bg": "#DCFCE7", "border": "#86EFAC",
             "items": [
-                "311 / 311 unit & regression tests passing",
+                "314 / 314 unit & regression tests passing",
                 "83-Rule FST verbal parser validation",
                 "Sliding window chunking & Top-K tests",
                 "3-Way NLI fact verification test suite",
@@ -1388,12 +1388,12 @@ def generate_fig14(output_dir):
                 "Hugging Face Spaces Docker container",
                 "Python 3.12 modern lightweight runtime",
                 "Distilled weights (no external DB needed)",
-                "Sub-1.2s cold-start initialization",
+                "Sub-1.2s (~1s) cold-start initialization",
                 "Bounded VRAM footprint < 1.4 GB",
             ]
         },
         {
-            "num": "Stage 4", "title": "Interactive Production Serving",
+            "num": "Stage 4", "title": "Interactive Prototype Serving",
             "x": 52.0, "y": 5.5, "w": 45.0, "h": 39.0,
             "color": AMBER, "bg": "#FFFBEB", "border": "#FDE68A",
             "items": [
@@ -1401,7 +1401,7 @@ def generate_fig14(output_dir):
                 "Sub-85ms single-sentence inference",
                 "25,000-word document processing engine",
                 "Real-time Four-Quadrant report card",
-                "Committee defense & demonstration ready",
+                "Committee defense & prototype demonstration",
             ]
         }
     ]
@@ -1436,7 +1436,7 @@ def generate_fig14(output_dir):
     ax.plot([74.5, 74.5, 25.5, 25.5], [50.0, 47.25, 47.25, 45.2], color=MUTED_GRAY, lw=1.8)
     ax.annotate("", xy=(25.5, 44.6), xytext=(25.5, 45.4),
                 arrowprops=dict(arrowstyle="->", color=MUTED_GRAY, lw=1.8))
-    ax.text(50.0, 47.25, "Verified Artifacts (311 Tests)", ha="center", va="center", fontsize=6.2, fontweight="semibold",
+    ax.text(50.0, 47.25, "Verified Artifacts (314 Tests)", ha="center", va="center", fontsize=6.2, fontweight="semibold",
             color=SLATE, bbox=dict(boxstyle="round,pad=0.2", facecolor="white", edgecolor=BORDER_GRAY, lw=0.6))
 
     # Connector 3: Stage 3 -> Stage 4 (Across bottom)
@@ -1448,7 +1448,7 @@ def generate_fig14(output_dir):
     footer = patches.FancyBboxPatch((3, 0.8), 94, 3.4, boxstyle="round,pad=0.2,rounding_size=0.4",
                                     edgecolor=BORDER_GRAY, facecolor=LIGHT_BG, linewidth=0.8)
     ax.add_patch(footer)
-    ax.text(50, 2.5, "Production Certification: 311 / 311 Automated Tests Verified  |  Institutional NPU / KazNU Quality Compliance",
+    ax.text(50, 2.5, "Verification Certification: 314 / 314 Automated Tests Verified  |  Academic NPU / KazNU Research Rigor",
             ha="center", va="center", fontsize=6.8, fontweight="bold", color=NAVY)
 
     fig_path = os.path.join(output_dir, "fig14_cloud_deployment_pipeline.png")
