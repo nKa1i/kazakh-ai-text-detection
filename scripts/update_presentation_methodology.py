@@ -59,8 +59,8 @@ CARD_BG_AMBER = RGBColor(255, 251, 235)    # #FFFBEB - Warm amber fill
 CARD_BG_CORAL = RGBColor(254, 242, 242)    # #FEE2E2 - Soft alert fill
 BORDER_LIGHT = RGBColor(226, 232, 240)     # #E2E8F0 - Clean border
 
-FONT_TITLE = "Arial"
-FONT_BODY = "Arial"
+FONT_TITLE = "Times New Roman"
+FONT_BODY = "Times New Roman"
 FONT_ZH = "Microsoft YaHei"
 
 PROTECTED_SHAPE_NAMES = {
@@ -1064,6 +1064,67 @@ def update_slide_22(slide):
                     p.font.color.rgb = NAVY_PRIMARY
 
 
+def normalize_presentation_fonts(prs):
+    """
+    Ensure 100% font consistency across presentation slides and themes:
+    1. Updates theme1.xml fontScheme: majorFont & minorFont latin typeface set to Times New Roman.
+    2. Sets all Latin / English / numeric paragraphs and runs to Times New Roman.
+    3. Preserves Microsoft YaHei for Chinese characters.
+    4. Preserves all explicit font sizes, bold weights, colors, and margins untouched.
+    """
+    # 1. Update theme fontScheme to Times New Roman
+    for rel in prs.part.rels.values():
+        if "theme" in rel.target_ref:
+            theme_part = rel.target_part
+            xml_text = theme_part.blob.decode("utf-8", errors="ignore")
+            new_xml = xml_text.replace('typeface="Arial"', 'typeface="Times New Roman"')
+            if new_xml != xml_text:
+                theme_part._blob = new_xml.encode("utf-8")
+
+    def contains_cjk(text):
+        if not text:
+            return False
+        return any('\u4e00' <= char <= '\u9fff' for char in text)
+
+    # 2. Iterate over all slides, shapes, paragraphs, runs, tables
+    changed_runs = 0
+    changed_paras = 0
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                for p in shape.text_frame.paragraphs:
+                    if p.font.name == "Arial" or (p.font.name is None and not contains_cjk(p.text)):
+                        p.font.name = "Times New Roman"
+                        changed_paras += 1
+                    for r in p.runs:
+                        if contains_cjk(r.text):
+                            if r.font.name != "Microsoft YaHei":
+                                r.font.name = "Microsoft YaHei"
+                                changed_runs += 1
+                        else:
+                            if r.font.name != "Times New Roman":
+                                r.font.name = "Times New Roman"
+                                changed_runs += 1
+
+            if shape.has_table:
+                for row in shape.table.rows:
+                    for cell in row.cells:
+                        for p in cell.text_frame.paragraphs:
+                            if p.font.name == "Arial" or (p.font.name is None and not contains_cjk(p.text)):
+                                p.font.name = "Times New Roman"
+                                changed_paras += 1
+                            for r in p.runs:
+                                if contains_cjk(r.text):
+                                    if r.font.name != "Microsoft YaHei":
+                                        r.font.name = "Microsoft YaHei"
+                                        changed_runs += 1
+                                else:
+                                    if r.font.name != "Times New Roman":
+                                        r.font.name = "Times New Roman"
+                                        changed_runs += 1
+    print(f"Font normalization: {changed_paras} paragraphs and {changed_runs} runs aligned to Times New Roman / Microsoft YaHei.")
+
+
 # -----------------------------------------------------------------------------
 # Main Orchestrator Function
 # -----------------------------------------------------------------------------
@@ -1162,6 +1223,10 @@ def update_presentation(ppt_path, fig_path=None, fig14_path=None):
     # Slide 22: Committee Comments & Responses
     print("Updating Slide 22 (Committee Revisions & Academic Status Badges)...")
     update_slide_22(prs.slides[21])
+
+    # Normalize all fonts to Times New Roman (and Microsoft YaHei for CJK)
+    print("Normalizing presentation typography to Times New Roman...")
+    normalize_presentation_fonts(prs)
 
     # Save presentation directly back
     print(f"Saving presentation directly back to: {ppt_path}")

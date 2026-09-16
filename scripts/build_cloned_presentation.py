@@ -48,8 +48,8 @@ CARD_BG_ALT = RGBColor(248, 250, 252)      # #F8FAFC - Soft light gray card fill
 CARD_BG_BLUE = RGBColor(239, 246, 255)     # #EFF6FF - Soft blue tinted card fill
 CARD_BG_GREEN = RGBColor(240, 253, 244)    # #F0FDF4 - Soft green tinted card fill
 
-FONT_TITLE = "Arial"
-FONT_BODY = "Arial"
+FONT_TITLE = "Times New Roman"
+FONT_BODY = "Times New Roman"
 FONT_ZH = "Microsoft YaHei"
 
 USER_HOME = os.path.expanduser("~")

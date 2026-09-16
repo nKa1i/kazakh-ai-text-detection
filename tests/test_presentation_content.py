@@ -194,6 +194,36 @@ class TestPresentationContent(unittest.TestCase):
                     if status != "Status":
                         self.assertIn("Addressed in Thesis Chapter", status)
 
+    def test_all_latin_fonts_are_times_new_roman(self):
+        """Verify that all Latin text across the presentation uses Times New Roman and 0 Arial."""
+        arial_found = []
+        for s_idx, slide in enumerate(self.prs.slides, 1):
+            for shp in slide.shapes:
+                if shp.has_text_frame:
+                    for p in shp.text_frame.paragraphs:
+                        if p.font.name == "Arial":
+                            arial_found.append(f"Slide {s_idx} para: {p.text[:30]}")
+                        for r in p.runs:
+                            if r.font.name == "Arial":
+                                arial_found.append(f"Slide {s_idx} run: {r.text[:30]}")
+                if shp.has_table:
+                    for row in shp.table.rows:
+                        for cell in row.cells:
+                            for p in cell.text_frame.paragraphs:
+                                if p.font.name == "Arial":
+                                    arial_found.append(f"Slide {s_idx} table cell para: {p.text[:30]}")
+                                for r in p.runs:
+                                    if r.font.name == "Arial":
+                                        arial_found.append(f"Slide {s_idx} table cell run: {r.text[:30]}")
+        self.assertEqual(len(arial_found), 0, f"Found Arial font instances: {arial_found}")
+
+        # Check theme fontScheme
+        for rel in self.prs.part.rels.values():
+            if "theme" in rel.target_ref:
+                xml_text = rel.target_part.blob.decode("utf-8", errors="ignore")
+                self.assertIn('<a:latin typeface="Times New Roman"/>', xml_text)
+                self.assertNotIn('<a:latin typeface="Arial"/>', xml_text)
+
 
 if __name__ == "__main__":
     unittest.main()

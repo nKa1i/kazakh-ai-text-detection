@@ -56,8 +56,8 @@ CARD_BG_ALT = RGBColor(248, 250, 252)    # #F8FAFC - Soft light gray card fill
 CARD_BG_BLUE = RGBColor(238, 244, 255)   # #EEF4FF - Soft tinted card fill
 CARD_BG_GREEN = RGBColor(240, 253, 244)  # #F0FDF4 - Soft green tinted card fill
 
-FONT_TITLE = "Arial"
-FONT_BODY = "Arial"
+FONT_TITLE = "Times New Roman"
+FONT_BODY = "Times New Roman"
 FONT_ZH = "Microsoft YaHei"
 
 SECTION_NAMES = [
