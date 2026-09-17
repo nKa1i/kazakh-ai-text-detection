@@ -224,6 +224,17 @@ class TestPresentationContent(unittest.TestCase):
                 self.assertIn('<a:latin typeface="Times New Roman"/>', xml_text)
                 self.assertNotIn('<a:latin typeface="Arial"/>', xml_text)
 
+    def test_slide_06_hallucination_verification_related_work(self):
+        """Verify Slide 6 contains structured LLM hallucination and 2D trust matrix related work."""
+        s6 = self.prs.slides[5]
+        s6_text = " ".join(s.text_frame.text for s in s6.shapes if s.has_text_frame)
+        self.assertIn("LLM Hallucination Verification & Factual Grounding Gaps", s6_text)
+        self.assertIn("The Scientific Blindspot: Detection Alone Cannot Verify Truth", s6_text)
+        self.assertIn("1. Stylistic AI Detectors (Topics 1 & 2)", s6_text)
+        self.assertIn("2. International Fact-Checking Corpora", s6_text)
+        self.assertIn("3. Kazakh-FEVER & 2D Trust Matrix (Topic 3)", s6_text)
+        self.assertNotIn("SciFact", s6_text)
+
 
 if __name__ == "__main__":
     unittest.main()

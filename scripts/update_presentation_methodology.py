@@ -234,6 +234,66 @@ def add_card(slide, left, top, width, height, title, value_str, subtitle,
         p_sub.space_before = Pt(2)
 
 
+def add_banner_two_column(slide, left, top, width, height,
+                           col1_title, col1_text,
+                           col2_title, col2_text,
+                           accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE, border_color=BORDER_LIGHT):
+    """Adds a full-width horizontal framing card divided into two informative columns."""
+    box = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(left), Inches(top), Inches(width), Inches(height))
+    box.fill.solid()
+    box.fill.fore_color.rgb = bg_color
+    box.line.color.rgb = border_color
+    box.line.width = Pt(1)
+
+    strip = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(left), Inches(top), Inches(0.08), Inches(height))
+    strip.fill.solid()
+    strip.fill.fore_color.rgb = accent_color
+    strip.line.fill.background()
+
+    w_half = (width - 0.50) / 2
+    # Column 1
+    tb1 = slide.shapes.add_textbox(Inches(left + 0.18), Inches(top + 0.08), Inches(w_half), Inches(height - 0.16))
+    tf1 = tb1.text_frame
+    tf1.word_wrap = True
+    tf1.margin_left = tf1.margin_top = tf1.margin_right = tf1.margin_bottom = 0
+
+    p1_tit = tf1.paragraphs[0]
+    p1_tit.text = col1_title
+    p1_tit.font.name = FONT_TITLE
+    p1_tit.font.size = Pt(10.0)
+    p1_tit.font.bold = True
+    p1_tit.font.color.rgb = accent_color
+
+    p1_body = tf1.add_paragraph()
+    p1_body.text = col1_text
+    p1_body.font.name = FONT_BODY
+    p1_body.font.size = Pt(8.2)
+    p1_body.font.color.rgb = SLATE_BODY
+    p1_body.space_before = Pt(2.0)
+
+    # Column 2
+    tb2 = slide.shapes.add_textbox(Inches(left + 0.18 + w_half + 0.20), Inches(top + 0.08), Inches(w_half), Inches(height - 0.16))
+    tf2 = tb2.text_frame
+    tf2.word_wrap = True
+    tf2.margin_left = tf2.margin_top = tf2.margin_right = tf2.margin_bottom = 0
+
+    p2_tit = tf2.paragraphs[0]
+    p2_tit.text = col2_title
+    p2_tit.font.name = FONT_TITLE
+    p2_tit.font.size = Pt(10.0)
+    p2_tit.font.bold = True
+    p2_tit.font.color.rgb = accent_color
+
+    p2_body = tf2.add_paragraph()
+    p2_body.text = col2_text
+    p2_body.font.name = FONT_BODY
+    p2_body.font.size = Pt(8.2)
+    p2_body.font.color.rgb = SLATE_BODY
+    p2_body.space_before = Pt(2.0)
+
+
+
+
 # -----------------------------------------------------------------------------
 # Slide 01: Title Slide Presenter Notes Cleanup
 # -----------------------------------------------------------------------------
@@ -329,6 +389,107 @@ def update_slide_05(slide):
                 for cell in row.cells:
                     if "Cross-Gate" in cell.text:
                         cell.text = cell.text.replace("Cross-Gate", "Gated Fusion")
+
+
+# -----------------------------------------------------------------------------
+# Slide 06: Related Work (LLM Hallucination Verification & Factual Grounding Gaps)
+# -----------------------------------------------------------------------------
+def update_slide_06(slide):
+    """
+    Slide 6: Related Work — LLM Hallucination Verification & Factual Grounding Gaps.
+    Replaces legacy text dumps with a structured 4-part architecture:
+    1. Top Framing Banner: The Fundamental Scientific Blindspot (origin vs veracity).
+    2. Pillar 1: Stylistic AI Text Detectors (Topics 1 & 2 origin attribution).
+    3. Pillar 2: International Fact-Checking Corpora (Western English-centric benchmarks).
+    4. Pillar 3: Our Solution: Kazakh-FEVER & Two-Dimensional Trust Matrix (Topic 3).
+    """
+    header_tb = update_slide_header(
+        slide,
+        "Related Work: LLM Hallucination Verification & Factual Grounding Gaps",
+        "Why AI detection alone is insufficient: Existing fact-checking frameworks focus on high-resource English and ignore low-resource LLM hallucinations"
+    )
+
+    for shape in list(slide.shapes):
+        if shape == header_tb or shape.name in PROTECTED_SHAPE_NAMES or shape.top < Inches(1.20):
+            continue
+        remove_shape(shape)
+
+    # Top Framing Banner: 2 Columns
+    c1_title = "The Scientific Blindspot: Detection Alone Cannot Verify Truth"
+    c1_text = (
+        "Stylistic AI detection (y_hat) identifies machine generation probability, but provides zero guarantee of factual veracity (R_fact). "
+        "In low-resource Kazakh, LLMs fluently invent fake historical dates, non-existent laws, and false statistics with high lexical confidence."
+    )
+    c2_title = "The Dual-Perspective Governance Mandate (Topic 3)"
+    c2_text = (
+        "An AI detector flags all synthetic text identically, missing the crucial operational distinction between benign AI summaries (low factual risk) "
+        "and malicious synthetic hallucinations (high factual risk). Robust AI governance requires orthogonal 2D trust coordinates (y_hat, R_fact)."
+    )
+    add_banner_two_column(
+        slide, left=0.60, top=2.02, width=12.133, height=1.05,
+        col1_title=c1_title, col1_text=c1_text,
+        col2_title=c2_title, col2_text=c2_text,
+        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_BLUE, border_color=BORDER_LIGHT
+    )
+
+    col_w = 3.911
+    gap = 0.20
+    top_pos = 3.18
+    card_h = 3.65
+
+    # Pillar 1
+    p1_items = [
+        ("1. Primary Focus & Scope:",
+         "Statistical origin attribution: determining whether a given Kazakh text was authored by human or machine."),
+        ("2. Evaluated Detector Families:",
+         "Perplexity baselines (Fast-DetectGPT), log-rank curvature (Binoculars), multi-classifier ensembles (Ghostbuster), and fine-tuned KazRoBERTa."),
+        ("3. Core Strength & Capability:",
+         "Effectively captures stylistic signatures in standardized in-domain corpora (achieving up to 99.85% ROC-AUC on seen distributions)."),
+        ("4. Critical Scientific Blindspot:",
+         "Completely agnostic to factual truth. Falsely flags truthful AI educational summaries as threats while failing to detect human disinformation.")
+    ]
+    add_callout_box(
+        slide, left=0.60, top=top_pos, width=col_w, height=card_h,
+        title="1. Stylistic AI Detectors (Topics 1 & 2)",
+        items=p1_items,
+        accent_color=NAVY_PRIMARY, bg_color=CARD_BG_WHITE
+    )
+
+    # Pillar 2
+    p2_items = [
+        ("1. Primary Focus & Scope:",
+         "Automated factual evidence retrieval and Natural Language Inference (NLI) claim verification."),
+        ("2. International Benchmark Suite:",
+         "FEVER (Thorne et al., 185k Wikipedia claims), VitaminC (Schuster et al., 400k contrastive revisions), and HaluEval (5k ChatGPT hallucination pairs)."),
+        ("3. Methodological Architecture:",
+         "BM25 / dense neural retrieval over static encyclopedic reference text paired with 3-way NLI classification (SUPPORTS, REFUTES, NOT ENOUGH INFO)."),
+        ("4. Critical Low-Resource Void:",
+         "100% Anglo-centric; requires massive crowdsourced data; fails on Turkic agglutinative morphology; limited dedicated public resources for Central Asia.")
+    ]
+    add_callout_box(
+        slide, left=0.60 + col_w + gap, top=top_pos, width=col_w, height=card_h,
+        title="2. International Fact-Checking Corpora",
+        items=p2_items,
+        accent_color=BLUE_ACCENT, bg_color=CARD_BG_WHITE
+    )
+
+    # Pillar 3
+    p3_items = [
+        ("1. Dedicated Kazakh-FEVER Benchmark:",
+         "First curated factual verification benchmark for Kazakh: 36 authentic encyclopedic articles across 4 national domains with 120 balanced gold claims (40/40/40)."),
+        ("2. Two-Dimensional Trust Coordinates:",
+         "Decouples generation probability (y_hat) from factual veracity (R_fact), mapping every document to calibrated orthogonal 2D coordinates in [0, 1]^2."),
+        ("3. Calibrated Epistemic Uncertainty:",
+         "Accurately handles NOT ENOUGH INFO claims as evidence absence (R_fact = 0.50), preventing false accusations when reference data is incomplete."),
+        ("4. Actionable Multi-Tier Governance:",
+         "Operationally separates Q2 (Human Rumor: high factual risk, low AI risk) from Q3 (Accurate AI: low factual risk, high AI risk) with transparent retrieval.")
+    ]
+    add_callout_box(
+        slide, left=0.60 + 2 * (col_w + gap), top=top_pos, width=col_w, height=card_h,
+        title="3. Kazakh-FEVER & 2D Trust Matrix (Topic 3)",
+        items=p3_items,
+        accent_color=GREEN_ACCENT, bg_color=CARD_BG_WHITE
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -1159,6 +1320,10 @@ def update_presentation(ppt_path, fig_path=None, fig14_path=None):
     # Slide 5: Related work term cleanup
     print("Updating Slide 5 (Related Work Terminology Cleanup)...")
     update_slide_05(prs.slides[4])
+
+    # Slide 6: Related Work (LLM Hallucination Verification & Factual Grounding Gaps)
+    print("Updating Slide 6 (LLM Hallucination & Fact Verification Gaps)...")
+    update_slide_06(prs.slides[5])
 
     # Slide 7: Comprehensive Methodological Framework (Figure 3)
     print("Updating Slide 7 (Methodological Framework Figure 3)...")

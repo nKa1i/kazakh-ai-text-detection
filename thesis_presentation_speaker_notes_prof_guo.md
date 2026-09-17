@@ -107,17 +107,18 @@ This presentation guide is structured for candidate Daulet's formal Master's the
 
 ---
 
-### Slide 6: Related Work — Fact-Checking Benchmarks & The Central Asian Evidence Void
-- **Slide Title:** Related Work: Fact-Checking Benchmarks & The Central Asian Evidence Void
-- **Subtitle:** Existing automated fact-checking corpora are exclusively Anglo-centric; zero evidence-grounded resources exist for Kazakh
+### Slide 6: Related Work — LLM Hallucination Verification & Factual Grounding Gaps
+- **Slide Title:** Related Work: LLM Hallucination Verification & Factual Grounding Gaps
+- **Subtitle:** Why AI detection alone is insufficient: Existing fact-checking frameworks focus on high-resource English and ignore low-resource LLM hallucinations
 - **Allocated Time:** 1.5 Minutes
-- **Key Visual:** Comparison between Western benchmarks (FEVER, VitaminC, SciFact) and the Central Asian vacuum; Introduction of Kazakh-FEVER benchmark contribution.
+- **Key Visual:** Top two-column framing card ("The Scientific Blindspot: Detection Alone Cannot Verify Truth" vs "The Dual-Perspective Governance Mandate") and three structured comparative pillars: (1) Stylistic AI Detectors (Topics 1 & 2), (2) International Fact-Checking Corpora (Western English-centric baselines), and (3) Our Kazakh-FEVER & 2D Trust Matrix Solution (Topic 3).
 
 #### Spoken Script (English)
-> Slide 6 reviews the landscape of automated fact-checking.
-> Leading international benchmarks such as Thorne et al.'s FEVER with 185,000 Wikipedia claims, Schuster et al.'s VitaminC with 400,000 contrastive revisions, and SciFact are 100% English-centric and rely on massive crowdsourced annotations. None of these resources support Turkic grammar or regional knowledge bases.
-> Across Central Asia, zero evidence-grounded fact-checking benchmarks existed prior to our work. At the same time, multilingual generative models frequently hallucinate incorrect historical dates, nonexistent government decree numbers, and distorted regional legislation when prompting in Kazakh.
-> To close this gap, we constructed Kazakh-FEVER, the first authoritative fact-checking benchmark for the Kazakh language. It comprises 36 curated, verified reference articles across history, law, healthcare, and science, with gold-standard tripartite annotations for Supported, Refuted, and Not Enough Info claims, evaluated using strict joint retrieval and verification metrics.
+> Moving to Slide 6, I address a fundamental question that connects our entire research methodology: why does a thesis on AI-generated text detection require factual claim verification?
+> In generative AI governance, detection alone has a critical scientific blindspot. Stylistic detectors—such as perplexity filters, Binoculars, and standard fine-tuned transformers—only determine text origin. They cannot evaluate whether a statement is factually true or false.
+> This creates a dual-risk reality: an LLM can produce an entirely truthful, educational summary that an AI detector flags as a threat, while human bad actors can author malicious disinformation that passes detection unnoticed. Even more critically, in low-resource Kazakh, generative LLMs fluently invent fake historical dates, fabricated legal decrees, and distorted statistics with high linguistic confidence.
+> When we examine existing automated fact-checking corpora—such as Thorne et al.'s FEVER on Wikipedia, Schuster et al.'s VitaminC, or recent hallucination benchmarks like HaluEval—they are exclusively English-centric, assume massive crowdsourced annotations, and collapse on Turkic agglutinative morphology. To our knowledge, limited dedicated public resources exist for evidence-grounded verification in Central Asia.
+> This gap directly motivates Topic 3 of our thesis. By constructing Kazakh-FEVER—with 36 curated encyclopedic articles and 120 balanced claims—and coupling it with our Two-Dimensional Trust Matrix, we decouple generation origin from factual veracity, enabling robust governance across both synthetic hallucinations and human misinformation.
 
 ---
 
