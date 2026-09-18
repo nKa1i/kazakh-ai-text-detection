@@ -112,6 +112,29 @@ class TestPresentationSpeakerNotes(unittest.TestCase):
         emojis_found = emoji_pattern.findall(self.content)
         self.assertEqual(len(emojis_found), 0, f"Found decorative emojis: {emojis_found}")
 
+    def test_dense_speaker_notes_coverage(self):
+        """Verify the dense speaker notes file exists and covers all 23 slides in concise cue-card format."""
+        dense_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "thesis_presentation_dense_speaker_notes.md"
+        )
+        self.assertTrue(os.path.exists(dense_path), f"{dense_path} must exist")
+        with open(dense_path, "r", encoding="utf-8") as f:
+            dense_content = f.read()
+
+        for i in range(1, 24):
+            pattern = rf"### Slide {i:02d}:"
+            self.assertRegex(
+                dense_content,
+                pattern,
+                f"Slide {i:02d} heading must be present in dense speaker notes"
+            )
+
+        self.assertIn("60-Second \"Elevator Pitch\"", dense_content)
+        self.assertIn("Defense Q&A Rapid-Response Cheat-Sheet", dense_content)
+        self.assertNotIn("TODO", dense_content)
+        self.assertNotIn("TBD", dense_content)
+
 
 if __name__ == "__main__":
     unittest.main()
