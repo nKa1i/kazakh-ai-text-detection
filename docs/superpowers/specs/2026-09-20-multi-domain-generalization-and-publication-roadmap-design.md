@@ -49,15 +49,16 @@ Following the Master's thesis progress review with Professor Guo on September 20
   - **Primary Target (CCF-B / SCI Q2):** **ACM TALLIP** (*ACM Transactions on Asian and Low-Resource Language Information Processing*). Perfect topical match, rolling submissions 365 days/year, recognized in Chinese academia.
   - **Secondary Target (CCF-B / SCI Q1):** **Information Processing & Management (IP&M)** or **Knowledge-Based Systems (KBS)**.
 
-### 2.3 Strict Anti-Dual-Submission Policy
-- **Absolute Rule:** Simultaneous submission of the same paper to multiple venues is strictly prohibited by academic ethics. Submissions are strictly sequential.
-- **Conference-to-Journal Path:** Publishing the 8-page conference paper (Paper 1) first, followed by extending it with 30–40% new technical material, full unified system integration, and multi-domain social media experiments for the journal submission (Paper 2), is 100% compliant with IEEE/ACM policies.
+### 2.3 Strict Submission Ethics & Compliance Policies
+- **Anti-Dual-Submission Policy:** Simultaneous submission of the same paper to multiple venues is strictly prohibited by academic ethics. Submissions are strictly sequential.
+- **Journal Extension Compliance (30%+ New Content Rule):** ACM and IEEE require $\ge 30\%$ substantially new technical content for journal extensions. Paper 2 introduces Topics 1 and 2 (FST Gated Fusion, long-document chunking, social media experiments) plus the 4-tab Gradio platform on top of Paper 1's Topic 3, delivering **$\ge 55\%$ brand-new technical content**, fully compliant with ACM TALLIP.
+- **Double-Blind Review & Anonymity Period:** Conference submissions to ACL/EMNLP/COLING require strict double-blind formatting. All code/data repositories will use anonymous mirrors (e.g., `anonymous.4open.science`), and no preprints will be posted to arXiv until review notification.
 
 ---
 
 ## 3. Topic 3: Kazakh-FEVER 3K Benchmark Scaling Architecture
 
-### 3.1 Dataset Scale & Distribution
+### 3.1 Dataset Scale & Dual-Split Distribution
 The current 120-claim pilot benchmark is scaled by $25\times$ to **3,000 balanced claims**:
 - **Reference Articles:** ~250 documents:
   - ~180 Kazakh Wikipedia articles across 5 core domains: History, Geography, Science & Technology, Law & Government, Culture & Literature.
@@ -65,15 +66,18 @@ The current 120-claim pilot benchmark is scaled by $25\times$ to **3,000 balance
 - **Claim Distribution (3-Way Balanced):**
   - **SUPPORTS (1,000 claims):** Entailed statements directly supported by gold evidence sentences.
   - **REFUTES (1,000 claims):** Negated statements with entity substitutions, inverted dates, or contradictory causal relations.
-  - **NOT ENOUGH INFO (1,000 claims):** Plausible, topical claims lacking sufficient grounding evidence in the reference corpus (epistemic uncertainty).
-- **Partitioning:**
-  - **Training Split:** 2,000 claims (for fine-tuning Kazakh NLI cross-encoders).
-  - **Development Split:** 500 claims.
-  - **Test Split:** 500 claims (250 encyclopedic + 250 out-of-domain social media rumor claims).
+  - **NOT ENOUGH INFO (1,000 claims):** Plausible, topical claims lacking sufficient grounding evidence in the reference corpus.
+- **Partitioning & Preempting the "LLM Memorization" Trap:**
+  - To prevent reviewers from claiming the model simply "memorized" Wikipedia facts during pretraining, evaluation is split into two distinct sub-benchmarks:
+    1. **Encyclopedic Split (Wikipedia — 2,000 claims):** Evaluates general domain factual verification.
+    2. **Emerging Rumors Split (Factcheck.kz / Social Media — 1,000 claims):** Evaluates real-world viral rumors from 2024–2026, strictly outside the pretraining cutoff of older LLMs.
+  - **Splits:** 2,000 Train, 500 Dev, 500 Test (250 Encyclopedic + 250 Emerging Rumors).
 
 ### 3.2 Semi-Automated Data Generation & Quality Protocol
 1. **Automated Article Harvesting:** Python crawler using `wikipedia-api` and BeautifulSoup to fetch structured Kazakh encyclopedic articles and Factcheck.kz case studies with paragraph and sentence boundaries.
-2. **LLM-Assisted Claim Mutation:** Batch prompting of Qwen-2.5-72B / GPT-4o with few-shot Kazakh examples to produce candidate (Claim, Gold Sentences, Label) triples.
+2. **LLM-Assisted Claim Mutation with Hard NEI Generation:**
+   - Prompting Qwen-2.5-72B / GPT-4o with strict span-grounding constraints.
+   - **Hard NEI Protocol:** Prohibits trivial/out-of-context negations. The claim must incorporate real entities and topics from the reference article, but introduce a plausible, unstated assertion (e.g., attributing an unrecorded event to a historical figure).
 3. **Automated Quality Filtering:**
    - Word length filtering ($8 \le \text{tokens} \le 35$).
    - FST morphological legality check (ensuring clean Kazakh orthography).
@@ -87,13 +91,14 @@ Upgrades the retrieval engine from sparse BM25 to a state-of-the-art hybrid arch
 - **Reciprocal Rank Fusion (RRF):**
   $$RRF(d) = \sum_{m \in \{BM25, Dense\}} \frac{1}{60 + \text{rank}_m(d)}$$
   Expected result: Increases Evidence Recall@3 from 91.67% to **$\ge 96.5\%$**, directly resolving the strict Joint FEVER bottleneck (targeting $\ge 82.0\%$ Joint FEVER).
+- **Dual Reporting:** Report both Oracle NLI accuracy (isolated classification given gold evidence) and End-to-End Joint FEVER (retrieval + NLI) to isolate pipeline error propagation.
 
 ---
 
 ## 4. Topic 2: Social Media Cross-Domain Generalization Benchmark
 
 ### 4.1 Dataset Construction (~2,000 Samples)
-- **Human Corpus (1,000 samples):** Collected from public Kazakh Telegram channels (news discussions, community chats), Twitter/X posts, and forum comments.
+- **Human Corpus (1,000 samples):** Collected from public Kazakh Telegram channels (news discussions, community chats), Twitter/X posts, and forum comments. All user handles and personal data anonymized (`@user_XXXX`).
 - **AI Corpus (1,000 samples):** Generated by prompting modern LLMs (Qwen-2.5, Llama-3.1, GPT-4o) with colloquial personas to generate comments, replies, and posts in informal Kazakh.
 - **Linguistic Stressors:**
   - Agglutinative colloquial suffixes (`-сың ғой`, `-ма екен`, `-шы`).
@@ -114,10 +119,10 @@ Standard subword BPE models (KazRoBERTa, mBERT) will experience severe domain co
 
 | Phase | Duration | Tasks & Deliverables |
 | :--- | :--- | :--- |
-| **Phase 1: Tooling & Data Pipeline** | **Weeks 1–2** | 1. Implement `scripts/build_kazakh_fever_3k.py` (crawling + LLM claim generation).<br>2. Implement `scripts/build_social_media_benchmark.py`.<br>3. Complete human verification with Wangna (1,500 claims each). |
-| **Phase 2: Hybrid Retrieval & Experiments** | **Weeks 3–4** | 1. Implement `src/retrieval/hybrid_retriever.py` (BM25 + BGE-M3 + RRF).<br>2. Run 5-fold cross-validation on Kazakh-FEVER 3K.<br>3. Run Social Media domain-shift experiments. |
+| **Phase 1: Tooling & Data Pipeline** | **Weeks 1–2** | 1. Implement `scripts/build_kazakh_fever_3k.py` (crawling + Hard NEI claim generation).<br>2. Implement `scripts/build_social_media_benchmark.py`.<br>3. Complete human verification with Wangna (1,500 claims each). |
+| **Phase 2: Hybrid Retrieval & Experiments** | **Weeks 3–4** | 1. Implement `src/retrieval/hybrid_retriever.py` (BM25 + BGE-M3 + RRF).<br>2. Run 5-fold cross-validation on Kazakh-FEVER 3K (Oracle NLI vs Joint FEVER).<br>3. Run Social Media domain-shift experiments. |
 | **Phase 3: Paper 1 Writing & Submission** | **Weeks 5–7** | 1. Write 8-page conference draft (LaTeX template).<br>2. Review with Wangna and Prof. Guo.<br>3. Submit to ACL Rolling Review (ARR) or COLING. |
-| **Phase 4: Journal Expansion & System Packaging** | **Weeks 8–12** | 1. Integrate Social Media experiments into unified framework.<br>2. Expand manuscript to 14 pages for ACM TALLIP.<br>3. Update 4-tab Gradio prototype and documentation. |
+| **Phase 4: Journal Expansion & System Packaging** | **Weeks 8–12** | 1. Integrate Social Media experiments into unified framework.<br>2. Expand manuscript to 14 pages for ACM TALLIP ($\ge 55\%$ new content).<br>3. Update 4-tab Gradio prototype and documentation. |
 
 ---
 
