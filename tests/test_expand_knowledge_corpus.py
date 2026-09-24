@@ -32,6 +32,14 @@ class TestExpandKnowledgeCorpus(unittest.TestCase):
         self.assertTrue(any("б.з.д. V ғ." in s for s in sentences))
         self.assertTrue(any("т.б. заттар" in s for s in sentences))
 
+    def test_segment_sentences_word_ending_in_q(self):
+        # Words ending in 'қ' followed by a period must not be swallowed by the abbreviation 'қ.'
+        text = "Бұл ұлы халық. Олар өз бостандығын қорғады."
+        sentences = segment_sentences_kazakh(text)
+        self.assertEqual(len(sentences), 2)
+        self.assertEqual(sentences[0], "Бұл ұлы халық.")
+        self.assertEqual(sentences[1], "Олар өз бостандығын қорғады.")
+
     def test_validate_knowledge_passage_valid(self):
         passage = {
             "passage_id": "wiki_kz_001",

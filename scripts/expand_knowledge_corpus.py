@@ -491,10 +491,12 @@ def segment_sentences_kazakh(text: str) -> List[str]:
     """
     clean = text.strip()
     placeholder_map = {}
-    for idx, abb in enumerate(KAZAKH_ABBREVIATIONS):
+    sorted_abbrs = sorted(KAZAKH_ABBREVIATIONS, key=len, reverse=True)
+    for idx, abb in enumerate(sorted_abbrs):
         token = f"<ABB_{idx}>"
         placeholder_map[token] = abb
-        clean = clean.replace(abb, token)
+        # Use negative lookbehind for word chars to prevent matching word endings like 'халық.'
+        clean = re.sub(r"(?<![A-Za-zА-Яа-яӘәІіҢңҒғҮүҰұҚқӨөҺһ])" + re.escape(abb), token, clean)
 
     parts = re.split(r"(?<=[.!?])\s+", clean)
     sentences = []
@@ -502,7 +504,7 @@ def segment_sentences_kazakh(text: str) -> List[str]:
         p_clean = p.strip()
         for token, abb in placeholder_map.items():
             p_clean = p_clean.replace(token, abb)
-        if p_clean and len(p_clean) >= 5:
+        if p_clean and any(c.isalnum() for c in p_clean):
             sentences.append(p_clean)
     return sentences
 

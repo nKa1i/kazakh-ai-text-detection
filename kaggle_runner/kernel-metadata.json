@@ -1,7 +1,7 @@
 {
   "id": "dauletanekesh/kazakh-gpu-runner-nb",
   "title": "kazakh-gpu-runner-nb",
-  "code_file": "diagnostic_kernel.py",
+  "code_file": "generate_fever_and_social_kernel.py",
   "language": "python",
   "kernel_type": "script",
   "is_private": "true",
