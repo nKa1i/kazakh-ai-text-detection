@@ -10,7 +10,12 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import MagicMock, patch
 
+from scripts.push_to_kaggle import (
+    prepare_and_push,
+    check_kernel_status,
+)
 from scripts.package_kaggle_kernel import (
     compress_corpus_to_base64,
     decompress_corpus_from_base64,
@@ -275,5 +280,72 @@ class TestKernelAspectGenerationAndUnpacking(unittest.TestCase):
         self.assertEqual(prompt_1, prompt_4)
 
 
+class TestKagglePushRunner(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    @patch("subprocess.run")
+    def test_prepare_and_push_dry_run_updates_metadata_and_packages_kernel(self, mock_subproc):
+        success = prepare_and_push(dry_run=True)
+        self.assertTrue(success)
+
+        metadata_path = os.path.join("kaggle_runner", "kernel-metadata.json")
+        self.assertTrue(os.path.exists(metadata_path))
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+
+        self.assertEqual(metadata.get("code_file"), "generate_fever_and_social_kernel.py")
+        self.assertEqual(metadata.get("enable_gpu"), True)
+        self.assertEqual(metadata.get("accelerator"), "gpu_t4_x2")
+        self.assertEqual(metadata.get("enable_internet"), True)
+
+        kernel_script_path = os.path.join("kaggle_runner", "generate_fever_and_social_kernel.py")
+        self.assertTrue(os.path.exists(kernel_script_path))
+        with open(kernel_script_path, "r", encoding="utf-8") as f:
+            kernel_content = f.read()
+        self.assertIn('EMBEDDED_KNOWLEDGE_CORPUS_B64 = "', kernel_content)
+
+        for call_args in mock_subproc.call_args_list:
+            cmd = call_args[0][0] if call_args[0] else []
+            self.assertNotIn("push", cmd)
+
+    @patch("subprocess.run")
+    def test_prepare_and_push_executes_push_when_not_dry_run(self, mock_subproc):
+        mock_subproc.return_value = MagicMock(returncode=0, stdout="Kernel successfully pushed")
+
+        success = prepare_and_push(dry_run=False)
+        self.assertTrue(success)
+
+        called_push = False
+        for call_args in mock_subproc.call_args_list:
+            cmd = call_args[0][0] if call_args[0] else []
+            if len(cmd) >= 3 and cmd[0] == "kaggle" and cmd[1] == "kernels" and cmd[2] == "push":
+                called_push = True
+                self.assertIn("-p", cmd)
+                self.assertIn("kaggle_runner", cmd)
+        self.assertTrue(called_push, "subprocess.run should have been called with kaggle kernels push")
+
+    @patch("subprocess.run")
+    def test_prepare_and_push_handles_push_failure(self, mock_subproc):
+        import subprocess
+        mock_subproc.side_effect = subprocess.CalledProcessError(1, cmd=["kaggle"], stderr="Push error")
+
+        success = prepare_and_push(dry_run=False)
+        self.assertFalse(success)
+
+    @patch("subprocess.run")
+    def test_check_kernel_status_success(self, mock_subproc):
+        mock_subproc.return_value = MagicMock(
+            returncode=0,
+            stdout="dauletanekesh/kazakh-gpu-runner-nb has status 'KernelWorkerStatus.RUNNING'"
+        )
+        status = check_kernel_status("dauletanekesh/kazakh-gpu-runner-nb")
+        self.assertIn("RUNNING", status)
+
+
 if __name__ == "__main__":
     unittest.main()
+
