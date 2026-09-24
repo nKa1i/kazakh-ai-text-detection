@@ -27,6 +27,7 @@ from kaggle_runner.generate_fever_and_social_kernel import (
     EMBEDDED_KNOWLEDGE_CORPUS_B64,
     unpack_embedded_corpus,
     generate_aspect_prompt,
+    LLMRunner,
 )
 
 
@@ -280,6 +281,32 @@ class TestKernelAspectGenerationAndUnpacking(unittest.TestCase):
         prompt_1 = generate_aspect_prompt(title, text, 1)
         prompt_4 = generate_aspect_prompt(title, text, 4)
         self.assertEqual(prompt_1, prompt_4)
+
+    def test_llm_runner_dry_run_skips_initialization(self):
+        runner = LLMRunner(dry_run=True)
+        with patch("subprocess.run") as mock_subproc:
+            runner.initialize_model()
+            mock_subproc.assert_not_called()
+        self.assertIsNone(runner.model)
+        self.assertIsNone(runner.tokenizer)
+
+    @patch("subprocess.run")
+    def test_llm_runner_ensures_bitsandbytes_upgrade_on_gpu(self, mock_subproc):
+        runner = LLMRunner(dry_run=False)
+        mock_subproc.return_value = MagicMock(returncode=0)
+
+        mock_torch = MagicMock()
+        mock_transformers = MagicMock()
+        with patch.dict("sys.modules", {"torch": mock_torch, "transformers": mock_transformers}):
+            runner.initialize_model()
+
+        mock_subproc.assert_called_once()
+        cmd = mock_subproc.call_args[0][0]
+        cmd_str = " ".join(cmd)
+        self.assertIn("pip", cmd_str)
+        self.assertIn("install", cmd_str)
+        self.assertIn("bitsandbytes>=0.46.1", cmd_str)
+        self.assertIn("accelerate", cmd_str)
 
 
 class TestKagglePushRunner(unittest.TestCase):
