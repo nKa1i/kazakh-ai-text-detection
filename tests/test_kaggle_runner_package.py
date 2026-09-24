@@ -16,6 +16,11 @@ from scripts.package_kaggle_kernel import (
     decompress_corpus_from_base64,
     package_kernel_script,
 )
+from kaggle_runner.generate_fever_and_social_kernel import (
+    EMBEDDED_KNOWLEDGE_CORPUS_B64,
+    unpack_embedded_corpus,
+    generate_aspect_prompt,
+)
 
 
 class TestKaggleRunnerPackage(unittest.TestCase):
@@ -137,6 +142,137 @@ class TestKaggleRunnerPackage(unittest.TestCase):
         output_path = os.path.join(self.temp_dir.name, "out.py")
         with self.assertRaises(FileNotFoundError):
             package_kernel_script(non_existent, output_path, "dummy_b64")
+
+
+class TestKernelAspectGenerationAndUnpacking(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def test_embedded_corpus_constant_defined(self):
+        self.assertIsInstance(EMBEDDED_KNOWLEDGE_CORPUS_B64, str)
+
+    def test_unpack_embedded_corpus_decompresses_and_writes_file(self):
+        sample_records = [
+            {
+                "passage_id": "test_unpack_001",
+                "title": "Сәтбаев мұрасы",
+                "text": "Қаныш Сәтбаев — геология ғылымының негізін қалаған академик ғалым.",
+                "domain": "science"
+            },
+            {
+                "passage_id": "test_unpack_002",
+                "title": "Күлтегін ескерткіші",
+                "text": "Күлтегін ескерткіші — көне түркі жазба мәдениетінің бірегей жәдігері.",
+                "domain": "history"
+            }
+        ]
+        source_jsonl = os.path.join(self.temp_dir.name, "source.jsonl")
+        with open(source_jsonl, "w", encoding="utf-8") as f:
+            for rec in sample_records:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+        payload_b64 = compress_corpus_to_base64(source_jsonl)
+        target_path = os.path.join(self.temp_dir.name, "target_corpus.jsonl")
+
+        self.assertFalse(os.path.exists(target_path))
+        unpacked_articles = unpack_embedded_corpus(payload_b64, target_path)
+
+        self.assertTrue(os.path.exists(target_path))
+        self.assertEqual(len(unpacked_articles), 2)
+        self.assertEqual(unpacked_articles, sample_records)
+
+        with open(target_path, "r", encoding="utf-8") as f:
+            lines = [json.loads(line) for line in f if line.strip()]
+        self.assertEqual(lines, sample_records)
+
+    def test_unpack_embedded_corpus_existing_file_preservation(self):
+        existing_records = [
+            {"passage_id": "existing_001", "title": "Бұрынғы файл", "text": "Мазмұн", "domain": "test"}
+        ]
+        target_path = os.path.join(self.temp_dir.name, "already_existing.jsonl")
+        with open(target_path, "w", encoding="utf-8") as f:
+            for rec in existing_records:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+        dummy_new_records = [
+            {"passage_id": "new_001", "title": "Жаңа файл", "text": "Жаңа мазмұн", "domain": "test"}
+        ]
+        dummy_source = os.path.join(self.temp_dir.name, "dummy.jsonl")
+        with open(dummy_source, "w", encoding="utf-8") as f:
+            for rec in dummy_new_records:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        dummy_b64 = compress_corpus_to_base64(dummy_source)
+
+        unpacked = unpack_embedded_corpus(dummy_b64, target_path)
+        self.assertEqual(unpacked, existing_records)
+
+    def test_unpack_embedded_corpus_empty_payload(self):
+        target_path = os.path.join(self.temp_dir.name, "non_existent.jsonl")
+        result = unpack_embedded_corpus("", target_path)
+        self.assertEqual(result, [])
+        self.assertFalse(os.path.exists(target_path))
+
+    def test_generate_aspect_prompt_aspect_0_entity_event(self):
+        title = "Қазақ хандығы"
+        text = "1465 жылы Керей мен Жәнібек хандар Қазақ хандығының негізін қалады."
+        prompt = generate_aspect_prompt(title, text, 0)
+
+        self.assertIn(title, prompt)
+        self.assertIn(text, prompt)
+        self.assertIn("SUPPORTS", prompt)
+        self.assertIn("REFUTES", prompt)
+        self.assertIn("NOT_ENOUGH_INFO", prompt)
+        self.assertIn("evidence_sentence", prompt)
+        self.assertTrue(
+            "тұлға" in prompt.lower() or "оқиға" in prompt.lower() or "entity" in prompt.lower(),
+            "Prompt for aspect 0 must focus on entity/event grounding"
+        )
+
+    def test_generate_aspect_prompt_aspect_1_numerical_chronological(self):
+        title = "Байқоңыр ғарыш айлағы"
+        text = "Байқоңыр айлағының құрылысы 1955 жылы басталды. 1961 жылы Гагарин ғарышқа ұшты."
+        prompt = generate_aspect_prompt(title, text, 1)
+
+        self.assertIn(title, prompt)
+        self.assertIn(text, prompt)
+        self.assertIn("SUPPORTS", prompt)
+        self.assertIn("REFUTES", prompt)
+        self.assertIn("NOT_ENOUGH_INFO", prompt)
+        self.assertIn("evidence_sentence", prompt)
+        self.assertTrue(
+            "жыл" in prompt.lower() or "сан" in prompt.lower() or "уақыт" in prompt.lower() or "numerical" in prompt.lower() or "мерзім" in prompt.lower(),
+            "Prompt for aspect 1 must focus on numerical/chronological grounding"
+        )
+
+    def test_generate_aspect_prompt_aspect_2_causal_relational(self):
+        title = "Абай Құнанбайұлы"
+        text = "Абайдың Қара сөздері қазақ қоғамының рухани дамуы мен ағартушылық идеяларына арналған."
+        prompt = generate_aspect_prompt(title, text, 2)
+
+        self.assertIn(title, prompt)
+        self.assertIn(text, prompt)
+        self.assertIn("SUPPORTS", prompt)
+        self.assertIn("REFUTES", prompt)
+        self.assertIn("NOT_ENOUGH_INFO", prompt)
+        self.assertIn("evidence_sentence", prompt)
+        self.assertTrue(
+            "себеп" in prompt.lower() or "байланыс" in prompt.lower() or "қасиет" in prompt.lower() or "causal" in prompt.lower() or "салдар" in prompt.lower(),
+            "Prompt for aspect 2 must focus on causal/relational/attribute grounding"
+        )
+
+    def test_generate_aspect_prompt_modulo_cycling(self):
+        title = "Сынақ тақырыбы"
+        text = "Сынақ мәтіні осында берілген."
+        prompt_0 = generate_aspect_prompt(title, text, 0)
+        prompt_3 = generate_aspect_prompt(title, text, 3)
+        self.assertEqual(prompt_0, prompt_3)
+
+        prompt_1 = generate_aspect_prompt(title, text, 1)
+        prompt_4 = generate_aspect_prompt(title, text, 4)
+        self.assertEqual(prompt_1, prompt_4)
 
 
 if __name__ == "__main__":
