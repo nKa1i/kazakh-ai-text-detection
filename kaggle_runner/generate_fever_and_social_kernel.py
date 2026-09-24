@@ -449,11 +449,14 @@ def run_social_generation(
     social_records: List[Dict[str, Any]] = []
     soc_id_counter = 1
 
+    max_attempts = int(target_posts * 1.5)
+    attempt = 0
     with open(output_path, "w", encoding="utf-8") as f_out:
-        for i in range(target_posts):
-            persona = PERSONAS[i % len(PERSONAS)]
-            platform = PLATFORMS[(i // len(PERSONAS)) % len(PLATFORMS)]
+        while len(social_records) < target_posts and attempt < max_attempts:
+            persona = PERSONAS[attempt % len(PERSONAS)]
+            platform = PLATFORMS[(attempt // len(PERSONAS)) % len(PLATFORMS)]
             prompt = generate_social_prompt(persona, platform)
+            attempt += 1
 
             try:
                 post_text = runner.query(
@@ -482,9 +485,9 @@ def run_social_generation(
                         f_out.flush()
 
             except Exception as e:
-                print(f"Error generating social post {i}: {e}")
+                print(f"Error generating social post (attempt {attempt}): {e}")
 
-            if (i + 1) % 50 == 0 or (i + 1) == target_posts:
+            if len(social_records) % 50 == 0 and len(social_records) > 0:
                 print(f"[Social] Generated {len(social_records)}/{target_posts} social media posts.")
 
         f_out.flush()
@@ -515,7 +518,7 @@ def load_or_unpack_corpus(
         target_path,
         "kazakh_knowledge_corpus.jsonl",
         "kaggle_runner/kazakh_knowledge_corpus.jsonl",
-        os.path.join(os.path.dirname(__file__), "kazakh_knowledge_corpus.jsonl") if "__file__" in locals() else None,
+        os.path.join(os.path.dirname(__file__), "kazakh_knowledge_corpus.jsonl") if "__file__" in globals() else None,
         "/kaggle/working/kazakh_knowledge_corpus.jsonl",
         "/kaggle/input/kazakh-knowledge-corpus/kazakh_knowledge_corpus.jsonl",
     ]
