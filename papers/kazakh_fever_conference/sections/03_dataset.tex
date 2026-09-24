@@ -1,0 +1,44 @@
+\section{The Kazakh-FEVER 3K Benchmark}
+\label{sec:benchmark}
+
+\subsection{Corpus Construction and Annotation Protocol}
+To construct \textbf{Kazakh-FEVER 3K}, we established a curated knowledge repository comprising over 250,000 passage chunks extracted from the Kazakh Wikipedia dump and contemporary public fact-checking repositories (including Factcheck.kz). Each text chunk was filtered for syntactic completeness, normalized for Cyrillic-Kazakh orthographic consistency, and indexed for rapid retrieval.
+
+Annotation was conducted by a team of native Kazakh linguists and professional fact-checkers under a rigorous three-stage protocol:
+\begin{enumerate}
+    \item \textbf{Claim Generation}: Annotators extracted factual assertions from verified reference passages. For each reference passage, annotators generated claims belonging to three mutually exclusive classes: \textsc{Supported} (the claim is fully entailed by the evidence), \textsc{Refuted} (the claim is explicitly contradicted by the evidence), and \textsc{Not Enough Info} (the claim contains unverified factual components).
+    \item \textbf{Evidence Alignment}: Annotators manually highlighted the minimal set of sentences in the candidate corpus required to substantiate or disprove the claim. Single-hop and multi-hop evidential dependencies were recorded with sentence-level granularity.
+    \item \textbf{Quality Control and Agreement}: All generated samples underwent cross-validation by independent secondary annotators. We measured inter-annotator agreement on a randomly sampled 20\% multi-annotator subset, achieving a Cohen's Kappa of $\kappa = 0.84$ and a Fleiss' Kappa of $0.81$, reflecting substantial annotator alignment across categories.
+\end{enumerate}
+
+\subsection{The Hard NEI Protocol}
+A pervasive weakness of automated verification datasets is the reliance of models on lexical overlap heuristics for the \textsc{NEI} class. In standard FEVER benchmarks, NEI instances are frequently created by pairing claims with unrelated passages, leading models to learn that low vocabulary overlap reliably signals NEI.
+
+To eliminate this spurious shortcut, we formulated the \textbf{Hard NEI} protocol. In this regime, annotators construct NEI claims that maintain over 85\% lexical and structural overlap with genuine candidate passages, but modify subtle semantic operators that cannot be confirmed from the text. In Kazakh, these modifications systematically target:
+\begin{itemize}
+    \item \textbf{Evidentiality and Epistemic Modality}: Altering direct past suffixes (e.g., \textit{-ды/-ді}) to inferential or quotative forms (e.g., \textit{-ыпты/-іпті}, \textit{екен}) or modal markers (e.g., \textit{мүмкін}, \textit{тиіс}).
+    \item \textbf{Quantifier and Scope Alternations}: Shifting universal quantifiers (\textit{барлық}, \textit{барша}) to existential or partial quantifiers (\textit{кейбір}, \textit{кейде}).
+    \item \textbf{Temporal and Causal Anchoring}: Introducing unstated dates, temporal adverbs, or causal subordinators (\textit{-ғандықтан}) that are grammatically plausible but ungrounded in the evidence.
+\end{itemize}
+Consequently, models cannot determine veracity via lexical similarity alone, but must analyze whether the precise semantic proposition is entailed by the retrieved passage.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Distribution of claim-evidence pairs across splits in the Kazakh-FEVER 3K benchmark.}
+\label{tab:dataset_stats}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Split} & \textbf{Supported} & \textbf{Refuted} & \textbf{Hard NEI} & \textbf{Total} \\
+\midrule
+Train & 700 & 700 & 700 & 2,100 \\
+Development & 150 & 150 & 150 & 450 \\
+Test (Encyclopedic) & 100 & 100 & 100 & 300 \\
+Test (Emerging) & 50 & 50 & 50 & 150 \\
+\midrule
+\textbf{Overall} & \textbf{1,000} & \textbf{1,000} & \textbf{1,000} & \textbf{3,000} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dataset statistics are summarized in Table~\ref{tab:dataset_stats}. The benchmark contains exactly 3,000 balanced pairs, partitioning into 2,100 training pairs, 450 development pairs, and 450 evaluation pairs split into an Encyclopedic test set (300 pairs) and an Emerging news test set (150 pairs).

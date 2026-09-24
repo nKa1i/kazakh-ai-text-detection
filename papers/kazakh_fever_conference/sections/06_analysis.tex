@@ -1,0 +1,42 @@
+\section{Linguistic Analysis and Case Studies}
+\label{sec:analysis}
+
+\subsection{Error Analysis across Kazakh Affixation Chains}
+To understand the linguistic failure modes of standard models, we analyze prediction errors across five canonical categories of Kazakh morphological constructions:
+
+\paragraph{1. Negation Suffix Interference}
+In Kazakh, verbal negation is expressed through the suffix allomorphs \textit{-ба/-бе/-па/-пе/-ма/-ме}, placed directly after the verbal root and preceding tense and person suffixes. For instance, the distinction between \textit{барған} (went) and \textit{бармаған} (did not go) is mediated by the single morpheme \textit{-ма-}. Because subword tokenizers frequently partition \textit{бармаған} into subwords that blur this boundary, pretrained encoders such as mBERT and XLM-RoBERTa frequently misclassify negative claims as \textsc{Supported} when all surrounding nominal arguments match the evidence text. Across 120 negated test instances, baseline XLM-RoBERTa exhibited an error rate of 38.3\%, whereas our morphology-aware verifier reduced this error rate to 12.5\%.
+
+\paragraph{2. Indirect Evidentiality and Epistemic Modality}
+Kazakh grammar explicitly distinguishes between directly witnessed past events (marked by \textit{-ды/-ді}) and indirect, reportative, or inferential events (marked by \textit{-ыпты/-іпті} or the particle \textit{екен}). In investigative journalism and encyclopedic texts, claims asserting direct factual certainty when the source passage expresses speculative or hearsay modality should be classified as \textsc{Not Enough Info}. Standard models universally fail to distinguish these nuances, treating evidential markers as stylistic synonyms rather than truth-conditional operators.
+
+\paragraph{3. Case-Agreement and Syntactic Role Inversion}
+Kazakh is an SOV (Subject-Object-Verb) language where grammatical relations are marked by accusative (\textit{-ны/-ні}), dative (\textit{-ға/-ге}), locative (\textit{-да/-де}), and ablative (\textit{-дан/-ден}) suffixes. When claims invert agent-patient roles while retaining the identical set of lexical stems, bag-of-words and naive dense encoders fail to identify the contradiction, whereas our model preserves case alignments through explicit morphological feature encoding.
+
+\subsection{Qualitative Case Studies}
+Table~\ref{tab:case_studies} illustrates representative examples from the Kazakh-FEVER 3K benchmark, contrasting the predictions of standard XLM-RoBERTa against our proposed system.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Qualitative case studies comparing baseline XLM-RoBERTa and our proposed system on Kazakh-FEVER 3K.}
+\label{tab:case_studies}
+\begin{tabular}{p{5.5cm}p{5.5cm}ccc}
+\toprule
+\textbf{Evidence Passage} & \textbf{Claim} & \textbf{Gold} & \textbf{XLM-R} & \textbf{Ours} \\
+\midrule
+\textit{Қаныш Сәтбаев 1934 жылы Жезқазған мыс кен орындарын зерттеуді аяқтады.} & \textit{Қаныш Сәтбаев Жезқазған мыс кен орындарын 1934 жылы зерттеген.} & \textsc{Sup} & \textsc{Sup} & \textsc{Sup} \\
+(Kanysh Satbayev completed the study of Zhezkazgan copper deposits in 1934.) & (Kanysh Satbayev studied Zhezkazgan copper deposits in 1934.) & & & \\
+\midrule
+\textit{Абай Құнанбаев «Қара сөздерін» 1890 мен 1898 жылдар аралығында жазған.} & \textit{Абай Құнанбаев «Қара сөздерін» 1890 жылдары мүлде жазбаған.} & \textsc{Ref} & \textsc{Sup} & \textsc{Ref} \\
+(Abai Qunanbaiuly wrote ``The Book of Words'' between 1890 and 1898.) & (Abai Qunanbaiuly did not write ``The Book of Words'' in the 1890s at all.) & & & \\
+\midrule
+\textit{Ахмет Байтұрсынұлы 1913 жылы «Қазақ» газетін шығаруды ұйымдастырды.} & \textit{Ахмет Байтұрсынұлы «Қазақ» газетінің барлық мақалаларын өзі ғана жазған болуы мүмкін.} & \textsc{NEI} & \textsc{Sup} & \textsc{NEI} \\
+(Akhmet Baitursynuly organized the publication of ``Qazaq'' newspaper in 1913.) & (Akhmet Baitursynuly might have written all articles of ``Qazaq'' newspaper solely by himself.) & & & \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+In Case 2, the claim inserts the negative suffix \textit{-ба-} and an emphatic adverb (\textit{мүлде}), inverting the polarity of the historical fact while maintaining 88\% lexical stem overlap. XLM-RoBERTa predicts \textsc{Supported} due to high attention over the named entities. Our system detects the negation affix and correctly classifies the claim as \textsc{Refuted}.
+
+In Case 3, representing the Hard NEI protocol, the claim introduces an ungrounded epistemic speculation (\textit{болуы мүмкін}) and an unverified universal quantifier (\textit{барлық ... өзі ғана}). While the baseline misjudges the heavy keyword overlap as entailment, our morphological NLI verifier identifies that the modal qualification is ungrounded in the evidence, yielding the correct \textsc{Not Enough Info} prediction.

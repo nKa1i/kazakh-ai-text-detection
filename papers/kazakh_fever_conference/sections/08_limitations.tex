@@ -1,0 +1,14 @@
+\section{Limitations and Ethical Considerations}
+\label{sec:limitations}
+
+\subsection{Linguistic and Typological Scope}
+While our morphological modeling techniques and Hard NEI curation protocols are designed to generalize across agglutinative language families, our empirical validation in this study is conducted exclusively on Kazakh. Although Kazakh shares structural characteristics with other Kipchak and Oghuz Turkic languages, phonological shifts, orthographic variations (such as the ongoing transition between Cyrillic and Latin alphabets in Kazakhstan), and dialectal idiosyncrasies require targeted domain adaptation before our pipeline can be deployed across broader Turkic contexts without performance degradation.
+
+\subsection{Evidence Corpus and Temporal Freshness}
+Our primary evidence repository is built from static Kazakh Wikipedia dumps and selected fact-checking archives comprising 250,000 text passages. While this repository offers comprehensive coverage for historical, biographical, and scientific assertions, it does not dynamically index real-time breaking news. Verifying rapidly evolving claims regarding emergent geopolitical, economic, or public health crises necessitates integrating live web search capabilities, which introduces additional challenges concerning source reliability and retrieval latency.
+
+\subsection{Computational and Environmental Resource Bounds}
+Training dense multilingual representation models and executing fine-tuning across large transformer parameter regimes (e.g., XLM-RoBERTa-large and 8-billion parameter generative models) requires significant GPU compute. In our experiments, model training utilized dedicated NVIDIA A100 GPU clusters, expending approximately 120 GPU hours. While inference latency with our hybrid BM25 and quantized dense retriever is suitable for real-time query servicing, institutions in low-resource research environments may face computational bottlenecks when re-training the dense encoder or scaling to multi-million document corpora.
+
+\subsection{Ethical Considerations and Responsible Deployment}
+Automated fact verification systems inherently operate in sensitive epistemic domains where erroneous predictions may lead to the suppression of legitimate discourse or the inadvertent amplification of falsehoods. We emphasize that Kazakh-FEVER 3K and its associated models are conceived as decision-support instruments for human journalists, professional fact-checkers, and content moderators, rather than autonomous arbiters of truth. Systems derived from this benchmark must incorporate transparent confidence thresholds and explainable evidence citations to allow human oversight, mitigating the risks of algorithmic censorship or disenfranchisement of dialectal speaker communities.

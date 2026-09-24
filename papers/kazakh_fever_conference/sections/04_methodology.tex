@@ -1,0 +1,71 @@
+\section{Methodology}
+\label{sec:method}
+
+We formulate fact verification as an end-to-end framework consisting of three coordinated stages: (1) Morphologically-Grounded Hybrid Evidence Retrieval, (2) Morphological NLI Verification, and (3) Joint Credibility Calibration via the 2D Trust Matrix.
+
+\subsection{Hybrid Evidence Retrieval}
+Given a query claim $c$ and an evidence corpus $\mathcal{E} = \{e_1, e_2, \dots, e_N\}$ containing $N \approx 250,000$ passages, standard sparse retrieval (BM25) frequently fails in Kazakh due to morphological mismatch between inflected word forms in the query and evidence. Conversely, dense retrievers trained primarily on high-resource languages often miss exact named entity references.
+
+We resolve this trade-off by combining a morpheme-stemmed sparse retriever with a multilingual dense encoder. Each claim $c$ and passage $e$ is first processed by a Kazakh morphological stemmer that strips inflectional suffixes while retaining grammatical root tokens, yielding $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score~\citep{robertson2009bm25} is computed over these stemmed representations:
+\begin{equation}
+S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morph}}} \mathrm{IDF}(t) \cdot \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \cdot \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
+\end{equation}
+where $k_1 = 1.5$ and $b = 0.75$.
+
+Concurrently, we encode the unstemmed surface texts into dense vectors $\mathbf{h}_c, \mathbf{h}_e \in \mathbb{R}^d$ using a multilingual contrastive retriever (\textsc{mContriever})~\citep{izacard2021contriever}:
+\begin{equation}
+\mathbf{h}_c = \mathrm{Encoder}(c), \quad \mathbf{h}_e = \mathrm{Encoder}(e)
+\end{equation}
+
+The hybrid evidence score combines the normalized sparse score and dense cosine similarity:
+\begin{equation}
+\label{eq:hybrid_retrieval}
+S_{\text{hybrid}}(c, e) = \alpha \cdot S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) + (1 - \alpha) \cdot \cos\left(\mathbf{h}_c, \mathbf{h}_e\right)
+\end{equation}
+where $\alpha \in [0, 1]$ is a tunable interpolation parameter set to $\alpha = 0.45$ on development data. Alternatively, for large candidate pools, we utilize Reciprocal Rank Fusion (RRF)~\citep{karpukhin2020dpr}:
+\begin{equation}
+\mathrm{RRF}(c, e) = \sum_{m \in \{\text{BM25}, \text{Dense}\}} \frac{1}{k_0 + r_m(c, e)}
+\end{equation}
+where $r_m(c, e)$ represents the ranking index of evidence $e$ under retriever $m$, and $k_0 = 60$ is a smoothing constant. The top-$k$ retrieved passages form the candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
+
+\subsection{Morphological NLI Verifier}
+Given the claim $c$ and concatenated evidence passage $E$, the verification module must predict a categorical label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
+
+Standard cross-encoders encode the sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ through a transformer backbone. To counteract subword over-segmentation on critical grammatical morphemes, we extract an explicit morphological feature vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{d_m}$. This vector encodes the presence and alignment of salient Kazakh affixation categories: (i) verbal negation markers (\textit{-ба/-бе/-па/-пе/-ма/-ме}), (ii) evidential markers (\textit{-ыпты/-іпті}), (iii) epistemic modals (\textit{керек, тиіс, мүмкін}), and (iv) case agreement markers.
+
+The verifier computes the class probability distribution via:
+\begin{equation}
+\label{eq:nli_verifier}
+P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v \left[\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}\right] + \mathbf{b}_v\right)
+\end{equation}
+where $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^{d}$ denotes the pooled contextual representation from the transformer encoder, $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + d_m)}$ is a learnable projection matrix, and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector. The model is trained using cross-entropy loss over gold annotations.
+
+\subsection{2D Trust Matrix Formulation}
+To account for both factual truth and generative provenance in open information environments, we map model predictions into a two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$.
+
+We define the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$ as the calibrated difference between entailment and contradiction probabilities:
+\begin{equation}
+\label{eq:trust_fact}
+T_{\text{fact}} = P(y = \textsc{Supported} \mid c, E) - P(y = \textsc{Refuted} \mid c, E)
+\end{equation}
+where $T_{\text{fact}} > 0$ indicates verified support, $T_{\text{fact}} < 0$ signifies refutation, and $T_{\text{fact}} \approx 0$ corresponds to insufficient evidence.
+
+The \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$ reflects the probability that the text is human-authored rather than synthetically generated:
+\begin{equation}
+\label{eq:trust_gen}
+T_{\text{gen}} = 1 - P(\text{AI-Generated} \mid c)
+\end{equation}
+where $P(\text{AI-Generated} \mid c)$ is estimated via a calibrated contrastive classifier trained on parallel human-machine Kazakh corpora.
+
+The unified scalar \textbf{Trust Metric} $\mathcal{T}(x)$ integrates both dimensions:
+\begin{equation}
+\label{eq:trust_score}
+\mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+\end{equation}
+which penalizes ungrounded or synthetic claims while rewarding verified human-authored facts. This induces four operational quadrants:
+\begin{itemize}
+    \item \textbf{Quadrant I ($T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$)}: \textit{Verified Human Ground Truth}---Factually substantiated assertions authored by humans.
+    \item \textbf{Quadrant II ($T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$)}: \textit{Human Misinformation}---Erroneous or ungrounded claims generated by human agents.
+    \item \textbf{Quadrant III ($T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$)}: \textit{Malicious AI Hallucination}---Factually refuted or fabricated statements produced by generative LLMs.
+    \item \textbf{Quadrant IV ($T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$)}: \textit{Factual AI Synthesis}---Accurate, verified assertions synthesized by AI models.
+\end{itemize}

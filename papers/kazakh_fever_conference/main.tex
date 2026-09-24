@@ -1,0 +1,40 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+
+\title{Kazakh-FEVER 3K: A Morphologically-Grounded Fact Verification Benchmark and 2D Trust Matrix for Low-Resource Agglutinative Languages}
+
+\author{Anonymous Authors\\
+  Affiliation scrubbed for double-blind review\\
+  \texttt{anonymous@organization.org}}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Automated fact verification in low-resource agglutinative languages faces severe challenges due to high lexical sparsity, complex affixation chains, and the vulnerability of pretrained language models to parametric memorization. In this work, we present \textbf{Kazakh-FEVER 3K}, the first human-validated fact verification benchmark for Kazakh, comprising 3,000 claim-evidence pairs balanced across Supported, Refuted, and Not Enough Info (NEI) categories. To eliminate superficial keyword shortcuts, we introduce a Hard NEI curation protocol demanding fine-grained morphological reasoning over modal, temporal, and polarity markers. Furthermore, we propose a hybrid retrieval architecture combining morpheme-aware BM25 with dense multilingual representations (\textsc{mContriever}), coupled with a 2D Trust Matrix that jointly evaluates factual veracity and AI-generation likelihood. Extensive evaluations demonstrate that our hybrid retrieval achieves a Recall@5 of 84.6\%, outperforming standard sparse retrieval by 14.2\%, while our morphologically-informed verifier yields a 7.8\% improvement in Macro-F1 over multilingual baselines, effectively neutralizing lexical shortcuts and establishing a rigorous foundation for Kazakh automated fact verification.
+\end{abstract}
+
+\input{sections/01_introduction.tex}
+\input{sections/02_related_work.tex}
+\input{sections/03_dataset.tex}
+\input{sections/04_methodology.tex}
+\input{sections/05_experiments.tex}
+\input{sections/06_analysis.tex}
+\input{sections/07_conclusion.tex}
+\input{sections/08_limitations.tex}
+
+\bibliographystyle{acl_natbib}
+\bibliography{custom}
+
+\end{document}
