@@ -8,6 +8,8 @@ and dynamic injection of embedded knowledge corpus into kernel scripts.
 import ast
 import json
 import os
+import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
@@ -283,16 +285,24 @@ class TestKernelAspectGenerationAndUnpacking(unittest.TestCase):
 class TestKagglePushRunner(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
+        # Stage fixtures inside temp_dir to keep tests fully hermetic
+        self.temp_kernel_dir = self.temp_dir.name
+        prod_corpus = os.path.join("kaggle_runner", "kazakh_knowledge_corpus.jsonl")
+        prod_script = os.path.join("kaggle_runner", "generate_fever_and_social_kernel.py")
+        if os.path.exists(prod_corpus):
+            shutil.copy(prod_corpus, os.path.join(self.temp_kernel_dir, "kazakh_knowledge_corpus.jsonl"))
+        if os.path.exists(prod_script):
+            shutil.copy(prod_script, os.path.join(self.temp_kernel_dir, "generate_fever_and_social_kernel.py"))
 
     def tearDown(self):
         self.temp_dir.cleanup()
 
     @patch("subprocess.run")
     def test_prepare_and_push_dry_run_updates_metadata_and_packages_kernel(self, mock_subproc):
-        success = prepare_and_push(dry_run=True)
+        success = prepare_and_push(dry_run=True, kernel_dir=self.temp_kernel_dir)
         self.assertTrue(success)
 
-        metadata_path = os.path.join("kaggle_runner", "kernel-metadata.json")
+        metadata_path = os.path.join(self.temp_kernel_dir, "kernel-metadata.json")
         self.assertTrue(os.path.exists(metadata_path))
         with open(metadata_path, "r", encoding="utf-8") as f:
             metadata = json.load(f)
@@ -302,7 +312,7 @@ class TestKagglePushRunner(unittest.TestCase):
         self.assertEqual(metadata.get("accelerator"), "gpu_t4_x2")
         self.assertEqual(metadata.get("enable_internet"), True)
 
-        kernel_script_path = os.path.join("kaggle_runner", "generate_fever_and_social_kernel.py")
+        kernel_script_path = os.path.join(self.temp_kernel_dir, "generate_fever_and_social_kernel.py")
         self.assertTrue(os.path.exists(kernel_script_path))
         with open(kernel_script_path, "r", encoding="utf-8") as f:
             kernel_content = f.read()
@@ -316,7 +326,7 @@ class TestKagglePushRunner(unittest.TestCase):
     def test_prepare_and_push_executes_push_when_not_dry_run(self, mock_subproc):
         mock_subproc.return_value = MagicMock(returncode=0, stdout="Kernel successfully pushed")
 
-        success = prepare_and_push(dry_run=False)
+        success = prepare_and_push(dry_run=False, kernel_dir=self.temp_kernel_dir)
         self.assertTrue(success)
 
         called_push = False
@@ -325,15 +335,14 @@ class TestKagglePushRunner(unittest.TestCase):
             if len(cmd) >= 3 and cmd[0] == "kaggle" and cmd[1] == "kernels" and cmd[2] == "push":
                 called_push = True
                 self.assertIn("-p", cmd)
-                self.assertIn("kaggle_runner", cmd)
+                self.assertIn(self.temp_kernel_dir, cmd)
         self.assertTrue(called_push, "subprocess.run should have been called with kaggle kernels push")
 
     @patch("subprocess.run")
     def test_prepare_and_push_handles_push_failure(self, mock_subproc):
-        import subprocess
         mock_subproc.side_effect = subprocess.CalledProcessError(1, cmd=["kaggle"], stderr="Push error")
 
-        success = prepare_and_push(dry_run=False)
+        success = prepare_and_push(dry_run=False, kernel_dir=self.temp_kernel_dir)
         self.assertFalse(success)
 
     @patch("subprocess.run")
