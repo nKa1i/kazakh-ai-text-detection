@@ -184,6 +184,168 @@ class TestTrustworthyDocumentVerifier2D(unittest.TestCase):
         self.assertEqual(res.trust_risk, 0.0)
 
 
+class TestUIVerification2DMatrix(unittest.TestCase):
+    """Test unit for 2D Cartesian Plane visualization, summary card, and morphological drawer rendering."""
+
+    def test_render_2d_trust_matrix_plane_en(self):
+        """Verify SVG elements, pastel quadrants, coordinate mapping, and XSS sanitization in English."""
+        from ui.highlighting import render_2d_trust_matrix_plane
+
+        # Standard coordinate rendering
+        html_out = render_2d_trust_matrix_plane(t_fact=0.8, t_gen=0.9, quadrant="Q1", lang="en")
+        self.assertIn("<svg", html_out)
+        self.assertIn('viewBox="0 0 460 320"', html_out)
+        self.assertIn("Verified Human Fact", html_out)
+        self.assertIn("Human Misinformation", html_out)
+        self.assertIn("Accurate AI Synthesis", html_out)
+        self.assertIn("Hallucinatory AI Disinformation", html_out)
+
+        # Coordinate point calculation: cx = 200 + 0.8 * 160 = 328.0; cy = 260 - 0.9 * 200 = 80.0
+        self.assertIn('cx="328.0"', html_out)
+        self.assertIn('cy="80.0"', html_out)
+        self.assertIn('r="6.5"', html_out)
+        self.assertIn('r="12"', html_out)
+        self.assertIn('opacity="0.3"', html_out)
+
+        # HUD badge elements
+        self.assertIn("T_fact", html_out)
+        self.assertIn("T_gen", html_out)
+        self.assertIn("T(x)", html_out)
+        self.assertIn("Q1", html_out)
+
+        # Coordinate clamping checks: cx clamped to [40, 360], cy clamped to [60, 260]
+        clamped_high = render_2d_trust_matrix_plane(t_fact=2.5, t_gen=-1.0, quadrant="Q3", lang="en")
+        self.assertIn('cx="360.0"', clamped_high)
+        self.assertIn('cy="260.0"', clamped_high)
+
+        clamped_low = render_2d_trust_matrix_plane(t_fact=-2.5, t_gen=2.0, quadrant="Q2", lang="en")
+        self.assertIn('cx="40.0"', clamped_low)
+        self.assertIn('cy="60.0"', clamped_low)
+
+        # XSS sanitization check
+        xss_out = render_2d_trust_matrix_plane(t_fact=0.0, t_gen=0.5, quadrant="<script>alert('xss')</script>", lang="en")
+        self.assertNotIn("<script>", xss_out)
+        self.assertIn("&lt;script&gt;", xss_out)
+
+    def test_render_2d_trust_matrix_plane_kz(self):
+        """Verify Kazakh localized axes and pastel quadrant labels."""
+        from ui.highlighting import render_2d_trust_matrix_plane
+
+        html_kz = render_2d_trust_matrix_plane(t_fact=-0.5, t_gen=0.2, quadrant="Q4", lang="kz")
+        self.assertIn("<svg", html_kz)
+        self.assertIn('viewBox="0 0 460 320"', html_kz)
+
+        # Localized quadrants
+        self.assertIn("Расталған ақиқат", html_kz)
+        self.assertIn("Адам қателігі", html_kz)
+        self.assertIn("Нақты AI синтезі", html_kz)
+        self.assertIn("AI дезинформация", html_kz)
+
+        # Localized axis labels
+        self.assertIn("Деректік ақиқаттық", html_kz)
+        self.assertIn("Адам жазған / AI қаупі", html_kz)
+        self.assertIn("Q4", html_kz)
+
+    def test_render_trust_summary_card_contains_2d_matrix(self):
+        """Verify summary card embeds the 2D Cartesian SVG plane for both None and verified inputs."""
+        from ui.highlighting import render_trust_summary_card
+
+        # None input (waiting state) embeds neutral 2D plane at (0.0, 0.5)
+        html_none = render_trust_summary_card(None, lang="en")
+        self.assertIn("Awaiting Verification", html_none)
+        self.assertIn("<svg", html_none)
+        self.assertIn('viewBox="0 0 460 320"', html_none)
+        self.assertIn('cx="200.0"', html_none)
+        self.assertIn('cy="160.0"', html_none)
+
+        # Valid DocumentTrustResult
+        doc_res = DocumentTrustResult(
+            doc_text="Астана — Қазақстан астанасы.",
+            ai_risk=0.10,
+            factual_risk=0.00,
+            trust_risk=0.05,
+            quadrant_verdict="Verified Human Fact",
+            t_fact=0.80,
+            t_gen=0.90,
+            composite_trust=0.8510,
+            quadrant_code="Q1"
+        )
+
+        html_valid = render_trust_summary_card(doc_res, lang="en")
+        self.assertIn("<svg", html_valid)
+        self.assertIn('viewBox="0 0 460 320"', html_valid)
+        self.assertIn("Verified Human Fact", html_valid)
+        self.assertIn("lvl-verified-human", html_valid)
+        self.assertIn("T_fact", html_valid)
+        self.assertIn("T_gen", html_valid)
+        self.assertIn("85.1%", html_valid)
+
+    def test_render_claims_table_with_morpho_drawer(self):
+        """Verify claims table renders HTML5 <details> morphological drawer with 16 diagnostic features."""
+        from ui.highlighting import render_claims_verification_table
+
+        claim = AtomicClaim(
+            claim_id="c1",
+            text="Қазақстан 1991 жылы тәуелсіздік алды.",
+            source_sentence="Қазақстан 1991 жылы тәуелсіздік алды."
+        )
+        evidence = EvidencePassage(
+            passage_id="ev1",
+            title="Қазақстан тарихы",
+            text="Қазақстан Республикасы 1991 жылы 16 желтоқсанда тәуелсіздігін жариялады.",
+            matched_stems=["қазақстан", "1991", "тәуелсіздік"]
+        )
+        features = {
+            "claim_negation": 0.0,
+            "evidence_negation": 0.0,
+            "directional_negation_mismatch": 0.0,
+            "calendar_year_conflict": 0.0,
+            "number_mismatch": 0.0,
+            "has_claim_evidential": False,
+            "has_evidence_evidential": False,
+            "has_modal_necessity": False,
+            "has_modal_possibility": False,
+            "fst_root_jaccard": 0.725,
+            "surface_token_overlap": 0.60,
+            "lexical_fst_divergence": 0.125,
+            "subject_proper_noun_match": 1.0,
+            "case_suffix_alignment": 0.85,
+            "claim_length_norm": 0.2,
+            "evidence_length_norm": 0.4,
+        }
+        res = ClaimVerificationResult(
+            claim=claim,
+            verdict="SUPPORTED",
+            confidence=0.92,
+            evidence=[evidence],
+            explanation="Дерек толық расталған.",
+            morphological_features=features
+        )
+
+        html_en = render_claims_verification_table([res], lang="en")
+        self.assertIn("<details", html_en)
+        self.assertIn('class="morpho-drawer"', html_en)
+        self.assertIn("<summary", html_en)
+        self.assertIn("Morphological Alignment & Evidence Diagnostics", html_en)
+        self.assertIn("Directional Negation Mismatch", html_en)
+        self.assertIn("Calendar Year Conflict", html_en)
+        self.assertIn("Number/Quantity Divergence", html_en)
+        self.assertIn("Evidential Markers", html_en)
+        self.assertIn("Epistemic Modals", html_en)
+        self.assertIn("FST Root Jaccard", html_en)
+        self.assertIn("72.5%", html_en)
+        self.assertIn("Surface Token Overlap", html_en)
+        self.assertIn("Lexical-FST Divergence", html_en)
+        self.assertIn("Hard NEI Risk", html_en)
+        self.assertIn("Case Suffix Alignment", html_en)
+        self.assertIn("morpho-stem-highlight", html_en)
+
+        # Kazakh localization check
+        html_kz = render_claims_verification_table([res], lang="kz")
+        self.assertIn("Морфологиялық сәйкестік және дәлелдемелер", html_kz)
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
