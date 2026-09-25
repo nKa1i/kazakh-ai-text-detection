@@ -371,6 +371,101 @@ def train_nli_classifier(
     return model
 
 
+class PyTorchNLIWrapper:
+    """
+    Inference wrapper for fine-tuned PyTorch / HuggingFace NLI models.
+    Supports sequence classification models and MorphoNLIVerifier on CPU and GPU.
+    """
+
+    ID_TO_LABEL = {0: "SUPPORTED", 1: "REFUTES", 2: "NOT_ENOUGH_INFO"}
+
+    def __init__(
+        self,
+        model: Any,
+        tokenizer: Any,
+        device: Any = "cpu",
+        is_morpho: bool = False,
+        max_length: int = 256,
+    ):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.device = device
+        self.is_morpho = is_morpho
+        self.max_length = max_length
+        self.extractor = MorphologicalAffixExtractor() if is_morpho else None
+
+    def predict_pair(self, claim: str, evidence: str) -> Dict[str, Any]:
+        """
+        Runs neural model inference on a single (claim, evidence) text pair.
+        """
+        try:
+            import torch
+            has_torch = True
+        except ImportError:
+            has_torch = False
+
+        if not has_torch or self.model is None or self.tokenizer is None:
+            return {"label": "NOT_ENOUGH_INFO"}
+
+        if hasattr(self.model, "eval"):
+            self.model.eval()
+
+        with torch.no_grad():
+            encoding = self.tokenizer(
+                claim,
+                evidence,
+                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+            )
+            input_ids = encoding["input_ids"]
+            attention_mask = encoding["attention_mask"]
+
+            if hasattr(input_ids, "to") and self.device is not None:
+                input_ids = input_ids.to(self.device)
+            if hasattr(attention_mask, "to") and self.device is not None:
+                attention_mask = attention_mask.to(self.device)
+
+            if self.is_morpho:
+                feats = self.extractor.extract_features(claim, evidence) if self.extractor else []
+                morpho_tensor = torch.tensor([feats], dtype=torch.float32)
+                if hasattr(morpho_tensor, "to") and self.device is not None:
+                    morpho_tensor = morpho_tensor.to(self.device)
+                logits = self.model(input_ids=input_ids, attention_mask=attention_mask, morpho_features=morpho_tensor)
+            else:
+                outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
+                logits = outputs.logits if hasattr(outputs, "logits") else outputs
+
+            if hasattr(logits, "argmax"):
+                pred_id = int(logits.argmax(dim=-1).item())
+            elif isinstance(logits, list):
+                row = logits[0] if isinstance(logits[0], list) else logits
+                pred_id = int(row.index(max(row)))
+            else:
+                pred_id = 2
+
+            label = self.ID_TO_LABEL.get(pred_id, "NOT_ENOUGH_INFO")
+            return {"label": label}
+
+    def predict(self, pairs: List[Any]) -> List[str]:
+        """
+        Runs batch prediction over a list of claim-evidence dictionaries or tuples.
+        """
+        preds = []
+        for p in pairs:
+            if isinstance(p, dict):
+                c = p.get("claim", "")
+                e = p.get("evidence", "")
+            elif isinstance(p, (list, tuple)) and len(p) >= 2:
+                c, e = p[0], p[1]
+            else:
+                c, e = str(p), ""
+            res = self.predict_pair(c, e)
+            preds.append(res.get("label", "NOT_ENOUGH_INFO"))
+        return preds
+
+
 def evaluate_nli_test_suite(
     models_dict: Dict[str, Any],
     test_pairs: List[Dict[str, Any]],
@@ -420,9 +515,12 @@ def evaluate_nli_test_suite(
             elif hasattr(model, "predict"):
                 res = model.predict([p])
                 pred_raw = res[0] if hasattr(res, "__len__") and len(res) > 0 else str(res)
-            elif callable(model):
-                res = model(claim, evidence)
-                pred_raw = res.get("label", "NOT_ENOUGH_INFO") if isinstance(res, dict) else str(res)
+            elif callable(model) and not hasattr(model, "forward"):
+                try:
+                    res = model(claim, evidence)
+                    pred_raw = res.get("label", "NOT_ENOUGH_INFO") if isinstance(res, dict) else str(res)
+                except Exception:
+                    pred_raw = "NOT_ENOUGH_INFO"
             else:
                 pred_raw = "NOT_ENOUGH_INFO"
 

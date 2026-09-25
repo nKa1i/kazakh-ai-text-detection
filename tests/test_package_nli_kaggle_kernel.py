@@ -232,6 +232,94 @@ class TestPackageNLIKaggleKernel(unittest.TestCase):
             for bad_word in forbidden:
                 self.assertNotIn(bad_word, content, f"{bad_word} found in {rel_path}")
 
+    def test_pytorch_nli_wrapper_inference(self):
+        from kaggle_runner.train_nli_kernel import PyTorchNLIWrapper, HAS_TORCH
+
+        class MockTokenizer:
+            def __call__(self, text, text_pair=None, **kwargs):
+                return {
+                    "input_ids": [101, 102] if not HAS_TORCH else __import__("torch").tensor([[101, 102]]),
+                    "attention_mask": [1, 1] if not HAS_TORCH else __import__("torch").tensor([[1, 1]]),
+                }
+
+        class MockOutputs:
+            def __init__(self, logits):
+                self.logits = logits
+
+        class MockModel:
+            def __init__(self):
+                self.training = True
+
+            def eval(self):
+                self.training = False
+                return self
+
+            def __call__(self, *args, **kwargs):
+                if HAS_TORCH:
+                    import torch
+                    return MockOutputs(torch.tensor([[2.5, -1.0, 0.1]]))
+                return MockOutputs([[2.5, -1.0, 0.1]])
+
+        wrapper = PyTorchNLIWrapper(
+            model=MockModel(),
+            tokenizer=MockTokenizer(),
+            device="cpu",
+            is_morpho=False,
+        )
+        res = wrapper.predict_pair("Астана – Қазақстан астанасы.", "Астана 1997 жылдан бері бас қала.")
+        self.assertIsInstance(res, dict)
+        self.assertIn("label", res)
+        self.assertEqual(res["label"], "SUPPORTED")
+
+        preds = wrapper.predict([{"claim": "Астана – Қазақстан астанасы.", "evidence": "Бас қала."}])
+        self.assertEqual(len(preds), 1)
+        self.assertEqual(preds[0], "SUPPORTED")
+
+    def test_evaluate_nli_test_suite_with_pytorch_wrapper(self):
+        from kaggle_runner.train_nli_kernel import (
+            PyTorchNLIWrapper,
+            evaluate_nli_test_suite,
+            HAS_TORCH,
+        )
+
+        class MockTokenizer:
+            def __call__(self, text, text_pair=None, **kwargs):
+                return {
+                    "input_ids": [101, 102] if not HAS_TORCH else __import__("torch").tensor([[101, 102]]),
+                    "attention_mask": [1, 1] if not HAS_TORCH else __import__("torch").tensor([[1, 1]]),
+                }
+
+        class MockOutputs:
+            def __init__(self, logits):
+                self.logits = logits
+
+        class MockModel:
+            def eval(self):
+                return self
+
+            def __call__(self, *args, **kwargs):
+                if HAS_TORCH:
+                    import torch
+                    return MockOutputs(torch.tensor([[0.1, 3.0, -0.5]]))
+                return MockOutputs([[0.1, 3.0, -0.5]])
+
+        wrapper = PyTorchNLIWrapper(
+            model=MockModel(),
+            tokenizer=MockTokenizer(),
+            device="cpu",
+            is_morpho=False,
+        )
+        test_pairs = [
+            {"claim": "Тест талап 1", "evidence": "Дәйексөз 1", "label": "REFUTES"},
+            {"claim": "Тест талап 2", "evidence": "Дәйексөз 2", "label": "NOT_ENOUGH_INFO"},
+        ]
+        results = evaluate_nli_test_suite({"WrappedNeuralModel": wrapper}, test_pairs)
+        self.assertIn("WrappedNeuralModel", results)
+        self.assertIn("accuracy", results["WrappedNeuralModel"])
+        self.assertIn("macro_f1", results["WrappedNeuralModel"])
+        self.assertIn("fever_score", results["WrappedNeuralModel"])
+        self.assertIn("hard_nei_f1", results["WrappedNeuralModel"])
+
 
 if __name__ == "__main__":
     unittest.main()
