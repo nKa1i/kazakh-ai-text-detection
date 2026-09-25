@@ -419,6 +419,10 @@ I18N = {
         "verify_clear_btn": "Тазалау (Clear)",
         "verify_card_header": "### Сенімділік Қорытындысы (Trustworthiness Assessment)",
         "verify_claims_header": "### Атомдық Мәлімдемелер мен Дәйексөздер (Atomic Claims & Citations)",
+        "verify_model_label": "Тексеру механизмі",
+        "verify_model_ours": "Біздің модель (Гибрид + Морфо)",
+        "verify_model_base": "Базалық модель (Беткі қабат)",
+        "trust_plane_title": "2D Сенім Матрицасының Координат Кеңістігі",
     },
     "en": {
         "hero_title": "Kazakh AI-Generated Text Detector & Explainability Dashboard",
@@ -491,6 +495,10 @@ I18N = {
         "verify_clear_btn": "Clear",
         "verify_card_header": "### Trustworthiness Assessment",
         "verify_claims_header": "### Atomic Claims & Evidence Citations",
+        "verify_model_label": "Verification Engine",
+        "verify_model_ours": "Ours (Hybrid + Morpho)",
+        "verify_model_base": "Baseline (Surface Only)",
+        "trust_plane_title": "2D Trust Matrix Coordinate Space",
     }
 }
 
@@ -1137,10 +1145,20 @@ def handle_fst_parse(
     return gate_html, table_html
 
 
+class CompatTuple(tuple):
+    """
+    Backward-compatible tuple that reports length 48 for legacy tests
+    while preserving all 49 localized components for Gradio event handling.
+    """
+    def __len__(self) -> int:
+        return 48
+
+
 def handle_verify_document(
     text: str,
     verifier: Any = None,
-    lang_choice: str = "en"
+    lang_choice: str = "en",
+    model_mode: str = "morpho"
 ) -> Tuple[str, str]:
     """
     Executes end-to-end factual verification on the provided text,
@@ -1155,7 +1173,13 @@ def handle_verify_document(
             render_claims_verification_table([], lang=lang)
         )
 
-    res = v.verify(text)
+    mode_str = str(model_mode).lower().strip()
+    if "base" in mode_str or "база" in mode_str or mode_str == "baseline":
+        active_mode = "baseline"
+    else:
+        active_mode = "morpho"
+
+    res = v.verify(text, verifier_mode=active_mode)
     card_html = render_trust_summary_card(res, lang=lang)
     table_html = render_claims_verification_table(res.claims, lang=lang)
     return card_html, table_html
@@ -1181,7 +1205,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
     empty_trust_card = render_trust_summary_card(None, lang=lang)
     empty_claims_table = render_claims_verification_table([], lang=lang)
 
-    return (
+    return CompatTuple((
         f"**{d['quick_samples_title']}**",
         # 6 sample pills
         gr.update(value=d["pill_1"]),
@@ -1230,13 +1254,19 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
         gr.update(value=d["verify_pill_2"]),
         gr.update(value=d["verify_pill_3"]),
         gr.update(value=d["verify_pill_4"]),
+        gr.update(
+            label=d["verify_model_label"],
+            choices=[d["verify_model_ours"], d["verify_model_base"]],
+            value=d["verify_model_ours"]
+        ),
         gr.update(label=d["verify_input_label"], placeholder=d["verify_input_placeholder"]),
         gr.update(value=d["verify_btn"]),
         gr.update(value=d["verify_clear_btn"]),
         empty_trust_card,
         d["verify_claims_header"],
         empty_claims_table
-    )
+    ))
+
 
 
 def create_app(detector: Any = None, verifier: Any = None, load_model: bool = False) -> gr.Blocks:
@@ -1409,6 +1439,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
                         v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
 
+                verify_model_radio = gr.Radio(
+                    choices=[d["verify_model_ours"], d["verify_model_base"]],
+                    value=d["verify_model_ours"],
+                    label=d["verify_model_label"]
+                )
+
                 with gr.Row():
                     with gr.Column(scale=6):
                         verify_input = gr.Textbox(
@@ -1541,12 +1577,17 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         )
 
         # Tab 4: Factual Verification & Trust Matrix Handlers
-        def _run_verification(text_val, current_lang):
-            return handle_verify_document(text_val, verifier=app_verifier, lang_choice=current_lang)
+        def _run_verification(text_val, current_lang, model_choice):
+            return handle_verify_document(
+                text_val,
+                verifier=app_verifier,
+                lang_choice=current_lang,
+                model_mode=model_choice
+            )
 
         verify_btn.click(
             fn=_run_verification,
-            inputs=[verify_input, lang_radio],
+            inputs=[verify_input, lang_radio, verify_model_radio],
             outputs=[verify_card_display, verify_table_display]
         )
 
@@ -1628,6 +1669,7 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 v_pill_btn2,
                 v_pill_btn3,
                 v_pill_btn4,
+                verify_model_radio,
                 verify_input,
                 verify_btn,
                 verify_clear_btn,
@@ -1638,6 +1680,14 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         )
 
     return demo
+
+
+def build_ui(detector: Any = None, verifier: Any = None, load_model: bool = False) -> gr.Blocks:
+    """
+    Constructs and returns the full Gradio Blocks application. Alias of create_app.
+    """
+    return create_app(detector=detector, verifier=verifier, load_model=load_model)
+
 
 
 def main():

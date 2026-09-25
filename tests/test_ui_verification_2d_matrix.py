@@ -345,6 +345,75 @@ class TestUIVerification2DMatrix(unittest.TestCase):
         self.assertIn("Морфологиялық сәйкестік және дәлелдемелер", html_kz)
 
 
+class TestUIDashboardWiring2D(unittest.TestCase):
+    """Test unit for Tab 4 Gradio UI Dashboard wiring, model toggle, and bilingual localization."""
+
+    def test_handle_verify_document_with_model_selection(self):
+        """Verifies handle_verify_document executes both 'morpho' and 'baseline' modes cleanly."""
+        from ui.app import handle_verify_document
+
+        text = "Қазақстан 1991 жылы тәуелсіздік алды."
+
+        # Test Ours (Morpho)
+        card_html_ours, table_html_ours = handle_verify_document(
+            text=text,
+            lang_choice="en",
+            model_mode="morpho"
+        )
+        self.assertIn("<svg", card_html_ours)
+        self.assertIn("morpho-drawer", table_html_ours)
+
+        # Test Baseline
+        card_html_base, table_html_base = handle_verify_document(
+            text=text,
+            lang_choice="en",
+            model_mode="baseline"
+        )
+        self.assertIn("<svg", card_html_base)
+        self.assertIn("claims-table", table_html_base)
+
+    def test_switch_ui_language_updates_verification_components(self):
+        """Verifies switch_ui_language produces valid updates for both English and Kazakh, including model radio."""
+        from ui.app import switch_ui_language, I18N
+
+        # Test English
+        en_outputs = switch_ui_language("en")
+        self.assertIsInstance(en_outputs, tuple)
+        en_radio_update = None
+        for item in en_outputs:
+            if isinstance(item, dict) and "choices" in item:
+                if I18N["en"]["verify_model_ours"] in item.get("choices", []):
+                    en_radio_update = item
+                    break
+        self.assertIsNotNone(en_radio_update, "Model radio update missing in English outputs")
+        self.assertEqual(en_radio_update.get("label"), "Verification Engine")
+        self.assertEqual(en_radio_update.get("value"), "Ours (Hybrid + Morpho)")
+        self.assertIn("Baseline (Surface Only)", en_radio_update.get("choices", []))
+
+        # Test Kazakh
+        kz_outputs = switch_ui_language("kz")
+        self.assertIsInstance(kz_outputs, tuple)
+        kz_radio_update = None
+        for item in kz_outputs:
+            if isinstance(item, dict) and "choices" in item:
+                if I18N["kz"]["verify_model_ours"] in item.get("choices", []):
+                    kz_radio_update = item
+                    break
+        self.assertIsNotNone(kz_radio_update, "Model radio update missing in Kazakh outputs")
+        self.assertEqual(kz_radio_update.get("label"), "Тексеру механизмі")
+        self.assertEqual(kz_radio_update.get("value"), "Біздің модель (Гибрид + Морфо)")
+        self.assertIn("Базалық модель (Беткі қабат)", kz_radio_update.get("choices", []))
+
+    def test_build_ui_scaffolds_verification_model_radio(self):
+        """Verifies build_ui constructs the UI with the model radio without errors."""
+        import gradio as gr
+        from ui.app import build_ui
+
+        demo = build_ui(load_model=False)
+        self.assertIsNotNone(demo)
+        self.assertIsInstance(demo, gr.Blocks)
+
+
 if __name__ == "__main__":
     unittest.main()
 
