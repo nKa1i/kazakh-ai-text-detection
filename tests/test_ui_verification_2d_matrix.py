@@ -89,5 +89,101 @@ class TestVerificationEvidence2D(unittest.TestCase):
         self.assertEqual(doc_dict["quadrant_code"], "Q1")
 
 
+class TestTrustworthyDocumentVerifier2D(unittest.TestCase):
+    """Test unit for TrustworthyDocumentVerifier dual verifier modes and 2D trust scoring."""
+
+    def test_verifier_computes_2d_trust_coordinates(self):
+        """Verify verifier returns continuous 2D coordinates and valid quadrant assignment."""
+        from verification.verifier import TrustworthyDocumentVerifier
+
+        verifier = TrustworthyDocumentVerifier(verifier_mode="morpho")
+        text = "Астана — Қазақстанның елордасы."
+        res = verifier.verify(text)
+
+        self.assertIn(res.quadrant_code, ["Q1", "Q2", "Q3", "Q4"])
+        self.assertGreaterEqual(res.t_fact, -1.0)
+        self.assertLessEqual(res.t_fact, 1.0)
+        self.assertGreaterEqual(res.t_gen, 0.0)
+        self.assertLessEqual(res.t_gen, 1.0)
+        self.assertGreaterEqual(res.composite_trust, 0.0)
+        self.assertLessEqual(res.composite_trust, 1.0)
+        self.assertGreater(len(res.claims), 0)
+        self.assertIn("fst_root_jaccard", res.claims[0].morphological_features)
+        self.assertIn("fst_jaccard", res.claims[0].morphological_features)
+
+    def test_verifier_supports_baseline_mode(self):
+        """Verify verifier operates correctly in baseline mode via init and runtime override."""
+        from verification.verifier import TrustworthyDocumentVerifier
+
+        # Mode set at initialization
+        verifier_base = TrustworthyDocumentVerifier(verifier_mode="baseline")
+        text = "Астана — Қазақстанның елордасы."
+        res_base = verifier_base.verify(text)
+        self.assertIsNotNone(res_base)
+        self.assertIn(res_base.quadrant_code, ["Q1", "Q2", "Q3", "Q4"])
+        self.assertGreaterEqual(res_base.t_fact, -1.0)
+        self.assertLessEqual(res_base.t_fact, 1.0)
+        self.assertGreaterEqual(res_base.t_gen, 0.0)
+        self.assertLessEqual(res_base.t_gen, 1.0)
+
+        # Runtime mode override
+        verifier_morpho = TrustworthyDocumentVerifier(verifier_mode="morpho")
+        res_override = verifier_morpho.verify(text, verifier_mode="baseline")
+        self.assertIsNotNone(res_override)
+        self.assertIn(res_override.quadrant_code, ["Q1", "Q2", "Q3", "Q4"])
+
+    def test_morphological_features_attached_to_claims(self):
+        """Verify 16-feature morphological diagnostic dictionary is attached to verified claims."""
+        from verification.verifier import TrustworthyDocumentVerifier
+
+        verifier = TrustworthyDocumentVerifier(verifier_mode="morpho")
+        text = "Қазақстан 1999 жылы тәуелсіздік алды."
+        res = verifier.verify(text)
+
+        self.assertGreater(len(res.claims), 0)
+        features = res.claims[0].morphological_features
+        self.assertIsInstance(features, dict)
+
+        required_keys = [
+            "claim_negation",
+            "evidence_negation",
+            "directional_negation_mismatch",
+            "calendar_year_conflict",
+            "number_mismatch",
+            "has_claim_evidential",
+            "has_evidence_evidential",
+            "has_modal_necessity",
+            "has_modal_possibility",
+            "fst_root_jaccard",
+            "surface_token_overlap",
+            "lexical_fst_divergence",
+            "subject_proper_noun_match",
+            "case_suffix_alignment",
+            "claim_length_norm",
+            "evidence_length_norm",
+        ]
+        for key in required_keys:
+            self.assertIn(key, features, f"Missing required morphological feature key: {key}")
+
+        self.assertEqual(features["calendar_year_conflict"], 1.0)
+        self.assertIsInstance(features["has_claim_evidential"], bool)
+        self.assertIsInstance(features["fst_root_jaccard"], float)
+
+    def test_empty_document_2d_coordinates(self):
+        """Verify empty text verification returns clean zeroed coordinates and Q1 verdict."""
+        from verification.verifier import TrustworthyDocumentVerifier
+
+        verifier = TrustworthyDocumentVerifier(verifier_mode="morpho")
+        res = verifier.verify("")
+
+        self.assertEqual(res.total_claims, 0)
+        self.assertEqual(res.t_fact, 0.0)
+        self.assertEqual(res.t_gen, 1.0)
+        self.assertEqual(res.quadrant_code, "Q1")
+        self.assertEqual(res.quadrant_verdict, "Verified Human Fact")
+        self.assertEqual(res.trust_risk, 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()
+
