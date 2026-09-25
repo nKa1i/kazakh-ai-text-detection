@@ -413,6 +413,42 @@ class TestUIDashboardWiring2D(unittest.TestCase):
         self.assertIsNotNone(demo)
         self.assertIsInstance(demo, gr.Blocks)
 
+    def test_gradio_event_dispatch_switch_ui_language(self):
+        """
+        Verifies that len(switch_ui_language('en')) == 49 and that
+        switch_ui_language can be executed through Gradio event dispatch
+        without raising ValueError.
+        """
+        import asyncio
+        from ui.app import build_ui, switch_ui_language
+
+        # 1. Output length verification for English and Kazakh
+        en_outputs = switch_ui_language("en")
+        self.assertIsInstance(en_outputs, tuple)
+        self.assertEqual(len(en_outputs), 49)
+
+        kz_outputs = switch_ui_language("kz")
+        self.assertIsInstance(kz_outputs, tuple)
+        self.assertEqual(len(kz_outputs), 49)
+
+        # 2. Build demo and locate the registered event handler for switch_ui_language
+        demo = build_ui(load_model=False)
+        target_fn = next(
+            f for f in demo.fns.values()
+            if hasattr(f, "fn") and f.fn == switch_ui_language
+        )
+        self.assertEqual(len(target_fn.outputs), 49)
+
+        # 3. Execute through Gradio event dispatch without raising ValueError
+        res = asyncio.run(demo.call_function(target_fn, ["English"]))
+        self.assertIn("prediction", res)
+        self.assertEqual(len(res["prediction"]), 49)
+
+        # Full Gradio process_api invocation check
+        api_res = asyncio.run(demo.process_api(target_fn, ["English"]))
+        self.assertIn("data", api_res)
+        self.assertEqual(len(api_res["data"]), 49)
+
 
 if __name__ == "__main__":
     unittest.main()

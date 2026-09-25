@@ -1145,15 +1145,6 @@ def handle_fst_parse(
     return gate_html, table_html
 
 
-class CompatTuple(tuple):
-    """
-    Backward-compatible tuple that reports length 48 for legacy tests
-    while preserving all 49 localized components for Gradio event handling.
-    """
-    def __len__(self) -> int:
-        return 48
-
-
 def handle_verify_document(
     text: str,
     verifier: Any = None,
@@ -1205,7 +1196,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
     empty_trust_card = render_trust_summary_card(None, lang=lang)
     empty_claims_table = render_claims_verification_table([], lang=lang)
 
-    return CompatTuple((
+    return (
         f"**{d['quick_samples_title']}**",
         # 6 sample pills
         gr.update(value=d["pill_1"]),
@@ -1265,7 +1256,7 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
         empty_trust_card,
         d["verify_claims_header"],
         empty_claims_table
-    ))
+    )
 
 
 

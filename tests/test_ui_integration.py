@@ -339,7 +339,7 @@ class TestUiIntegration(unittest.TestCase):
         """Verifies switching language updates all pills, labels, methodology, and placeholders across 4 tabs."""
         en_outputs = switch_ui_language("English")
         self.assertIsInstance(en_outputs, tuple)
-        self.assertEqual(len(en_outputs), 48)
+        self.assertEqual(len(en_outputs), 49)
 
         # Verify English strings in key positions
         quick_samples_en = en_outputs[0]
@@ -360,7 +360,7 @@ class TestUiIntegration(unittest.TestCase):
 
         # Switch back to Kazakh
         kz_outputs = switch_ui_language("Қазақша")
-        self.assertEqual(len(kz_outputs), 48)
+        self.assertEqual(len(kz_outputs), 49)
         quick_samples_kz = kz_outputs[0]
         self.assertIn("Жылдам сынақ үлгілері", quick_samples_kz)
 
