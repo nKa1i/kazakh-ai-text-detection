@@ -17,6 +17,18 @@
       "macro_f1": 82.1,
       "fever_score": 71.4,
       "hard_nei_f1": 72.8
+    },
+    "XLM-RoBERTa-large": {
+      "accuracy": 77.4,
+      "macro_f1": 76.9,
+      "fever_score": 64.8,
+      "hard_nei_f1": 61.3
+    },
+    "LLaMA-3-8B (Zero-shot)": {
+      "accuracy": 68.5,
+      "macro_f1": 67.9,
+      "fever_score": 49.2,
+      "hard_nei_f1": 43.1
     }
   },
   "trust_matrix": {
