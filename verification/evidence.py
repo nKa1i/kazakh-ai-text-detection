@@ -43,6 +43,7 @@ class ClaimVerificationResult:
     confidence: float = 0.0
     evidence: List[EvidencePassage] = field(default_factory=list)
     explanation: str = ""
+    morphological_features: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -50,7 +51,8 @@ class ClaimVerificationResult:
             "verdict": self.verdict,
             "confidence": round(self.confidence, 4),
             "evidence": [e.to_dict() for e in self.evidence],
-            "explanation": self.explanation
+            "explanation": self.explanation,
+            "morphological_features": self.morphological_features
         }
 
 
@@ -67,6 +69,10 @@ class DocumentTrustResult:
     supported_count: int = 0
     refuted_count: int = 0
     nei_count: int = 0
+    t_fact: float = 0.0
+    t_gen: float = 0.0
+    composite_trust: float = 0.0
+    quadrant_code: str = "Q1"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -79,5 +85,9 @@ class DocumentTrustResult:
             "total_claims": self.total_claims,
             "supported_count": self.supported_count,
             "refuted_count": self.refuted_count,
-            "nei_count": self.nei_count
+            "nei_count": self.nei_count,
+            "t_fact": round(self.t_fact, 4),
+            "t_gen": round(self.t_gen, 4),
+            "composite_trust": round(self.composite_trust, 4),
+            "quadrant_code": self.quadrant_code
         }
