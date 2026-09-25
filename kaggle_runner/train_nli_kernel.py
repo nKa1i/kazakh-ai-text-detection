@@ -1066,7 +1066,10 @@ def run_kernel_pipeline(
     else:
         print("CUDA detected: fine-tuning transformer backbones on GPU with PyTorch AMP.")
         device = torch.device("cuda")
-        scaler = torch.cuda.amp.GradScaler()
+        if hasattr(torch, "amp") and hasattr(torch.amp, "GradScaler"):
+            scaler = torch.amp.GradScaler("cuda")
+        else:
+            scaler = torch.cuda.amp.GradScaler()
 
         gpu_models_config = [
             ("mBERT-base", "bert-base-multilingual-cased", False),
