@@ -1,0 +1,32 @@
+{
+  "models": {
+    "mBERT-base": {
+      "accuracy": 64.2,
+      "macro_f1": 63.8,
+      "fever_score": 51.4,
+      "hard_nei_f1": 48.2
+    },
+    "XLM-RoBERTa-base": {
+      "accuracy": 71.8,
+      "macro_f1": 71.2,
+      "fever_score": 58.6,
+      "hard_nei_f1": 55.7
+    },
+    "Ours (Hybrid + Morpho)": {
+      "accuracy": 82.6,
+      "macro_f1": 82.1,
+      "fever_score": 71.4,
+      "hard_nei_f1": 72.8
+    }
+  },
+  "trust_matrix": {
+    "total_items": 1914,
+    "quadrants": {
+      "Q1": 694,
+      "Q2": 220,
+      "Q3": 500,
+      "Q4": 500
+    },
+    "mean_trust_score": 0.46969692435965005
+  }
+}

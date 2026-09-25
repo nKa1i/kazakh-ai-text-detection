@@ -12,7 +12,9 @@ from scripts.verify_and_filter_claims import (
     filter_and_clean_claims,
     compute_cohens_kappa,
     export_human_annotation_package,
-    VALID_LABELS
+    split_train_dev_test,
+    export_dataset_splits,
+    VALID_LABELS,
 )
 
 
@@ -178,6 +180,52 @@ class TestVerifyAndFilterClaims(unittest.TestCase):
             with open(out_file, "r", encoding="utf-8") as f:
                 lines = [line.strip() for line in f if line.strip()]
             self.assertEqual(len(lines), 1)
+
+    def test_split_train_dev_test(self):
+        sample_claims = []
+        domains = ["history", "science", "literature", "geography"]
+        labels = ["SUPPORTS", "REFUTES", "NOT_ENOUGH_INFO"]
+        for d in domains:
+            for l in labels:
+                for i in range(10):
+                    sample_claims.append({
+                        "id": f"{d}_{l}_{i}",
+                        "claim": f"Тұжырым {d} {l} {i} сөздерімен берілген үлгі мәтін",
+                        "label": l,
+                        "domain": d,
+                        "evidence_sentences": ["Дәлел сөйлем"] if l != "NOT_ENOUGH_INFO" else []
+                    })
+        self.assertEqual(len(sample_claims), 120)
+
+        train, dev, test = split_train_dev_test(sample_claims, 0.70, 0.15, 0.15, seed=42)
+        total_split = len(train) + len(dev) + len(test)
+        self.assertEqual(total_split, 120)
+        self.assertAlmostEqual(len(train) / 120, 0.70, delta=0.08)
+        self.assertAlmostEqual(len(dev) / 120, 0.15, delta=0.08)
+        self.assertAlmostEqual(len(test) / 120, 0.15, delta=0.08)
+
+        # Check stratification across domains
+        train_domains = set(c["domain"] for c in train)
+        self.assertEqual(train_domains, set(domains))
+        test_domains = set(c["domain"] for c in test)
+        self.assertEqual(test_domains, set(domains))
+
+    def test_export_dataset_splits(self):
+        sample_claims = [
+            {
+                "id": f"c_{i}",
+                "claim": f"Тұжырым {i} мазмұны бойынша нақты жазылған үлгілік сөйлем",
+                "label": "SUPPORTS" if i % 2 == 0 else "NOT_ENOUGH_INFO",
+                "domain": "history",
+                "evidence_sentences": ["Дәлел"] if i % 2 == 0 else []
+            }
+            for i in range(20)
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            paths = export_dataset_splits(sample_claims, output_dir=tmpdir, seed=42)
+            for key in ["cleaned", "train", "dev", "test"]:
+                self.assertIn(key, paths)
+                self.assertTrue(os.path.exists(paths[key]))
 
 
 if __name__ == "__main__":

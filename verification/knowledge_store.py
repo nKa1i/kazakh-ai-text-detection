@@ -43,11 +43,14 @@ class KnowledgeStore:
         stems = [w]
 
         # 1. Check Case Suffix Base (e.g., алматының -> алматы)
-        match = self.fst.case_re.search(w)
-        if match and len(w[:match.start()]) >= 3:
-            case_base = w[:match.start()]
-            if case_base not in stems:
-                stems.append(case_base)
+        if w.endswith("стан") and len(w) >= 5:
+            pass  # -стан is a toponymic root suffix ending in 'н', not ablative -тан
+        else:
+            match = self.fst.case_re.search(w)
+            if match and len(w[:match.start()]) >= 3:
+                case_base = w[:match.start()]
+                if case_base not in stems:
+                    stems.append(case_base)
 
         # 2. Check FST Deep Root (e.g., алматының -> алмат)
         seg = self.fst.analyze_and_segment(w)

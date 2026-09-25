@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\centering
+\small
+\caption{Retrieval effectiveness on the Kazakh-FEVER knowledge corpus.}
+\label{tab:retrieval_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Retriever} & \textbf{Recall@1} & \textbf{Recall@3} & \textbf{Recall@5} & \textbf{MRR} \\
+\midrule
+BM25 (Standard) & 98.0 & 99.2 & 99.5 & 0.987 \\
+BM25 (Morpho-stemmed) & 98.7 & 99.2 & 99.7 & 0.990 \\
+\textsc{mContriever} & \textbf{99.3} & \textbf{100.0} & \textbf{100.0} & \textbf{0.996} \\
+\textbf{Hybrid (BM25 + mContriever)} & \textbf{99.0} & \textbf{99.8} & \textbf{99.8} & \textbf{0.994} \\
+\bottomrule
+\end{tabular}
+\end{table}

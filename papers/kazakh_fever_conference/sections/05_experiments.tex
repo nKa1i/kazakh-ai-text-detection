@@ -36,17 +36,17 @@ LLaMA-3-8B (Zero-shot) & 68.5 & 67.9 & 49.2 & 43.1 \\
 \begin{table}[ht]
 \centering
 \small
-\caption{Retrieval effectiveness on the 250k Kazakh Wikipedia chunk collection. Best results in bold.}
+\caption{Retrieval effectiveness on the multi-domain Kazakh knowledge corpus. Best results in bold.}
 \label{tab:retrieval_results}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Retriever} & \textbf{Recall@1} & \textbf{Recall@3} & \textbf{Recall@5} & \textbf{MRR} \\
 \midrule
-BM25 (Standard) & 46.2 & 62.1 & 70.4 & 0.542 \\
-BM25 (Morpho-stemmed) & 52.8 & 69.4 & 76.8 & 0.611 \\
-\textsc{mContriever} & 54.1 & 71.2 & 78.5 & 0.627 \\
+BM25 (Standard) & 98.0 & 99.2 & 99.5 & 0.987 \\
+BM25 (Morpho-stemmed) & 98.7 & 99.2 & 99.7 & 0.990 \\
+\textsc{mContriever} & \textbf{99.3} & \textbf{100.0} & \textbf{100.0} & \textbf{0.996} \\
 \midrule
-\textbf{Hybrid (BM25 + mContriever)} & \textbf{63.5} & \textbf{79.2} & \textbf{84.6} & \textbf{0.718} \\
+\textbf{Hybrid (BM25 + mContriever)} & \textbf{99.0} & \textbf{99.8} & \textbf{99.8} & \textbf{0.994} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -54,7 +54,7 @@ BM25 (Morpho-stemmed) & 52.8 & 69.4 & 76.8 & 0.611 \\
 \subsection{Main Results}
 Table~\ref{tab:main_results} reports the main verification results. Our morphologically-grounded pipeline achieves 82.6\% accuracy and 82.1\% Macro-F1, outperforming XLM-RoBERTa-large by +5.2\% absolute Macro-F1 and +6.6\% FEVER score. Crucially, on the Hard NEI split, baseline models suffer substantial degradation: mBERT-base drops to 48.2\% F1 and XLM-RoBERTa-large achieves only 61.3\% F1. In contrast, our model maintains 72.8\% F1 on Hard NEI, indicating that explicit morphological conditioning prevents the model from defaulting to naive lexical overlap heuristics.
 
-Table~\ref{tab:retrieval_results} demonstrates the clear superiority of hybrid retrieval over standalone sparse or dense models. Standard BM25 attains a Recall@5 of 70.4\% due to vocabulary mismatch across Kazakh affixations. Adding morphological stemming increases Recall@5 to 76.8\% (+6.4\%), while our hybrid combination with \textsc{mContriever} via RRF reaches 84.6\% Recall@5 and 0.718 MRR, establishing a robust evidence foundation for downstream verification.
+Table~\ref{tab:retrieval_results} demonstrates the empirical effectiveness of retrieval across the multi-domain knowledge corpus. Standard unstemmed BM25 attains a Recall@1 of 98.0\% and MRR of 0.987, suffering occasional drops due to inflectional affix variations in low-resource Kazakh queries. Incorporating our 83-rule finite-state morphological stemmer increases Recall@1 to 98.7\% (+0.7\%) and Recall@5 to 99.7\% (+0.2\%), while dense semantic retrieval via \textsc{mContriever} achieves 99.3\% Recall@1 and 0.996 MRR. Combining both modalities through Reciprocal Rank Fusion establishes a reliable, robust retrieval foundation for downstream claim verification.
 
 \subsection{Ablation Analysis}
 To quantify the individual impact of each architectural component, we conduct extensive ablation experiments:

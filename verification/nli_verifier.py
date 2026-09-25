@@ -75,6 +75,11 @@ class NLIClaimVerifier:
         for t in tokens:
             if t in KAZAKH_STOPWORDS or len(t) < 2:
                 continue
+            # In Kazakh, -стан is a toponymic root suffix ending in nasal 'н'.
+            # Ablative after 'н' is always -нан/-нен, never -тан/-тен.
+            if t.endswith("стан") and len(t) >= 5:
+                stems.append(t)
+                continue
             # Strip case suffix
             match = self.fst.case_re.search(t)
             if match and len(t[:match.start()]) >= 3:

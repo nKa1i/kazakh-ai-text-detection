@@ -221,12 +221,19 @@ def run_retrieval_ablation_experiment(
     retriever = HybridEvidenceRetriever()
     retriever.index_corpus(corpus)
 
+    title_to_id = {}
+    for doc in corpus:
+        doc_id = str(doc.get("passage_id") or doc.get("id") or "")
+        title = str(doc.get("title") or "").strip().lower()
+        if title and doc_id:
+            title_to_id[title] = doc_id
+
     gold_lists: List[List[str]] = []
     query_texts: List[str] = []
 
     for q in queries:
         claim_text = str(q.get("claim") or q.get("query") or q.get("text") or "").strip()
-        query_texts.append(claim_text)
+        label = str(q.get("label") or "").strip().upper()
 
         gold_raw = (
             q.get("gold_passage_ids")
@@ -236,11 +243,26 @@ def run_retrieval_ablation_experiment(
             or []
         )
         if isinstance(gold_raw, str):
-            gold_lists.append([gold_raw])
+            gold_targets = [gold_raw]
         elif isinstance(gold_raw, list):
-            gold_lists.append([str(x) for x in gold_raw])
+            gold_targets = [str(x) for x in gold_raw]
         else:
-            gold_lists.append([])
+            gold_targets = []
+
+        if not gold_targets and label in {"SUPPORTS", "REFUTES"}:
+            art_title = str(q.get("article_title") or "").strip().lower()
+            if art_title in title_to_id:
+                gold_targets = [title_to_id[art_title]]
+
+        if gold_targets:
+            query_texts.append(claim_text)
+            gold_lists.append(gold_targets)
+
+    if not query_texts:
+        return {
+            mode_name: ({f"recall_at_{k}": 0.0 for k in k_values} | {"mrr": 0.0})
+            for mode_name, _, _ in modes
+        }
 
     max_k = max(k_values) if k_values else 5
     results: Dict[str, Dict[str, float]] = {}
@@ -348,14 +370,20 @@ def main():
     parser.add_argument(
         "--claims",
         type=str,
-        default="data/kazakh_fever_benchmark.jsonl",
+        default="data/kazakh_fever_test.jsonl",
         help="Path to evaluation claims JSONL file"
     )
     parser.add_argument(
         "--output_latex",
         type=str,
-        default=None,
+        default="data/table3_retrieval_ablation.tex",
         help="Path to save generated LaTeX table"
+    )
+    parser.add_argument(
+        "--output_json",
+        type=str,
+        default="data/retrieval_benchmark_results.json",
+        help="Path to save evaluation results JSON"
     )
     args = parser.parse_args()
 
@@ -364,6 +392,11 @@ def main():
         alt_corpus = "kaggle_runner/kazakh_knowledge_corpus.jsonl"
         if os.path.exists(alt_corpus):
             args.corpus = alt_corpus
+
+    if not os.path.exists(args.claims):
+        alt_claims = "data/kazakh_fever_cleaned.jsonl"
+        if os.path.exists(alt_claims):
+            args.claims = alt_claims
 
     if not os.path.exists(args.corpus) or not os.path.exists(args.claims):
         print(f"Error: Missing input files: {args.corpus} or {args.claims}")
@@ -397,6 +430,12 @@ def main():
         with open(args.output_latex, "w", encoding="utf-8") as f:
             f.write(latex_table + "\n")
         print(f"\nLaTeX table saved to: {args.output_latex}")
+
+    if args.output_json:
+        os.makedirs(os.path.dirname(os.path.abspath(args.output_json)), exist_ok=True)
+        with open(args.output_json, "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        print(f"Results JSON saved to: {args.output_json}")
 
 
 if __name__ == "__main__":

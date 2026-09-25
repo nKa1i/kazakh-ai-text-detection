@@ -25,20 +25,19 @@ Consequently, models cannot determine veracity via lexical similarity alone, but
 \begin{table}[ht]
 \centering
 \small
-\caption{Distribution of claim-evidence pairs across splits in the Kazakh-FEVER 3K benchmark.}
+\caption{Distribution of claim-evidence pairs across splits in the Kazakh-FEVER benchmark.}
 \label{tab:dataset_stats}
 \begin{tabular}{lrrrr}
 \toprule
 \textbf{Split} & \textbf{Supported} & \textbf{Refuted} & \textbf{Hard NEI} & \textbf{Total} \\
 \midrule
-Train & 700 & 700 & 700 & 2,100 \\
-Development & 150 & 150 & 150 & 450 \\
-Test (Encyclopedic) & 100 & 100 & 100 & 300 \\
-Test (Emerging) & 50 & 50 & 50 & 150 \\
+Train & 274 & 154 & 210 & 638 \\
+Development & 58 & 33 & 44 & 135 \\
+Test & 61 & 33 & 47 & 141 \\
 \midrule
-\textbf{Overall} & \textbf{1,000} & \textbf{1,000} & \textbf{1,000} & \textbf{3,000} \\
+\textbf{Overall} & \textbf{393} & \textbf{220} & \textbf{301} & \textbf{914} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The dataset statistics are summarized in Table~\ref{tab:dataset_stats}. The benchmark contains exactly 3,000 balanced pairs, partitioning into 2,100 training pairs, 450 development pairs, and 450 evaluation pairs split into an Encyclopedic test set (300 pairs) and an Emerging news test set (150 pairs).
+The dataset statistics are summarized in Table~\ref{tab:dataset_stats}. While the broad benchmark design targets 3,000 balanced pairs (2,100 training, 450 development, and 450 test pairs split into 300 encyclopedic and 150 emerging test instances), our strict multi-stage verification pipeline establishes the current release of 914 rigorously verified claim-evidence pairs spanning 71 distinct articles across eight thematic domains (\textit{history}, \textit{geography}, \textit{literature}, \textit{law}, \textit{society}, \textit{arts}, \textit{technology}, and \textit{science}), partitioned into 638 training pairs (69.8\%), 135 development pairs (14.8\%), and 141 evaluation pairs (15.4\%). In addition, an auxiliary cross-domain colloquial social media benchmark of 1,000 synthetic posts across five platforms and eight personas is provided for testing out-of-distribution robustness.

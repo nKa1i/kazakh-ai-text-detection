@@ -149,6 +149,101 @@ def export_human_annotation_package(
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
 
+def split_train_dev_test(
+    claims: List[Dict[str, Any]],
+    train_ratio: float = 0.70,
+    dev_ratio: float = 0.15,
+    test_ratio: float = 0.15,
+    seed: int = 42,
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Stratifies claims across (domain, label) buckets into train, dev, and test splits.
+    """
+    rng = random.Random(seed)
+    buckets: Dict[Tuple[str, str], List[Dict[str, Any]]] = collections.defaultdict(list)
+
+    for c in claims:
+        domain = str(c.get("domain", "general")).strip().lower()
+        label = str(c.get("label", "SUPPORTS")).strip().upper()
+        buckets[(domain, label)].append(c)
+
+    train: List[Dict[str, Any]] = []
+    dev: List[Dict[str, Any]] = []
+    test: List[Dict[str, Any]] = []
+
+    for key in sorted(buckets.keys()):
+        items = list(buckets[key])
+        rng.shuffle(items)
+        n = len(items)
+        if n == 0:
+            continue
+        elif n == 1:
+            train.append(items[0])
+            continue
+        elif n == 2:
+            train.append(items[0])
+            test.append(items[1])
+            continue
+
+        n_train = max(1, int(round(n * train_ratio)))
+        n_dev = int(round(n * dev_ratio))
+        n_test = n - n_train - n_dev
+        if n_test < 0:
+            n_train = max(1, n_train + n_test)
+            n_test = n - n_train - n_dev
+        if n_test == 0 and n >= 3 and dev_ratio > 0:
+            if n_train > 1:
+                n_train -= 1
+                n_test = 1
+
+        train.extend(items[:n_train])
+        dev.extend(items[n_train:n_train + n_dev])
+        test.extend(items[n_train + n_dev:])
+
+    rng.shuffle(train)
+    rng.shuffle(dev)
+    rng.shuffle(test)
+    return train, dev, test
+
+
+def export_dataset_splits(
+    claims: List[Dict[str, Any]],
+    output_dir: str = "data",
+    train_ratio: float = 0.70,
+    dev_ratio: float = 0.15,
+    test_ratio: float = 0.15,
+    seed: int = 42,
+) -> Dict[str, str]:
+    """
+    Saves cleaned claims and stratified splits (train, dev, test) into output_dir.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    cleaned_path = os.path.join(output_dir, "kazakh_fever_cleaned.jsonl")
+    train_path = os.path.join(output_dir, "kazakh_fever_train.jsonl")
+    dev_path = os.path.join(output_dir, "kazakh_fever_dev.jsonl")
+    test_path = os.path.join(output_dir, "kazakh_fever_test.jsonl")
+
+    with open(cleaned_path, "w", encoding="utf-8") as f:
+        for c in claims:
+            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+
+    train, dev, test = split_train_dev_test(
+        claims, train_ratio=train_ratio, dev_ratio=dev_ratio, test_ratio=test_ratio, seed=seed
+    )
+
+    for path, split_data in [(train_path, train), (dev_path, dev), (test_path, test)]:
+        with open(path, "w", encoding="utf-8") as f:
+            for c in split_data:
+                f.write(json.dumps(c, ensure_ascii=False) + "\n")
+
+    return {
+        "cleaned": cleaned_path,
+        "train": train_path,
+        "dev": dev_path,
+        "test": test_path,
+    }
+
+
 if __name__ == "__main__":
     import sys
 
@@ -172,5 +267,17 @@ if __name__ == "__main__":
             for c in valid_claims:
                 f.write(json.dumps(c, ensure_ascii=False) + "\n")
         print(f"Wrote {len(valid_claims)} cleaned claims to {output_file}")
+
+        # Also export standardized splits
+        data_dir = os.path.dirname(os.path.abspath(output_file))
+        split_paths = export_dataset_splits(valid_claims, output_dir=data_dir)
+        print("Exported dataset splits:")
+        for k, p in split_paths.items():
+            print(f"  {k}: {p}")
+
+        # Export human annotation sample package (100 balanced items)
+        human_sample_path = os.path.join(data_dir, "human_annotation_sample_100.jsonl")
+        export_human_annotation_package(valid_claims, sample_size=100, output_path=human_sample_path)
+        print(f"Exported human annotation sample package to {human_sample_path}")
     else:
         print(f"Input file {input_file} not found; skipping batch execution.")
