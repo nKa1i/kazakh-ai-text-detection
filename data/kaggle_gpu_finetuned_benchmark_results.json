@@ -1,0 +1,26 @@
+{
+  "mBERT-base": {
+    "accuracy": 59.6,
+    "macro_f1": 55.5,
+    "fever_score": 58.9,
+    "hard_nei_f1": 52.9
+  },
+  "XLM-RoBERTa-base": {
+    "accuracy": 43.3,
+    "macro_f1": 20.1,
+    "fever_score": 41.8,
+    "hard_nei_f1": 0.0
+  },
+  "KazRoBERTa": {
+    "accuracy": 48.2,
+    "macro_f1": 37.0,
+    "fever_score": 47.5,
+    "hard_nei_f1": 23.5
+  },
+  "Ours (Hybrid + Morpho)": {
+    "accuracy": 44.7,
+    "macro_f1": 39.1,
+    "fever_score": 44.0,
+    "hard_nei_f1": 28.9
+  }
+}
