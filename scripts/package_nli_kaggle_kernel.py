@@ -205,15 +205,20 @@ def package_nli_kernel(
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2)
 
+        env = os.environ.copy()
+        env["PYTHONUTF8"] = "1"
         try:
-            subprocess.run(
+            push_res = subprocess.run(
                 ["kaggle", "kernels", "push", "-p", kernel_dir],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
+                env=env,
                 check=True,
             )
+            if push_res.stdout:
+                print(push_res.stdout.strip())
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             print(f"Warning: Kaggle push invocation failed: {e}")
 
