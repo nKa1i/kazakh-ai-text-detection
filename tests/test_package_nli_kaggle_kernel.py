@@ -466,6 +466,76 @@ class TestPackageNLIKaggleKernel(unittest.TestCase):
         model.load_state_dict(best_state_dict)
         self.assertEqual(model.weights["param"], 2)
 
+    def test_kernel_morphological_feature_masking(self):
+        from kaggle_runner.train_nli_kernel import MorphologicalAffixExtractor
+
+        extractor = MorphologicalAffixExtractor()
+        claim = "Қазақстан 1991 жылы тәуелсіздік алмаған еді."
+        evidence = "Қазақстан 1993 жылы тәуелсіздік алды, осылай болыпты."
+
+        raw = extractor.extract_features(claim, evidence)
+        self.assertEqual(len(raw), 16)
+        self.assertEqual(raw[2], 1.0)
+        self.assertEqual(raw[3], 1.0)
+
+        # Mask indices
+        masked_neg = extractor.extract_features(claim, evidence, mask_indices=[2])
+        self.assertEqual(masked_neg[2], 0.0)
+        self.assertEqual(masked_neg[3], 1.0)
+
+        # Ablation mode
+        m_evid = extractor.extract_features(claim, evidence, ablation_mode="- Evidentials & Epistemic Modals")
+        for idx in [4, 5, 6, 7]:
+            self.assertEqual(m_evid[idx], 0.0)
+
+    def test_kernel_morphological_ablation_study_and_formatting(self):
+        from kaggle_runner.train_nli_kernel import (
+            run_morphological_ablation_study,
+            format_ablation_table_latex,
+        )
+
+        test_pairs = [
+            {"claim": "Астана — елорда.", "evidence": "Астана қаласы — бас қала.", "label": "SUPPORTED"},
+            {"claim": "Қазақстан 1998 жылы тәуелсіздік алды.", "evidence": "Қазақстан 1991 жылы тәуелсіздік алды.", "label": "REFUTES"},
+            {"claim": "Айда қала бар.", "evidence": "Қазақстан дамып келеді.", "label": "NOT_ENOUGH_INFO"},
+        ]
+
+        ablation_results = run_morphological_ablation_study(test_pairs=test_pairs)
+        self.assertEqual(len(ablation_results), 6)
+        self.assertIn("Ours (Full Morpho Cross-Encoder)", ablation_results)
+        self.assertIn("- Negation Alignment", ablation_results)
+        self.assertIn("- Temporal / Calendar Conflicts", ablation_results)
+        self.assertIn("- Evidentials & Epistemic Modals", ablation_results)
+        self.assertIn("- FST Root Analysis", ablation_results)
+        self.assertIn("Surface Token Overlap Only", ablation_results)
+
+        latex = format_ablation_table_latex(ablation_results)
+        self.assertIn(r"\label{tab:ablation_results}", latex)
+        self.assertIn("Ours (Full Morpho Cross-Encoder)", latex)
+
+    def test_kernel_pipeline_with_ablation_outputs(self):
+        from kaggle_runner.train_nli_kernel import run_kernel_pipeline
+
+        out_tex = os.path.join(self.temp_dir.name, "output", "table2.tex")
+        out_json = os.path.join(self.temp_dir.name, "output", "results.json")
+        out_abl_tex = os.path.join(self.temp_dir.name, "output", "table_ablation_results.tex")
+        out_abl_json = os.path.join(self.temp_dir.name, "output", "ablation_results.json")
+
+        run_kernel_pipeline(
+            dry_run=True,
+            output_latex=out_tex,
+            output_json=out_json,
+            output_ablation_latex=out_abl_tex,
+            output_ablation_json=out_abl_json,
+        )
+
+        self.assertTrue(os.path.exists(out_abl_tex))
+        self.assertTrue(os.path.exists(out_abl_json))
+
+        with open(out_abl_tex, "r", encoding="utf-8") as f:
+            tex_content = f.read()
+        self.assertIn(r"\label{tab:ablation_results}", tex_content)
+        self.assertIn("Ours (Full Morpho Cross-Encoder)", tex_content)
 
 
 if __name__ == "__main__":

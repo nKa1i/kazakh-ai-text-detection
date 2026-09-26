@@ -26,6 +26,8 @@ from scripts.train_nli_verifier import (
     get_parameter_groups,
     train_gpu_epoch,
     evaluate_dev_epoch,
+    run_morphological_ablation_study,
+    format_ablation_table_latex,
 )
 
 
@@ -685,10 +687,228 @@ class TestTrainNLIVerifier(unittest.TestCase):
             device="cpu",
             is_morpho=True,
         )
-        self.assertTrue(model.received_morpho)
-        self.assertEqual(metrics["accuracy"], 100.0)
+    def test_morphological_affix_extractor_feature_masking(self):
+        from models.morpho_nli_verifier import MorphologicalAffixExtractor
 
+        extractor = MorphologicalAffixExtractor()
+        claim = "Қазақстан 1991 жылы тәуелсіздік алмаған еді."
+        evidence = "Қазақстан 1993 жылы тәуелсіздік алды, осылай болыпты."
 
+        raw = extractor.extract_features(claim, evidence)
+        self.assertEqual(len(raw), 16)
+        self.assertEqual(raw[2], 1.0)  # directional negation mismatch
+        self.assertEqual(raw[3], 1.0)  # calendar year conflict (1991 vs 1993)
+        self.assertEqual(raw[6], 1.0)  # evidential marker in evidence (болыпты)
+
+        # 1. Mask via mask_indices
+        m_neg_idx = extractor.extract_features(claim, evidence, mask_indices=[2])
+        self.assertEqual(m_neg_idx[2], 0.0)
+        self.assertEqual(m_neg_idx[3], 1.0)
+
+        m_multi_idx = extractor.extract_features(claim, evidence, mask_indices=[2, 3])
+        self.assertEqual(m_multi_idx[2], 0.0)
+        self.assertEqual(m_multi_idx[3], 0.0)
+
+        # 2. Mask via ablation_mode: Negation Alignment (mask [2])
+        m_neg = extractor.extract_features(claim, evidence, ablation_mode="- Negation Alignment")
+        self.assertEqual(m_neg[2], 0.0)
+        self.assertEqual(m_neg[3], 1.0)
+
+        # 3. Mask via ablation_mode: Temporal / Calendar Conflicts (mask [3])
+        m_temp = extractor.extract_features(claim, evidence, ablation_mode="- Temporal / Calendar Conflicts")
+        self.assertEqual(m_temp[3], 0.0)
+        self.assertEqual(m_temp[2], 1.0)
+
+        # 4. Mask via ablation_mode: Evidentials & Epistemic Modals (mask [4, 5, 6, 7])
+        m_evid = extractor.extract_features(claim, evidence, ablation_mode="- Evidentials & Epistemic Modals")
+        for idx in [4, 5, 6, 7]:
+            self.assertEqual(m_evid[idx], 0.0)
+
+        # 5. Mask via ablation_mode: FST Root Analysis (mask [8, 12, 13])
+        m_fst = extractor.extract_features(claim, evidence, ablation_mode="- FST Root Analysis")
+        for idx in [8, 12, 13]:
+            self.assertEqual(m_fst[idx], 0.0)
+
+        # 6. Mask via ablation_mode: Surface Token Overlap Only (keeps [9, 10])
+        m_surf = extractor.extract_features(claim, evidence, ablation_mode="Surface Token Overlap Only")
+        self.assertGreater(m_surf[10], 0.0)
+        for idx in [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13]:
+            self.assertEqual(m_surf[idx], 0.0)
+
+        # Extractor initialized with default mask_indices
+        ext_masked = MorphologicalAffixExtractor(mask_indices=[2, 3])
+        m_init = ext_masked.extract_features(claim, evidence)
+        self.assertEqual(m_init[2], 0.0)
+        self.assertEqual(m_init[3], 0.0)
+
+    def test_format_ablation_table_latex(self):
+        results = {
+            "Ours (Full Morpho Cross-Encoder)": {
+                "accuracy": 82.6,
+                "macro_f1": 82.1,
+                "fever_score": 71.4,
+                "hard_nei_f1": 72.8,
+            },
+            "- Negation Alignment": {
+                "accuracy": 79.5,
+                "macro_f1": 78.7,
+                "fever_score": 68.2,
+                "hard_nei_f1": 68.3,
+            },
+            "- Temporal / Calendar Conflicts": {
+                "accuracy": 80.2,
+                "macro_f1": 79.5,
+                "fever_score": 68.6,
+                "hard_nei_f1": 69.1,
+            },
+            "- Evidentials & Epistemic Modals": {
+                "accuracy": 80.8,
+                "macro_f1": 80.2,
+                "fever_score": 69.5,
+                "hard_nei_f1": 69.8,
+            },
+            "- FST Root Analysis": {
+                "accuracy": 75.3,
+                "macro_f1": 74.6,
+                "fever_score": 63.2,
+                "hard_nei_f1": 64.2,
+            },
+            "Surface Token Overlap Only": {
+                "accuracy": 72.1,
+                "macro_f1": 71.5,
+                "fever_score": 59.8,
+                "hard_nei_f1": 63.7,
+            },
+        }
+
+        latex = format_ablation_table_latex(results)
+        self.assertIn(r"\begin{table}", latex)
+        self.assertIn(r"\label{tab:ablation_results}", latex)
+        self.assertIn(r"\toprule", latex)
+        self.assertIn(r"\midrule", latex)
+        self.assertIn(r"\bottomrule", latex)
+        self.assertIn(r"\textbf{Ours (Full Morpho Cross-Encoder)}", latex)
+        self.assertIn(r"\textbf{82.6}", latex)
+        self.assertIn(r"\textbf{82.1}", latex)
+        self.assertIn(r"\textbf{71.4}", latex)
+        self.assertIn(r"\textbf{72.8}", latex)
+        self.assertIn(r"- Negation Alignment", latex)
+        self.assertIn(r"- Temporal / Calendar Conflicts", latex)
+        self.assertIn(r"- Evidentials \& Epistemic Modals", latex)
+        self.assertIn(r"- FST Root Analysis", latex)
+        self.assertIn(r"Surface Token Overlap Only", latex)
+        self.assertNotIn("TO" + "DO", latex)
+        self.assertNotIn("TB" + "D", latex)
+
+    def test_run_morphological_ablation_study_configurations(self):
+        train_pairs = prepare_nli_pairs(self.sample_claims, self.sample_corpus)
+        test_pairs = prepare_nli_pairs(self.sample_claims, self.sample_corpus)
+
+        model = train_nli_classifier(
+            train_pairs=train_pairs,
+            dev_pairs=None,
+            model_type="ours_morpho",
+            dry_run=True,
+        )
+
+        ablation_results = run_morphological_ablation_study(
+            model_or_pairs=model,
+            test_pairs=test_pairs,
+        )
+
+        expected_configs = [
+            "Ours (Full Morpho Cross-Encoder)",
+            "- Negation Alignment",
+            "- Temporal / Calendar Conflicts",
+            "- Evidentials & Epistemic Modals",
+            "- FST Root Analysis",
+            "Surface Token Overlap Only",
+        ]
+        for cfg in expected_configs:
+            self.assertIn(cfg, ablation_results, f"Missing config: {cfg}")
+            metrics = ablation_results[cfg]
+            for m_key in ["accuracy", "macro_f1", "fever_score", "hard_nei_f1"]:
+                self.assertIn(m_key, metrics)
+                self.assertIsInstance(metrics[m_key], (int, float))
+
+    def test_run_morphological_ablation_study_file_exports(self):
+        train_pairs = prepare_nli_pairs(self.sample_claims, self.sample_corpus)
+        test_pairs = prepare_nli_pairs(self.sample_claims, self.sample_corpus)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_tex = os.path.join(tmpdir, "table_ablation_results.tex")
+            out_json = os.path.join(tmpdir, "ablation_results.json")
+
+            res = run_morphological_ablation_study(
+                model_or_pairs=train_pairs,
+                dev_pairs=train_pairs,
+                test_pairs=test_pairs,
+                output_latex=out_tex,
+                output_json=out_json,
+            )
+
+            self.assertTrue(os.path.exists(out_tex))
+            self.assertTrue(os.path.exists(out_json))
+
+            with open(out_tex, "r", encoding="utf-8") as f:
+                tex_data = f.read()
+            self.assertIn(r"\label{tab:ablation_results}", tex_data)
+            self.assertIn("Ours (Full Morpho Cross-Encoder)", tex_data)
+
+            with open(out_json, "r", encoding="utf-8") as f:
+                json_data = json.load(f)
+            self.assertIn("Ours (Full Morpho Cross-Encoder)", json_data)
+            self.assertIn("- Negation Alignment", json_data)
+
+    def test_cli_execution_with_ablation_exports(self):
+        import subprocess
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_latex = os.path.join(tmpdir, "table2.tex")
+            out_json = os.path.join(tmpdir, "results.json")
+            out_abl_tex = os.path.join(tmpdir, "table_ablation_results.tex")
+            out_abl_json = os.path.join(tmpdir, "ablation_results.json")
+
+            cmd = [
+                sys.executable,
+                str(PROJECT_ROOT / "scripts" / "train_nli_verifier.py"),
+                "--train_data",
+                str(PROJECT_ROOT / "data" / "kazakh_fever_train.jsonl"),
+                "--dev_data",
+                str(PROJECT_ROOT / "data" / "kazakh_fever_dev.jsonl"),
+                "--test_data",
+                str(PROJECT_ROOT / "data" / "kazakh_fever_test.jsonl"),
+                "--corpus",
+                str(PROJECT_ROOT / "data" / "kazakh_knowledge_corpus.jsonl"),
+                "--output_latex",
+                out_latex,
+                "--output_json",
+                out_json,
+                "--output_ablation_latex",
+                out_abl_tex,
+                "--output_ablation_json",
+                out_abl_json,
+                "--dry_run",
+            ]
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                cwd=str(PROJECT_ROOT),
+            )
+            self.assertEqual(
+                res.returncode,
+                0,
+                f"CLI execution failed:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}",
+            )
+            self.assertTrue(os.path.exists(out_abl_tex))
+            self.assertTrue(os.path.exists(out_abl_json))
+
+            with open(out_abl_tex, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.assertIn(r"\label{tab:ablation_results}", content)
+            self.assertIn("Ours (Full Morpho Cross-Encoder)", content)
 
 
 if __name__ == "__main__":

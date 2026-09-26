@@ -129,9 +129,47 @@ class MorphologicalAffixExtractor:
     YEAR_RE = re.compile(r'\b(?:1\d{3}|20\d{2})\b')
     NUMBER_RE = re.compile(r'\b\d+(?:[.,]\d+)?\b')
     PROPER_NOUN_RE = re.compile(r'\b[А-ЯӘІҢҒҮҰҚӨҺ][а-яәіңғүұқөһ]+\b')
+    ABLATION_MODES: Dict[str, List[int]] = {
+        "Ours (Full Morpho Cross-Encoder)": [],
+        "- Negation Alignment": [2],
+        "- Temporal / Calendar Conflicts": [3],
+        "- Temporal / Calendar": [3],
+        "- Evidentials & Epistemic Modals": [4, 5, 6, 7],
+        "- Evidentials & Modality": [4, 5, 6, 7],
+        "- FST Root Analysis": [8, 12, 13],
+        "Surface Token Overlap Only": [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15],
+    }
 
-    def __init__(self, fst: Optional[AdvancedKazakhFSTAnalyzer] = None):
+    @classmethod
+    def get_mask_indices_for_mode(cls, mode: Optional[str]) -> List[int]:
+        if not mode:
+            return []
+        if mode in cls.ABLATION_MODES:
+            return list(cls.ABLATION_MODES[mode])
+        m_lower = mode.strip().lower()
+        if "full" in m_lower or "ours" in m_lower:
+            return []
+        if "negation" in m_lower:
+            return [2]
+        if "temporal" in m_lower or "calendar" in m_lower:
+            return [3]
+        if "evidential" in m_lower or "modal" in m_lower:
+            return [4, 5, 6, 7]
+        if "fst" in m_lower or "root" in m_lower:
+            return [8, 12, 13]
+        if "surface" in m_lower:
+            return [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15]
+        return []
+
+    def __init__(
+        self,
+        fst: Optional[AdvancedKazakhFSTAnalyzer] = None,
+        mask_indices: Optional[List[int]] = None,
+        ablation_mode: Optional[str] = None,
+    ):
         self.fst = fst or fst_analyzer
+        self.default_mask_indices = list(mask_indices) if mask_indices is not None else None
+        self.default_ablation_mode = ablation_mode
 
     def _canonical_stem(self, word: str) -> str:
         w = word.strip(".,!?:;\"'()[]{}«»—–-").lower()
@@ -212,10 +250,17 @@ class MorphologicalAffixExtractor:
         union = len(set_a | set_b)
         return float(intersection / union) if union > 0 else 0.0
 
-    def extract_features(self, claim: str, evidence: str) -> List[float]:
+    def extract_features(
+        self,
+        claim: str,
+        evidence: str,
+        mask_indices: Optional[List[int]] = None,
+        ablation_mode: Optional[str] = None,
+    ) -> List[float]:
         """
         Extracts 16-dimensional morphological alignment vector.
         All values are floats in [0.0, 1.0].
+        Supports feature masking via mask_indices or ablation_mode.
         """
         claim_clean = (claim or "").strip()
         evidence_clean = (evidence or "").strip()
@@ -298,7 +343,7 @@ class MorphologicalAffixExtractor:
         # 15: Normalized evidence length
         evidence_len_norm = float(min(1.0, len(evidence_clean.split()) / 100.0))
 
-        return [
+        features = [
             float(neg_c),
             float(neg_e),
             float(neg_mismatch),
@@ -317,6 +362,22 @@ class MorphologicalAffixExtractor:
             float(evidence_len_norm),
         ]
 
+        indices_to_mask = set()
+        if self.default_mask_indices:
+            indices_to_mask.update(self.default_mask_indices)
+        if self.default_ablation_mode:
+            indices_to_mask.update(self.get_mask_indices_for_mode(self.default_ablation_mode))
+        if ablation_mode:
+            indices_to_mask.update(self.get_mask_indices_for_mode(ablation_mode))
+        if mask_indices:
+            indices_to_mask.update(mask_indices)
+
+        for idx in indices_to_mask:
+            if 0 <= idx < len(features):
+                features[idx] = 0.0
+
+        return features
+
 
 class OfflineHeuristicNLIVerifier:
     """
@@ -330,11 +391,19 @@ class OfflineHeuristicNLIVerifier:
     def __init__(self, extractor: Optional[MorphologicalAffixExtractor] = None):
         self.extractor = extractor or MorphologicalAffixExtractor()
 
-    def predict_pair(self, claim: str, evidence: str) -> Dict[str, Any]:
+    def predict_pair(
+        self,
+        claim: str,
+        evidence: str,
+        mask_indices: Optional[List[int]] = None,
+        ablation_mode: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Predicts NLI relation between claim and evidence passage.
         """
-        features = self.extractor.extract_features(claim, evidence)
+        features = self.extractor.extract_features(
+            claim, evidence, mask_indices=mask_indices, ablation_mode=ablation_mode
+        )
         neg_mismatch = features[2]
         temp_conflict = features[3]
         stem_overlap = features[9]
@@ -463,12 +532,20 @@ class MorphoNLIVerifier(_BaseModule):
         logits = self.classifier(fused)
         return logits
 
-    def predict_pair(self, claim: str, evidence: str) -> Dict[str, Any]:
+    def predict_pair(
+        self,
+        claim: str,
+        evidence: str,
+        mask_indices: Optional[List[int]] = None,
+        ablation_mode: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Predicts NLI relation for claim-evidence pair.
         Delegates to heuristic fallback when running in CPU/testing mode or without loaded weights.
         """
-        return self.heuristic_fallback.predict_pair(claim, evidence)
+        return self.heuristic_fallback.predict_pair(
+            claim, evidence, mask_indices=mask_indices, ablation_mode=ablation_mode
+        )
 
     def predict_batch(self, pairs: List[Tuple[str, str]]) -> List[Dict[str, Any]]:
         """
