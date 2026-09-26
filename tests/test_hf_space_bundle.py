@@ -68,6 +68,40 @@ class TestHfSpaceBundleStructure(unittest.TestCase):
             fpath = os.path.join(ui_dir, mod)
             self.assertTrue(os.path.isfile(fpath), f"Missing ui module: {fpath}")
 
+    def test_bundle_models_package_exists(self):
+        models_dir = os.path.join(HF_SPACE_DIR, "models")
+        self.assertTrue(os.path.isdir(models_dir), "hf_space/models/ must exist")
+        expected_modules = [
+            "__init__.py",
+            "document_detector.py",
+            "heuristic_detector.py",
+            "losses.py",
+            "morpho_contrastive_detector.py",
+            "morpho_nli_verifier.py",
+        ]
+        for mod in expected_modules:
+            fpath = os.path.join(models_dir, mod)
+            self.assertTrue(os.path.isfile(fpath), f"Missing models module: {fpath}")
+
+    def test_bundle_verification_package_exists(self):
+        verif_dir = os.path.join(HF_SPACE_DIR, "verification")
+        self.assertTrue(os.path.isdir(verif_dir), "hf_space/verification/ must exist")
+        expected_modules = [
+            "__init__.py",
+            "claim_extractor.py",
+            "evaluator.py",
+            "evidence.py",
+            "fever_generator.py",
+            "knowledge_store.py",
+            "nli_verifier.py",
+            "retriever.py",
+            "trust_scorer.py",
+            "verifier.py",
+        ]
+        for mod in expected_modules:
+            fpath = os.path.join(verif_dir, mod)
+            self.assertTrue(os.path.isfile(fpath), f"Missing verification module: {fpath}")
+
 
 class TestHfSpaceMetadata(unittest.TestCase):
     """Validates the YAML frontmatter header and academic documentation in hf_space/README.md."""
@@ -256,6 +290,72 @@ class TestPushToHfScript(unittest.TestCase):
                 repo_type="space",
                 ignore_patterns=["**/__pycache__/**", "**/*.pyc", "**/.DS_Store"],
             )
+
+
+class TestHfSpaceSynchronizedComponents(unittest.TestCase):
+    """Verifies that synchronized components in hf_space export expected classes and functions."""
+
+    def test_morpho_nli_verifier_exports(self):
+        """Assert hf_space/models/morpho_nli_verifier.py exists and exports MorphologicalAffixExtractor and MorphoNLIVerifier."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "models", "morpho_nli_verifier.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist in hf_space bundle")
+
+        spec = importlib.util.spec_from_file_location("hf_space_models_morpho_nli_verifier", target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        self.assertTrue(hasattr(mod, "MorphologicalAffixExtractor"), "Must export MorphologicalAffixExtractor")
+        self.assertTrue(hasattr(mod, "MorphoNLIVerifier"), "Must export MorphoNLIVerifier")
+        self.assertTrue(hasattr(mod, "OfflineHeuristicNLIVerifier"), "Must export OfflineHeuristicNLIVerifier")
+
+        extractor = mod.MorphologicalAffixExtractor()
+        feats = extractor.extract_features("Бұл мәтін факт емес.", "Бұл мәтін шындық.")
+        self.assertEqual(len(feats), 16, "Must extract 16-dimensional morphological feature vector")
+
+    def test_render_2d_trust_matrix_plane_in_highlighting(self):
+        """Assert hf_space/ui/highlighting.py defines render_2d_trust_matrix_plane."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "ui", "highlighting.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist")
+
+        spec = importlib.util.spec_from_file_location("hf_space_ui_highlighting", target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        self.assertTrue(hasattr(mod, "render_2d_trust_matrix_plane"), "Must define render_2d_trust_matrix_plane")
+        svg_html = mod.render_2d_trust_matrix_plane(t_fact=0.65, t_gen=0.85, quadrant="Q1", lang="en")
+        self.assertIn("<svg", svg_html)
+        self.assertIn("Q1", svg_html)
+        self.assertIn("Q2", svg_html)
+        self.assertIn("Q3", svg_html)
+        self.assertIn("Q4", svg_html)
+
+    def test_trustworthy_verifier_dual_mode_support(self):
+        """Assert hf_space/verification/verifier.py supports verifier_mode ('morpho' vs 'baseline')."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "verification", "verifier.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist")
+
+        spec = importlib.util.spec_from_file_location("hf_space_verification_verifier", target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec.loader.exec_module(mod)
+            self.assertTrue(hasattr(mod, "TrustworthyDocumentVerifier"))
+            verifier = mod.TrustworthyDocumentVerifier()
+            self.assertEqual(verifier.verifier_mode, "morpho")
+            res = verifier.verify("")
+            self.assertTrue(hasattr(res, "quadrant_code"))
+            self.assertTrue(hasattr(res, "composite_trust"))
+            self.assertTrue(hasattr(res, "t_fact"))
+            self.assertTrue(hasattr(res, "t_gen"))
+        finally:
+            sys.path = old_sys_path
 
 
 if __name__ == "__main__":
