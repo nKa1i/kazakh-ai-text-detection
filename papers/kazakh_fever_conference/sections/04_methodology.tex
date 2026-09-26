@@ -29,16 +29,55 @@ where $\alpha \in [0, 1]$ is a tunable interpolation parameter set to $\alpha = 
 where $r_m(c, e)$ represents the ranking index of evidence $e$ under retriever $m$, and $k_0 = 60$ is a smoothing constant. The top-$k$ retrieved passages form the candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
 
 \subsection{Morphological NLI Verifier}
-Given the claim $c$ and concatenated evidence passage $E$, the verification module must predict a categorical label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
+Given the claim $c$ and concatenated evidence passage $E$, the verification module must predict a categorical veracity label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
 
-Standard cross-encoders encode the sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ through a transformer backbone. To counteract subword over-segmentation on critical grammatical morphemes, we extract an explicit morphological feature vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{d_m}$. This vector encodes the presence and alignment of salient Kazakh affixation categories: (i) verbal negation markers (\textit{-ба/-бе/-па/-пе/-ма/-ме}), (ii) evidential markers (\textit{-ыпты/-іпті}), (iii) epistemic modals (\textit{керек, тиіс, мүмкін}), and (iv) case agreement markers.
+Standard cross-encoders process the sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ through a pretrained transformer backbone to extract pooled contextual representation $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$. However, standard subword tokenizers suffer from severe fragmentation on agglutinative Turkic morphology, frequently splitting vital inflectional suffixes into ungrounded byte tokens. To insulate the model against semantic boundary erasure, we extract an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$.
 
-The verifier computes the class probability distribution via:
+\paragraph{16-Dimensional Morphological Diagnostic Extractor}
+The vector $\mathbf{m}_{\text{affix}} = [m_0, m_1, \dots, m_{15}]^{\top} \in [0, 1]^{16}$ captures fine-grained morpho-syntactic, temporal, and semantic alignment properties across five functional tiers:
+\begin{enumerate}
+    \item \textbf{Polarity and Verbal Negation Alignment ($m_0, m_1, m_2$)}: Binary indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, past negated \textit{-маған/-меген}, aspectual \textit{-майды/-мейді}) and copular particles (\textit{емес, жоқ}). Dimension $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$ captures directional negation mismatch (XOR), serving as an indispensable contradiction trigger when topical overlap is high.
+    \item \textbf{Temporal and Numerical Conflict Detection ($m_3, m_4$)}: Feature $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects calendar year conflicts, triggering when the extracted sets of 4-digit calendar years $\mathcal{Y}_c$ and $\mathcal{Y}_e$ are non-empty and disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$). Feature $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative numerical mismatches where numerical quantities in $c$ are absent from $E$.
+    \item \textbf{Evidentiality and Epistemic Modality ($m_5, m_6, m_7, m_8$)}: Features $m_5$ and $m_6$ detect indirect inferential evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$ respectively, separating non-witnessed hearsay from direct witnessed past assertions (\textit{-ды/-ді}). Features $m_7$ and $m_8$ identify modal necessity operators (\textit{керек, тиіс, қажет, міндетті}) and modal possibility operators (\textit{мүмкін, ықтимал}), distinguishing factual certainty from hypothetical qualification.
+    \item \textbf{Morphological Root vs.\ Surface Overlap ($m_9, m_{10}, m_{11}$)}: Using our 83-rule finite-state transducer (FST) morphological analyzer, we extract canonical root sets $\mathcal{R}_c, \mathcal{R}_e$ and surface word token sets $\mathcal{S}_c, \mathcal{S}_e$. Dimension $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$ computes FST root Jaccard similarity, while $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$ measures raw surface overlap. Dimension $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$ quantifies morphological divergence, signaling cases where agglutinative inflectional masking conceals shared semantic roots.
+    \item \textbf{Syntactic Agreement and Length Scaling ($m_{12}, m_{13}, m_{14}, m_{15}$)}: Dimension $m_{12} = s_{\text{match}} \in \{0, 1\}$ indicates whether the primary grammatical subject proper noun in $c$ is grounded in $E$. Dimension $m_{13} = J_{\text{case}}$ measures Jaccard root agreement specifically across tokens bearing nominal case inflections (genitive, dative, accusative, locative, ablative). Finally, $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize claim and evidence sequence lengths.
+\end{enumerate}
+
+\paragraph{Fused Classification and Training Objective}
+The pooled contextual embedding $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$ and morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ are concatenated and projected to class logits:
 \begin{equation}
 \label{eq:nli_verifier}
 P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v \left[\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}\right] + \mathbf{b}_v\right)
 \end{equation}
-where $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^{d}$ denotes the pooled contextual representation from the transformer encoder, $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + d_m)}$ is a learnable projection matrix, and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector. The model is trained using cross-entropy loss over gold annotations.
+where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ is a learnable projection matrix and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector.
+
+To counteract class imbalance across our benchmark ($N = 638$ training pairs; $N_{\textsc{Sup}} = 289$, $N_{\textsc{Ref}} = 163$, $N_{\textsc{NEI}} = 222$), the verifier is trained using a class-weighted cross-entropy loss:
+\begin{equation}
+\label{eq:class_weighted_loss}
+\mathcal{L}_{\text{NLI}} = - \sum_{c=1}^3 w_c \cdot y_c \log P(y_c \mid c, E)
+\end{equation}
+where $y_c \in \{0, 1\}$ is the gold one-hot label indicator for class $c \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$, and $w_c$ denotes the normalized inverse-frequency class weight:
+\begin{equation}
+\label{eq:class_weights}
+w_c = \frac{N}{3 \cdot \max(1, N_c)}
+\end{equation}
+normalized such that $\sum_{c=1}^3 w_c = 3.0$. For our training distribution, this yields exact weights $w_{\textsc{Sup}} = 0.735$, $w_{\textsc{Ref}} = 1.307$, and $w_{\textsc{NEI}} = 0.958$. This weighting prevents majority class collapse onto \textsc{Supported} and penalizes false confidence on \textsc{Not Enough Info} (Hard NEI), directly enforcing calibrated epistemic caution.
+
+\paragraph{Differential Optimization Scheme}
+To preserve pretrained contextual representations while rapidly calibrating the newly initialized fusion head, we parameterize optimization using differential learning rates:
+\begin{equation}
+\label{eq:differential_lr}
+\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \quad \text{lr}_{\text{head}} = 2 \times 10^{-4}
+\end{equation}
+assigning a $10\times$ higher learning rate to the classification head. The network parameters are optimized via AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $\lambda = 0.01$) governed by a cosine annealing learning rate scheduler with linear warmup over the first 10\% of total training steps:
+\begin{equation}
+\label{eq:cosine_schedule}
+\eta(t) = \begin{cases}
+\eta_{\text{base}} \cdot \frac{t}{T_{\text{warm}}}, & 0 \le t < T_{\text{warm}} \\
+\eta_{\text{base}} \cdot \frac{1}{2} \left(1 + \cos\left(\pi \frac{t - T_{\text{warm}}}{T_{\text{total}} - T_{\text{warm}}}\right)\right), & T_{\text{warm}} \le t \le T_{\text{total}}
+\end{cases}
+\end{equation}
+where $T_{\text{warm}} = 0.1 \cdot T_{\text{total}}$, guaranteeing stable gradient descent across epochs.
 
 \subsection{2D Trust Matrix Formulation}
 To account for both factual truth and generative provenance in open information environments, we map model predictions into a two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$.
