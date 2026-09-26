@@ -1,0 +1,76 @@
+{
+  "ablation_results": {
+    "Ours (Full Morpho Cross-Encoder)": {
+      "accuracy": 33.3,
+      "macro_f1": 30.5,
+      "fever_score": 33.3,
+      "hard_nei_f1": 41.5
+    },
+    "- Negation Alignment": {
+      "accuracy": 33.3,
+      "macro_f1": 30.5,
+      "fever_score": 33.3,
+      "hard_nei_f1": 41.5
+    },
+    "- Temporal / Calendar Conflicts": {
+      "accuracy": 33.3,
+      "macro_f1": 30.5,
+      "fever_score": 33.3,
+      "hard_nei_f1": 41.5
+    },
+    "- Evidentials & Epistemic Modals": {
+      "accuracy": 33.3,
+      "macro_f1": 30.5,
+      "fever_score": 33.3,
+      "hard_nei_f1": 41.5
+    },
+    "- FST Root Analysis": {
+      "accuracy": 34.0,
+      "macro_f1": 31.8,
+      "fever_score": 34.0,
+      "hard_nei_f1": 40.9
+    },
+    "Surface Token Overlap Only": {
+      "accuracy": 34.8,
+      "macro_f1": 32.3,
+      "fever_score": 34.8,
+      "hard_nei_f1": 41.9
+    }
+  },
+  "Ours (Full Morpho Cross-Encoder)": {
+    "accuracy": 33.3,
+    "macro_f1": 30.5,
+    "fever_score": 33.3,
+    "hard_nei_f1": 41.5
+  },
+  "- Negation Alignment": {
+    "accuracy": 33.3,
+    "macro_f1": 30.5,
+    "fever_score": 33.3,
+    "hard_nei_f1": 41.5
+  },
+  "- Temporal / Calendar Conflicts": {
+    "accuracy": 33.3,
+    "macro_f1": 30.5,
+    "fever_score": 33.3,
+    "hard_nei_f1": 41.5
+  },
+  "- Evidentials & Epistemic Modals": {
+    "accuracy": 33.3,
+    "macro_f1": 30.5,
+    "fever_score": 33.3,
+    "hard_nei_f1": 41.5
+  },
+  "- FST Root Analysis": {
+    "accuracy": 34.0,
+    "macro_f1": 31.8,
+    "fever_score": 34.0,
+    "hard_nei_f1": 40.9
+  },
+  "Surface Token Overlap Only": {
+    "accuracy": 34.8,
+    "macro_f1": 32.3,
+    "fever_score": 34.8,
+    "hard_nei_f1": 41.9
+  }
+}

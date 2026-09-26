@@ -1,0 +1,19 @@
+\begin{table}[ht]
+\centering
+\small
+\caption{Morphological feature ablation study on the Kazakh-FEVER benchmark test set. Best results in bold.}
+\label{tab:ablation_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{FEVER Score (\%)} & \textbf{Hard NEI F1 (\%)} \\
+\midrule
+\textbf{Ours (Full Morpho Cross-Encoder)} & \textbf{33.3} & \textbf{30.5} & \textbf{33.3} & \textbf{41.5} \\
+\midrule
+- Negation Alignment & 33.3 & 30.5 & 33.3 & 41.5 \\
+- Temporal / Calendar Conflicts & 33.3 & 30.5 & 33.3 & 41.5 \\
+- Evidentials \& Epistemic Modals & 33.3 & 30.5 & 33.3 & 41.5 \\
+- FST Root Analysis & 34.0 & 31.8 & 34.0 & 40.9 \\
+Surface Token Overlap Only & 34.8 & 32.3 & 34.8 & 41.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
