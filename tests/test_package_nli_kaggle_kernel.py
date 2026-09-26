@@ -320,6 +320,67 @@ class TestPackageNLIKaggleKernel(unittest.TestCase):
         self.assertIn("fever_score", results["WrappedNeuralModel"])
         self.assertIn("hard_nei_f1", results["WrappedNeuralModel"])
 
+    def test_kernel_compute_class_weights_and_scheduler(self):
+        from kaggle_runner.train_nli_kernel import (
+            compute_class_weights,
+            get_cosine_schedule_with_warmup,
+            get_parameter_groups,
+            train_gpu_epoch,
+        )
+
+        sample_pairs = [
+            {"label": "SUPPORTED"},
+            {"label": "SUPPORTED"},
+            {"label": "REFUTES"},
+            {"label": "NOT_ENOUGH_INFO"},
+            {"label": "NOT_ENOUGH_INFO"},
+            {"label": "NOT_ENOUGH_INFO"},
+        ]
+        weights = compute_class_weights(sample_pairs)
+        self.assertEqual(len(weights), 3)
+        self.assertAlmostEqual(sum(weights), 3.0, places=5)
+        # REFUTES is rarest (1 count), so highest weight
+        self.assertGreater(weights[1], weights[0])
+        self.assertGreater(weights[0], weights[2])
+
+        class MockOpt:
+            def __init__(self):
+                self.param_groups = [{"lr": 2e-5}]
+
+        opt = MockOpt()
+        sched = get_cosine_schedule_with_warmup(opt, num_warmup_steps=5, num_training_steps=50)
+        self.assertIsNotNone(sched)
+        self.assertTrue(hasattr(sched, "step"))
+        sched.step()
+
+        class MockParam:
+            def __init__(self, req=True):
+                self.requires_grad = req
+
+        class MockM:
+            def named_parameters(self):
+                return [
+                    ("encoder.layer.weight", MockParam(True)),
+                    ("classifier.weight", MockParam(True)),
+                ]
+
+        groups = get_parameter_groups(MockM(), lr_encoder=2e-5, lr_head=2e-4, is_morpho=True)
+        self.assertEqual(len(groups), 2)
+        self.assertEqual(groups[0]["lr"], 2e-5)
+        self.assertEqual(groups[1]["lr"], 2e-4)
+
+        loss = train_gpu_epoch(
+            model=None,
+            dataloader=None,
+            optimizer=None,
+            scaler=None,
+            device="cpu",
+            use_morpho=False,
+            scheduler=sched,
+            class_weights=weights,
+        )
+        self.assertEqual(loss, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

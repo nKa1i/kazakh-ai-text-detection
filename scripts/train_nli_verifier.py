@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import json
+import math
 import argparse
 from typing import List, Dict, Any, Optional, Union, Tuple
 from pathlib import Path
@@ -20,6 +21,15 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    import torch
+    import torch.nn as nn
+    HAS_TORCH = True
+except ImportError:
+    torch = None
+    nn = None
+    HAS_TORCH = False
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
@@ -83,6 +93,49 @@ def normalize_label(label: Any) -> str:
     if raw in ("NOT_ENOUGH_INFO", "NOT ENOUGH INFO", "NEI", "NEUTRAL", "UNVERIFIED"):
         return "NOT_ENOUGH_INFO"
     return raw
+
+
+def compute_class_weights(pairs: Optional[List[Any]]) -> List[float]:
+    """
+    Computes balanced class weights for CrossEntropyLoss across 3 Kazakh-FEVER classes:
+    SUPPORTED (0), REFUTES (1), NOT_ENOUGH_INFO (2).
+
+    Formula: w_c = N / (3 * max(1, N_c)), normalized so sum(w_c) == 3.0.
+    Defensive against missing/empty pairs (returns [1.0, 1.0, 1.0]).
+    """
+    if not pairs:
+        return [1.0, 1.0, 1.0]
+
+    counts = [0, 0, 0]
+    total = 0
+    for p in pairs:
+        if isinstance(p, dict):
+            raw_lbl = p.get("label", "NOT_ENOUGH_INFO")
+        else:
+            raw_lbl = str(p)
+        lbl = normalize_label(raw_lbl)
+        if lbl == "SUPPORTED":
+            counts[0] += 1
+            total += 1
+        elif lbl == "REFUTES":
+            counts[1] += 1
+            total += 1
+        elif lbl == "NOT_ENOUGH_INFO":
+            counts[2] += 1
+            total += 1
+        else:
+            counts[2] += 1
+            total += 1
+
+    if total == 0:
+        return [1.0, 1.0, 1.0]
+
+    raw_weights = [total / (3.0 * max(1, count)) for count in counts]
+    sum_w = sum(raw_weights)
+    if sum_w <= 0.0:
+        return [1.0, 1.0, 1.0]
+
+    return [float(w / sum_w * 3.0) for w in raw_weights]
 
 
 def _extract_sentences(text: str) -> List[str]:
@@ -464,6 +517,137 @@ class PyTorchNLIWrapper:
             res = self.predict_pair(c, e)
             preds.append(res.get("label", "NOT_ENOUGH_INFO"))
         return preds
+
+
+class MockScheduler:
+    """Mock learning rate scheduler for non-PyTorch or dry-run environments."""
+    def __init__(self, optimizer: Any = None, num_warmup_steps: int = 0, num_training_steps: int = 0):
+        self.optimizer = optimizer
+        self.num_warmup_steps = num_warmup_steps
+        self.num_training_steps = num_training_steps
+        self.step_count = 0
+        self._last_lr = (
+            [group.get("lr", 0.0) for group in optimizer.param_groups]
+            if (optimizer and hasattr(optimizer, "param_groups"))
+            else [0.0]
+        )
+
+    def step(self) -> None:
+        self.step_count += 1
+
+    def get_last_lr(self) -> List[float]:
+        return self._last_lr
+
+
+def get_cosine_schedule_with_warmup(
+    optimizer: Any,
+    num_warmup_steps: int,
+    num_training_steps: int,
+    num_cycles: float = 0.5,
+    last_epoch: int = -1,
+) -> Any:
+    """
+    Creates a learning rate schedule with a learning rate that decreases following the values
+    of the cosine function between the 0 of the warmup and the end of the training steps,
+    after a warmup period during which it increases linearly between 0 and the initial lr.
+    """
+    if not HAS_TORCH or optimizer is None:
+        return MockScheduler(optimizer, num_warmup_steps, num_training_steps)
+
+    def lr_lambda(current_step: int):
+        if current_step < num_warmup_steps:
+            return float(current_step) / float(max(1, num_warmup_steps))
+        if current_step >= num_training_steps:
+            return 0.0
+        progress = float(current_step - num_warmup_steps) / float(max(1, num_training_steps - num_warmup_steps))
+        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * float(num_cycles) * 2.0 * progress)))
+
+    from torch.optim.lr_scheduler import LambdaLR
+    return LambdaLR(optimizer, lr_lambda, last_epoch=last_epoch)
+
+
+def get_parameter_groups(
+    model: Any,
+    lr_encoder: float = 2e-5,
+    lr_head: float = 2e-4,
+    weight_decay: float = 0.01,
+    is_morpho: bool = True,
+) -> List[Dict[str, Any]]:
+    """
+    Generates differential learning rate parameter groups:
+    - Transformer encoder backbone: lr_encoder (default 2e-5)
+    - Classification / fusion head: lr_head (default 2e-4)
+    """
+    if model is None:
+        return []
+
+    if is_morpho and hasattr(model, "named_parameters"):
+        encoder_params = [p for n, p in model.named_parameters() if "encoder" in n and p.requires_grad]
+        head_params = [p for n, p in model.named_parameters() if "encoder" not in n and p.requires_grad]
+        return [
+            {"params": encoder_params, "lr": lr_encoder, "weight_decay": weight_decay},
+            {"params": head_params, "lr": lr_head, "weight_decay": weight_decay},
+        ]
+    elif hasattr(model, "parameters"):
+        params = [p for p in model.parameters() if p.requires_grad]
+        return [{"params": params, "lr": lr_encoder, "weight_decay": weight_decay}]
+    return []
+
+
+def train_gpu_epoch(
+    model: Any,
+    dataloader: Any,
+    optimizer: Any,
+    scaler: Any,
+    device: Any,
+    use_morpho: bool = False,
+    scheduler: Optional[Any] = None,
+    class_weights: Optional[List[float]] = None,
+) -> float:
+    """Trains a PyTorch model for one epoch using automatic mixed precision and optional class weighting."""
+    if not HAS_TORCH or model is None or dataloader is None:
+        return 0.0
+
+    model.train()
+    total_loss = 0.0
+
+    if class_weights is not None:
+        weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(device)
+        criterion = nn.CrossEntropyLoss(weight=weights_tensor)
+    else:
+        criterion = nn.CrossEntropyLoss()
+
+    for batch in dataloader:
+        optimizer.zero_grad()
+        input_ids = batch.get("input_ids").to(device) if "input_ids" in batch else None
+        attention_mask = batch.get("attention_mask").to(device) if "attention_mask" in batch else None
+        labels = batch["label"].to(device)
+        morpho = batch.get("morpho_features").to(device) if (use_morpho and "morpho_features" in batch) else None
+
+        autocast_fn = torch.amp.autocast if hasattr(torch, "amp") and hasattr(torch.amp, "autocast") else torch.cuda.amp.autocast
+        with autocast_fn("cuda"):
+            if use_morpho:
+                logits = model(input_ids=input_ids, attention_mask=attention_mask, morpho_features=morpho)
+            else:
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+                logits = outputs.logits if hasattr(outputs, "logits") else outputs
+
+            loss = criterion(logits, labels)
+
+        if scaler is not None:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
+
+        if scheduler is not None:
+            scheduler.step()
+
+        total_loss += loss.item()
+
+    return total_loss / max(1, len(dataloader))
 
 
 def evaluate_nli_test_suite(

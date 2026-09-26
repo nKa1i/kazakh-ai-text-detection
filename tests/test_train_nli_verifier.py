@@ -21,6 +21,10 @@ from scripts.train_nli_verifier import (
     evaluate_nli_test_suite,
     format_table2_latex,
     normalize_label,
+    compute_class_weights,
+    get_cosine_schedule_with_warmup,
+    get_parameter_groups,
+    train_gpu_epoch,
 )
 
 
@@ -426,6 +430,149 @@ class TestTrainNLIVerifier(unittest.TestCase):
         res = evaluate_nli_test_suite(precomputed, self.sample_claims)
         self.assertIn("CustomModel", res)
         self.assertEqual(res["CustomModel"]["accuracy"], 85.0)
+
+    def test_compute_class_weights_balanced(self):
+        pairs = (
+            [{"label": "SUPPORTED"}] * 10
+            + [{"label": "REFUTES"}] * 10
+            + [{"label": "NOT_ENOUGH_INFO"}] * 10
+        )
+        weights = compute_class_weights(pairs)
+        self.assertEqual(len(weights), 3)
+        self.assertAlmostEqual(weights[0], 1.0, places=5)
+        self.assertAlmostEqual(weights[1], 1.0, places=5)
+        self.assertAlmostEqual(weights[2], 1.0, places=5)
+        self.assertAlmostEqual(sum(weights), 3.0, places=5)
+
+    def test_compute_class_weights_imbalanced(self):
+        pairs = (
+            [{"label": "SUPPORTED"}] * 10
+            + [{"label": "REFUTES"}] * 20
+            + [{"label": "NOT_ENOUGH_INFO"}] * 70
+        )
+        weights = compute_class_weights(pairs)
+        self.assertEqual(len(weights), 3)
+        self.assertAlmostEqual(sum(weights), 3.0, places=5)
+        # Rarest class gets highest weight
+        self.assertGreater(weights[0], weights[1])
+        self.assertGreater(weights[1], weights[2])
+
+        # Exact formula validation: w_c = N / (3 * N_c), normalized so sum is 3.0
+        raw_0 = 100.0 / (3.0 * 10.0)
+        raw_1 = 100.0 / (3.0 * 20.0)
+        raw_2 = 100.0 / (3.0 * 70.0)
+        sum_raw = raw_0 + raw_1 + raw_2
+        expected_0 = (raw_0 / sum_raw) * 3.0
+        expected_1 = (raw_1 / sum_raw) * 3.0
+        expected_2 = (raw_2 / sum_raw) * 3.0
+
+        self.assertAlmostEqual(weights[0], expected_0, places=4)
+        self.assertAlmostEqual(weights[1], expected_1, places=4)
+        self.assertAlmostEqual(weights[2], expected_2, places=4)
+
+    def test_compute_class_weights_defensive(self):
+        self.assertEqual(compute_class_weights([]), [1.0, 1.0, 1.0])
+        self.assertEqual(compute_class_weights(None), [1.0, 1.0, 1.0])
+
+        # Missing class (0 occurrences of REFUTES)
+        pairs_missing = (
+            [{"label": "SUPPORTED"}] * 15
+            + [{"label": "NOT_ENOUGH_INFO"}] * 15
+        )
+        weights = compute_class_weights(pairs_missing)
+        self.assertEqual(len(weights), 3)
+        self.assertAlmostEqual(sum(weights), 3.0, places=5)
+        for w in weights:
+            self.assertGreater(w, 0.0)
+
+    def test_get_cosine_schedule_with_warmup_mock_mode(self):
+        class MockOptimizer:
+            def __init__(self):
+                self.param_groups = [{"lr": 1e-4}]
+
+        optimizer = MockOptimizer()
+        scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=10, num_training_steps=100)
+        self.assertIsNotNone(scheduler)
+        self.assertTrue(hasattr(scheduler, "step"))
+        scheduler.step()
+        self.assertEqual(getattr(scheduler, "step_count", 1), 1)
+
+    def test_get_cosine_schedule_with_warmup_lambda_decay(self):
+        import unittest.mock
+
+        class MockOptimizer:
+            def __init__(self):
+                self.param_groups = [{"lr": 1e-4}]
+
+        num_warmup = 10
+        num_training = 100
+
+        mock_lambda_lr = unittest.mock.MagicMock(side_effect=lambda opt, lr_fn, **kwargs: lr_fn)
+        mock_torch = unittest.mock.MagicMock()
+        mock_torch.optim.lr_scheduler.LambdaLR = mock_lambda_lr
+
+        with unittest.mock.patch.dict("sys.modules", {
+            "torch": mock_torch,
+            "torch.optim": mock_torch.optim,
+            "torch.optim.lr_scheduler": mock_torch.optim.lr_scheduler,
+        }):
+            with unittest.mock.patch("scripts.train_nli_verifier.HAS_TORCH", True):
+                lr_fn = get_cosine_schedule_with_warmup(MockOptimizer(), num_warmup, num_training)
+                # At step 0: lr multiplier should be 0.0
+                self.assertAlmostEqual(lr_fn(0), 0.0, places=5)
+                # At warmup midpoint: lr multiplier should be 0.5
+                self.assertAlmostEqual(lr_fn(5), 0.5, places=5)
+                # At warmup completion (step 10): lr multiplier should be 1.0
+                self.assertAlmostEqual(lr_fn(10), 1.0, places=5)
+                # At midway through cosine decay (step 55): progress = 45/90 = 0.5, cos(pi/2)=0 => 0.5
+                self.assertAlmostEqual(lr_fn(55), 0.5, places=5)
+                # At final training step (step 100): progress = 90/90 = 1.0, cos(pi)=-1 => 0.0
+                self.assertAlmostEqual(lr_fn(100), 0.0, places=5)
+                # Beyond training step: clamped to >= 0.0
+                self.assertAlmostEqual(lr_fn(120), 0.0, places=5)
+
+    def test_differential_parameter_groups(self):
+        class MockParam:
+            def __init__(self, requires_grad=True):
+                self.requires_grad = requires_grad
+
+        class MockMorphoModel:
+            def named_parameters(self):
+                return [
+                    ("encoder.embeddings.word_embeddings.weight", MockParam(True)),
+                    ("encoder.layer.0.attention.weight", MockParam(True)),
+                    ("classifier.weight", MockParam(True)),
+                    ("classifier.bias", MockParam(True)),
+                    ("encoder.frozen.weight", MockParam(False)),
+                ]
+
+            def parameters(self):
+                return [p for _, p in self.named_parameters()]
+
+        model = MockMorphoModel()
+        param_groups = get_parameter_groups(model, lr_encoder=2e-5, lr_head=2e-4, is_morpho=True)
+
+        self.assertEqual(len(param_groups), 2)
+        # Group 0: encoder params
+        self.assertEqual(param_groups[0]["lr"], 2e-5)
+        self.assertEqual(len(param_groups[0]["params"]), 2)
+        # Group 1: head/classifier params
+        self.assertEqual(param_groups[1]["lr"], 2e-4)
+        self.assertEqual(len(param_groups[1]["params"]), 2)
+
+    def test_train_gpu_epoch_interface(self):
+        loss = train_gpu_epoch(
+            model=None,
+            dataloader=None,
+            optimizer=None,
+            scaler=None,
+            device="cpu",
+            use_morpho=True,
+            scheduler=None,
+            class_weights=[1.0, 1.0, 1.0],
+        )
+        self.assertIsInstance(loss, float)
+        self.assertEqual(loss, 0.0)
 
 
 if __name__ == "__main__":
