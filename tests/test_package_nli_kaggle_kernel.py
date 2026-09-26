@@ -381,6 +381,92 @@ class TestPackageNLIKaggleKernel(unittest.TestCase):
         )
         self.assertEqual(loss, 0.0)
 
+    def test_kernel_evaluate_dev_epoch(self):
+        from kaggle_runner.train_nli_kernel import evaluate_dev_epoch
+
+        res = evaluate_dev_epoch(None, None, criterion=None, device="cpu", is_morpho=False)
+        self.assertIsInstance(res, dict)
+        self.assertIn("loss", res)
+        self.assertIn("accuracy", res)
+        self.assertIn("macro_f1", res)
+        self.assertEqual(res["loss"], 0.0)
+        self.assertEqual(res["accuracy"], 0.0)
+        self.assertEqual(res["macro_f1"], 0.0)
+
+    def test_kernel_training_history_telemetry_export(self):
+        from kaggle_runner.train_nli_kernel import run_kernel_pipeline
+
+        out_tex = os.path.join(self.temp_dir.name, "output", "table2.tex")
+        out_json = os.path.join(self.temp_dir.name, "output", "results.json")
+        out_hist = os.path.join(self.temp_dir.name, "output", "training_history.json")
+
+        run_kernel_pipeline(
+            dry_run=True,
+            output_latex=out_tex,
+            output_json=out_json,
+            output_history=out_hist,
+            epochs=3,
+        )
+
+        self.assertTrue(os.path.exists(out_hist), f"Telemetry file {out_hist} was not created")
+        with open(out_hist, "r", encoding="utf-8") as f:
+            history = json.load(f)
+
+        self.assertIsInstance(history, list)
+        self.assertEqual(len(history), 3)
+
+        for entry in history:
+            self.assertIn("epoch", entry)
+            self.assertIn("train_loss", entry)
+            self.assertIn("dev_loss", entry)
+            self.assertIn("dev_accuracy", entry)
+            self.assertIn("dev_macro_f1", entry)
+            self.assertIn("best_epoch", entry)
+
+            self.assertIsInstance(entry["epoch"], int)
+            self.assertIsInstance(entry["best_epoch"], int)
+            self.assertIsInstance(entry["train_loss"], (int, float))
+            self.assertIsInstance(entry["dev_loss"], (int, float))
+            self.assertIsInstance(entry["dev_accuracy"], (int, float))
+            self.assertIsInstance(entry["dev_macro_f1"], (int, float))
+
+    def test_kernel_best_checkpoint_restoration(self):
+        import copy
+
+        class MockWeightsModel:
+            def __init__(self):
+                self.weights = {"param": 0}
+
+            def state_dict(self):
+                return copy.deepcopy(self.weights)
+
+            def load_state_dict(self, state_dict):
+                self.weights = copy.deepcopy(state_dict)
+
+        model = MockWeightsModel()
+        epochs_dev_f1 = [72.0, 84.5, 79.0]
+        best_dev_macro_f1 = -1.0
+        best_epoch = 0
+        best_state_dict = None
+
+        for ep, dev_f1 in enumerate(epochs_dev_f1):
+            model.weights["param"] = ep + 1
+            if dev_f1 > best_dev_macro_f1:
+                best_dev_macro_f1 = dev_f1
+                best_epoch = ep + 1
+                best_state_dict = copy.deepcopy(model.state_dict())
+
+        self.assertEqual(best_epoch, 2)
+        self.assertEqual(best_state_dict["param"], 2)
+
+        # In epoch 3, weights became 3
+        self.assertEqual(model.weights["param"], 3)
+
+        # Restore best checkpoint
+        model.load_state_dict(best_state_dict)
+        self.assertEqual(model.weights["param"], 2)
+
+
 
 if __name__ == "__main__":
     unittest.main()

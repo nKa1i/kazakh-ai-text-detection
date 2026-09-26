@@ -25,7 +25,9 @@ from scripts.train_nli_verifier import (
     get_cosine_schedule_with_warmup,
     get_parameter_groups,
     train_gpu_epoch,
+    evaluate_dev_epoch,
 )
+
 
 
 class TestTrainNLIVerifier(unittest.TestCase):
@@ -573,6 +575,120 @@ class TestTrainNLIVerifier(unittest.TestCase):
         )
         self.assertIsInstance(loss, float)
         self.assertEqual(loss, 0.0)
+
+    def test_evaluate_dev_epoch_defensive(self):
+        metrics = evaluate_dev_epoch(
+            model=None,
+            dataloader=None,
+            criterion=None,
+            device="cpu",
+            is_morpho=False,
+        )
+        self.assertIsInstance(metrics, dict)
+        self.assertIn("loss", metrics)
+        self.assertIn("accuracy", metrics)
+        self.assertIn("macro_f1", metrics)
+        self.assertEqual(metrics["loss"], 0.0)
+        self.assertEqual(metrics["accuracy"], 0.0)
+        self.assertEqual(metrics["macro_f1"], 0.0)
+
+    def test_evaluate_dev_epoch_computation(self):
+        class MockTensorLogits:
+            def __init__(self, data):
+                self.data = data
+
+            def argmax(self, dim=-1):
+                return [int(row.index(max(row))) for row in self.data]
+
+        class MockDevModel:
+            def __init__(self):
+                self.eval_called = False
+
+            def eval(self):
+                self.eval_called = True
+                return self
+
+            def __call__(self, input_ids=None, attention_mask=None, morpho_features=None):
+                val = input_ids[0][0] if isinstance(input_ids[0], (list, tuple)) else input_ids[0, 0].item()
+                if val == 1:
+                    return MockTensorLogits([
+                        [2.0, 0.0, 0.0],
+                        [0.0, 2.0, 0.0],
+                        [0.0, 0.0, 2.0],
+                    ])
+                else:
+                    return MockTensorLogits([
+                        [2.0, 0.0, 0.0],
+                        [2.0, 0.0, 0.0],  # misclassified label 1 as class 0
+                        [0.0, 0.0, 2.0],
+                    ])
+
+        batch1 = {
+            "input_ids": [[1, 0], [1, 1], [1, 2]],
+            "attention_mask": [[1, 1], [1, 1], [1, 1]],
+            "label": [0, 1, 2],
+        }
+        batch2 = {
+            "input_ids": [[2, 0], [2, 1], [2, 2]],
+            "attention_mask": [[1, 1], [1, 1], [1, 1]],
+            "label": [0, 1, 2],
+        }
+
+        model = MockDevModel()
+        dataloader = [batch1, batch2]
+
+        class MockLoss:
+            def item(self):
+                return 0.35
+
+        criterion = lambda logits, labels: MockLoss()
+
+        metrics = evaluate_dev_epoch(
+            model=model,
+            dataloader=dataloader,
+            criterion=criterion,
+            device="cpu",
+            is_morpho=False,
+        )
+
+        self.assertTrue(model.eval_called)
+        self.assertIn("loss", metrics)
+        self.assertIn("accuracy", metrics)
+        self.assertIn("macro_f1", metrics)
+        self.assertGreater(metrics["loss"], 0.0)
+        # 5 out of 6 correct = 83.33%
+        self.assertAlmostEqual(metrics["accuracy"], 83.3, delta=0.5)
+        # Macro-F1 should be ~82.2%
+        self.assertAlmostEqual(metrics["macro_f1"], 82.2, delta=0.5)
+
+    def test_evaluate_dev_epoch_morpho_passthrough(self):
+        class MockMorphoModel:
+            def __init__(self):
+                self.received_morpho = False
+
+            def __call__(self, input_ids=None, attention_mask=None, morpho_features=None):
+                if morpho_features is not None:
+                    self.received_morpho = True
+                return [[1.0, 0.0, 0.0]]
+
+        batch = {
+            "input_ids": [[1, 2]],
+            "attention_mask": [[1, 1]],
+            "label": [0],
+            "morpho_features": [0.0] * 16,
+        }
+        model = MockMorphoModel()
+        metrics = evaluate_dev_epoch(
+            model=model,
+            dataloader=[batch],
+            criterion=lambda l, y: 0.1,
+            device="cpu",
+            is_morpho=True,
+        )
+        self.assertTrue(model.received_morpho)
+        self.assertEqual(metrics["accuracy"], 100.0)
+
+
 
 
 if __name__ == "__main__":
