@@ -687,6 +687,9 @@ class TestTrainNLIVerifier(unittest.TestCase):
             device="cpu",
             is_morpho=True,
         )
+        self.assertTrue(model.received_morpho)
+        self.assertEqual(metrics["accuracy"], 100.0)
+
     def test_morphological_affix_extractor_feature_masking(self):
         from models.morpho_nli_verifier import MorphologicalAffixExtractor
 
