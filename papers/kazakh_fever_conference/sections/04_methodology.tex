@@ -51,17 +51,17 @@ P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v \left[\mathbf{h}_{[\text{CLS
 \end{equation}
 where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ is a learnable projection matrix and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector.
 
-To counteract class imbalance across our benchmark ($N = 638$ training pairs; $N_{\textsc{Sup}} = 289$, $N_{\textsc{Ref}} = 163$, $N_{\textsc{NEI}} = 222$), the verifier is trained using a class-weighted cross-entropy loss:
+To counteract class imbalance across our benchmark ($N = 638$ training pairs; $N_{\textsc{Sup}} = 274$, $N_{\textsc{Ref}} = 154$, $N_{\textsc{NEI}} = 210$), the verifier is trained using a class-weighted cross-entropy loss:
 \begin{equation}
 \label{eq:class_weighted_loss}
-\mathcal{L}_{\text{NLI}} = - \sum_{c=1}^3 w_c \cdot y_c \log P(y_c \mid c, E)
+\mathcal{L}_{\text{NLI}} = - \sum_{k=1}^3 w_k \cdot y_k \log P(y = k \mid c, E)
 \end{equation}
-where $y_c \in \{0, 1\}$ is the gold one-hot label indicator for class $c \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$, and $w_c$ denotes the normalized inverse-frequency class weight:
+where $y_k \in \{0, 1\}$ is the gold one-hot label indicator for class $k \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$, and $w_k$ denotes the normalized inverse-frequency class weight:
 \begin{equation}
 \label{eq:class_weights}
-w_c = \frac{N}{3 \cdot \max(1, N_c)}
+w_k = 3 \cdot \frac{N_k^{-1}}{\sum_{j=1}^3 N_j^{-1}}
 \end{equation}
-normalized such that $\sum_{c=1}^3 w_c = 3.0$. For our training distribution, this yields exact weights $w_{\textsc{Sup}} = 0.735$, $w_{\textsc{Ref}} = 1.307$, and $w_{\textsc{NEI}} = 0.958$. This weighting prevents majority class collapse onto \textsc{Supported} and penalizes false confidence on \textsc{Not Enough Info} (Hard NEI), directly enforcing calibrated epistemic caution.
+scaled such that $\sum_{k=1}^3 w_k = 3.0$. For our training distribution, this yields exact weights $w_{\textsc{Sup}} = 0.735$, $w_{\textsc{Ref}} = 1.307$, and $w_{\textsc{NEI}} = 0.958$. This weighting prevents majority class collapse onto \textsc{Supported} and penalizes false confidence on \textsc{Not Enough Info} (Hard NEI), directly enforcing calibrated epistemic caution.
 
 \paragraph{Differential Optimization Scheme}
 To preserve pretrained contextual representations while rapidly calibrating the newly initialized fusion head, we parameterize optimization using differential learning rates:
