@@ -1,0 +1,25 @@
+\section{Conclusion and Future Work}
+\label{sec:conclusion_and_future_work}
+
+In this paper, we presented the first unified, morphologically-grounded framework for AI-generated text detection, multi-domain code-switching robustness, and automated fact verification in Kazakh, an agglutinative Turkic language. By analyzing the formal morphotactics of Kazakh, we identified subword token inflation as a root cause of high false positive rates in standard pretrained transformers. We developed an 83-rule Finite-State Transducer (FST) that models nominal cases, verbal conjugation chains, and code-switched loanwords, mathematically curbing subword inflation by up to 36.65\% and forcing tokenizers to converge to the natural morphemic rate of 2.202 tokens/word.
+
+We integrated this linguistic foundation into a dual-stream gated neural architecture regularized by supervised multi-generator contrastive learning. Across comprehensive evaluations on KazAI-Detect (12,848 samples) and Kaz-MAGE/Kaz-RAID, our framework reduced false positive accusations on short texts ($\le 60$ characters) by 43.21\% ($p < 0.00001$) and generalized robustly across formal news and Wikipedia. Furthermore, we introduced the Kazakh-FEVER 3K benchmark featuring a \textsc{Hard NEI} protocol, where our 16-dimensional morphological diagnostic verifier and hybrid retrieval pipeline achieved an 82.1\% Macro-F1, outperforming multilingual baselines by +10.9\%. Finally, we formalized the continuous 2D Trust Matrix ($\mathcal{T}(x)$), reconciling factual veracity and generative provenance in an open-source, interactive system deployed on Hugging Face Spaces.
+
+\subsection{Ethical Considerations and Societal Impact}
+The deployment of automated AI text detectors in low-resource linguistic environments carries serious ethical implications. Flawed detectors that exhibit elevated false positive rates disproportionately harm students, non-native writers, and users communicating in informal dialects~\citep{liang2023gptdetectors}. By demonstrating that morphological pre-segmentation drastically curbs short-text false alarms, our work directly contributes to equitable, transparent content auditing. Furthermore, our continuous 2D Trust Matrix emphasizes that machine-generated text is not inherently malicious: distinguishing between benign AI-assisted factual writing and deliberate disinformation provides a nuanced, responsible safeguard against algorithmic censorship.
+
+\subsection{Limitations}
+We acknowledge several limitations in our study:
+\begin{enumerate}
+    \item \textbf{Colloquial and Emerging Neologisms}: While our FST handles 45 high-frequency commercial loanwords, emerging digital slang, abbreviations, and idiosyncratic phonetic misspellings common on social platforms may occasionally bypass rule matching, falling back to standard subword fragmentation.
+    \item \textbf{Dual-Stream Computational Latency}: Processing both raw and FST-segmented sequences introduces a modest computational overhead during inference, which can be mitigated in high-throughput production via distillation or single-pass token labeling.
+    \item \textbf{Benchmark Scale}: Although Kazakh-FEVER 3K is the largest curated fact verification benchmark for Kazakh to date, its 3,000 annotated pairs remain modest compared to English FEVER benchmarks, underscoring the ongoing need for continued data stewardship in low-resource NLP.
+\end{enumerate}
+
+\subsection{Future Research Directions}
+Future work will proceed along three principal trajectories:
+\begin{itemize}
+    \item \textbf{Cross-Lingual Transfer to the Turkic Family}: Expanding our FST architecture and multi-dimensional trust modeling to sibling agglutinative languages across Central Asia and the Caucasus, including Uzbek, Kyrgyz, Turkmen, Uyghur, and Azerbaijani.
+    \item \textbf{Morpheme-Aware Native Pretraining}: Investigating foundation model pretraining objectives that inherently enforce morphemic boundary awareness at the byte level, obviating external FST pre-segmentation while preserving linguistic fidelity.
+    \item \textbf{Real-Time Multimodal Auditing}: Extending the 2D Trust Matrix to multimodal information streams, verifying synthetic images and speech transcripts circulating across mobile messaging ecosystems.
+\end{itemize}

@@ -1,0 +1,79 @@
+%!TEX program = xelatex
+\documentclass[11pt,a4paper]{article}
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+  \setmainfont{Times New Roman}
+  \setsansfont{Arial}
+  \setmonofont{Courier New}
+\else
+  \usepackage[T2A,T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{times}
+\fi
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xurl}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{A Morphologically-Grounded Unified Framework for Multi-Domain AI Text Detection and Factual Integrity in Agglutinative Languages}}
+
+\author{
+  \textbf{Daulet Anekesh}\thanks{Corresponding author: \texttt{anekeshd@gmail.com}}\\
+  Al-Farabi Kazakh National University, Almaty, Kazakhstan
+  \and
+  \textbf{Irina Ualiyeva}\\
+  Al-Farabi Kazakh National University, Almaty, Kazakhstan
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The rapid proliferation of Large Language Models (LLMs) poses acute challenges for information integrity, automated content moderation, and digital forensics. However, generative text detection research has predominantly targeted isolating, high-resource languages such as English, leaving morphologically rich agglutinative languages severely vulnerable. In agglutinative languages such as Kazakh, standard statistical subword tokenizers (e.g., BPE and SentencePiece) partition complex inflectional and derivational affix chains into arbitrary, semantically fragmented byte tokens---a pathology we formalize as \textit{subword token inflation}. This fragmentation conceals core lexical roots and inflates false positive accusations on short texts by up to 300\%. Furthermore, existing detectors fail to address two critical real-world realities: pervasive Russian-Kazakh bilingual code-switching in colloquial digital text, and the orthogonality of machine generation likelihood to factual veracity.
+
+In this paper, we present the first unified, morphologically-grounded framework reconciling multi-domain AI text detection, bilingual code-switching robustness, and automated fact verification for Kazakh. We construct an 83-rule Finite-State Transducer (FST) that models nominal cases, verbal conjugation tiers, polarity allomorphs, and commercial loanword stems, proving mathematically that FST pre-segmentation mitigates subword token inflation by up to 36.65\% ($p < 0.0001$) and drives subword models to converge to the empirical linguistic morphemic rate of 2.202 tokens per word. We integrate this linguistic transducer into a dual-stream gated neural architecture regularized by supervised multi-generator contrastive learning ($\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{CE}} + \lambda \mathcal{L}_{\text{SupCon}}$). Evaluated across our newly curated multi-domain benchmarks (KazAI-Detect with 12,848 samples and Kaz-MAGE/Kaz-RAID), our framework slashes false positive accusations on short texts ($\le 60$ characters) by 43.21\% ($p = 0.000004$) and maintains robust generalization across out-of-distribution news (98.80\%) and academic prose (99.10\%). To address factual integrity, we introduce \textbf{Kazakh-FEVER 3K}, the first human-validated fact verification benchmark for Kazakh comprising 3,000 claim-evidence pairs with a dedicated \textsc{Hard NEI} protocol targeting morphological traps. We couple this with a 16-dimensional morphological diagnostic cross-encoder and formulate a continuous 2D Trust Matrix ($\mathcal{T}(x) = \sqrt{\frac{1}{2}(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2)}$) that jointly evaluates factual truth and generative authenticity. Finally, we demonstrate the practical utility of our approach through an open-source, interactive explainability system deployed publicly on Hugging Face Spaces.
+\end{abstract}
+
+\vspace{0.8em}
+\noindent\textbf{CCS Concepts:}
+\begin{itemize}
+    \item \textbf{Computing methodologies} $\rightarrow$ \textit{Artificial intelligence}; \textit{Natural language processing}; \textit{Information extraction};
+    \item \textbf{Information systems} $\rightarrow$ \textit{Information retrieval}; \textit{Document representation};
+    \item \textbf{Security and privacy} $\rightarrow$ \textit{Social engineering attacks}; \textit{Content analysis and feature selection}.
+\end{itemize}
+
+\vspace{0.5em}
+\noindent\textbf{Keywords:} AI-generated text detection, agglutinative morphology, finite-state transducers, Kazakh NLP, fact verification, 2D trust matrix, subword token inflation, multi-domain generalization, bilingual code-switching.
+
+\vspace{1.5em}
+
+\input{sections/01_introduction.tex}
+\input{sections/02_related_work.tex}
+\input{sections/03_linguistic_foundation.tex}
+\input{sections/04_framework_architecture.tex}
+\input{sections/05_experimental_benchmarks.tex}
+\input{sections/06_system_and_explainability.tex}
+\input{sections/07_conclusion_and_future_work.tex}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

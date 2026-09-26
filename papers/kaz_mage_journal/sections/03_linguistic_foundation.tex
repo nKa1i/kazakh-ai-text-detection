@@ -1,0 +1,149 @@
+\section{Linguistic Foundation of Kazakh Morphotactics}
+\label{sec:linguistic_foundation}
+
+To understand why standard deep neural language models and subword tokenizers degrade when processing Kazakh, we must examine the formal morphotactics of the language. Kazakh belongs to the Kipchak-Nogai branch of the Turkic language family and exhibits strict concatenative agglutination governed by phonological harmony constraints.
+
+\subsection{Phonological Harmony and Morphotactic Rules}
+Agglutinative word formation in Kazakh proceeds through the rightward attachment of suffixes to a base stem:
+\begin{equation}
+W = S \circ \mu_1 \circ \mu_2 \circ \dots \circ \mu_n
+\end{equation}
+where $S$ represents the lexical root stem and $\mu_i$ denotes an inflectional or derivational morpheme drawn from an ordered morphotactic sequence.
+
+\paragraph{Vowel Harmony}
+The phonological shape of each suffix $\mu_i$ is governed by two orthogonal harmonic dimensions:
+\begin{enumerate}
+    \item \textbf{Palatal (Back/Front) Harmony}: All vowels within a native Kazakh word must agree in tongue position. Vowels are partitioned into Velar (Back, $[+\text{back}]$): $\{\text{а, о, ұ, ы}\}$ and Palatal (Front, $[-\text{back}]$): $\{\text{ә, ө, ү, і, е}\}$. The harmonic class of the final syllable of the stem dictates the vowel category of all subsequent suffixes:
+    \begin{equation}
+    V(\mu_{i}) = \begin{cases}
+    V_{\text{back}}, & \text{if } \mathrm{last\_vowel}(S \circ \mu_1 \dots \mu_{i-1}) \in V_{\text{back}} \\
+    V_{\text{front}}, & \text{if } \mathrm{last\_vowel}(S \circ \mu_1 \dots \mu_{i-1}) \in V_{\text{front}}
+    \end{cases}
+    \end{equation}
+    \item \textbf{Labial Harmony}: Suffix high vowels ($\{\text{ы, і}\}$) assimilate toward rounded vowels ($\{\text{ұ, ү}\}$) when preceded by labial root syllables ($\{\text{о, ө, ұ, ү}\}$), though orthographic standardization predominantly reflects palatal harmony.
+\end{enumerate}
+
+\paragraph{Consonant Assimilation}
+The initial consonant of a suffix assimilates to the voicing and nasality of the preceding stem coda:
+\begin{itemize}
+    \item Following voiceless consonants ($\{\text{п, ф, к, қ, т, с, ш, щ, х, ц, ч}\}$), the suffix initial consonant devoices (e.g., dative \textit{-қа/-ке}, locative \textit{-та/-те}, plural \textit{-тар/-тер}).
+    \item Following voiced consonants and vowels ($\{\text{а, ә, о, ө, ұ, ү, ы, і, е, й, у}\}$), the suffix initial consonant surfaces as voiced or sonorant (e.g., dative \textit{-ға/-ге}, locative \textit{-да/-де}, plural \textit{-лар/-лер}).
+    \item Following nasal consonants ($\{\text{м, н, ң}\}$), specific case endings assimilate to nasals or voiced stops (e.g., ablative \textit{-нан/-нен}, plural \textit{-дар/-дер}).
+\end{itemize}
+
+\subsection{The 83-Rule Finite-State Morphotactic Transducer}
+To systematically analyze native agglutination and restore grammatical boundaries obscured by digital writing, we developed an 83-rule Finite-State Transducer (FST). The transducer operates across nominal inflections, verbal conjugations, derivational morphemes, and code-switched colloquial loanwords.
+
+\subsubsection{Nominal Affixation Paradigm}
+Nominal word forms follow a canonical morphotactic slot sequence:
+\begin{equation}
+\label{eq:nominal_order}
+\text{Noun} = \text{Stem} \circ [\text{Plural}] \circ [\text{Possessive}] \circ [\text{Case}]
+\end{equation}
+Our FST models each slot through dedicated allomorphic transition states:
+\begin{enumerate}
+    \item \textbf{Plural Suffixes (6 allomorphs)}: The plural morpheme surfaces in six phonologically conditioned variants:
+    \begin{equation}
+    \text{PLUR} \in \{\text{\textit{-лар}}, \text{\textit{-лер}}, \text{\textit{-дар}}, \text{\textit{-дер}}, \text{\textit{-тар}}, \text{\textit{-тер}}\}
+    \end{equation}
+    conditioned by the stem-final phoneme.
+    \item \textbf{Possessive Suffixes (28 allomorphs)}: Marking person, number, and social honorific distance:
+    \begin{itemize}
+        \item 1st Person Singular: \textit{-м, -ым, -ім}; Plural: \textit{-мыз, -міз, -ымыз, -іміз, -ларымыз, -леріміз...}
+        \item 2nd Person Singular (Informal): \textit{-ң, -ың, -ің}; Plural: \textit{-ларыңыз, -леріңіз...}
+        \item 2nd Person Singular (Polite/Formal): \textit{-ңыз, -ңіз, -ыңыз, -іңіз}
+        \item 3rd Person: \textit{-ы, -і, -сы, -сі, -лары, -лері, -дары, -дері, -тары, -тері}
+    \end{itemize}
+    \item \textbf{Case Markers (33 allomorphs)}: Kazakh marks six grammatical cases beyond the unmarked nominative:
+    \begin{itemize}
+        \item \textit{Genitive (Ілік септік)}: \textit{-нің, -ның, -дың, -дің, -тың, -тің}
+        \item \textit{Dative/Directional (Барыс септік)}: \textit{-ға, -ге, -қа, -ке, -на, -не}
+        \item \textit{Accusative (Табыс септік)}: \textit{-ны, -ні, -ды, -ді, -ты, -ті}
+        \item \textit{Locative (Жатыс септік)}: \textit{-да, -де, -та, -те, -нда, -нде}
+        \item \textit{Ablative (Шығыс септік)}: \textit{-дан, -ден, -тан, -тен, -нан, -нен}
+        \item \textit{Instrumental (Көмектес септік)}: \textit{-мен, -бен, -пен}
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Verbal Inflection and Derivation Paradigm}
+Verbal morphology in Kazakh exhibits intricate combinatorics encoding voice, aspect, polarity, tense, and subject agreement:
+\begin{equation}
+\label{eq:verbal_order}
+\text{Verb} = \text{Stem} \circ [\text{Deriv}] \circ [\text{Voice}] \circ [\text{Negation}] \circ [\text{Tense/Aspect}] \circ [\text{Agreement}]
+\end{equation}
+The FST models the following core verbal tiers:
+\begin{enumerate}
+    \item \textbf{Verbalizer Derivational Affixes (6 suffixes)}: Converting nominal stems into active verbs:
+    \begin{equation}
+    \text{DERIV}_{\text{verb}} \in \{\text{\textit{-лан}}, \text{\textit{-лен}}, \text{\textit{-дан}}, \text{\textit{-ден}}, \text{\textit{-тан}}, \text{\textit{-тен}}\}
+    \end{equation}
+    (e.g., \textit{пайда} ``use'' $\rightarrow$ \textit{пайдалан} ``to utilize'').
+    \item \textbf{Agentive Nominal Derivation (2 suffixes)}: Generating actor nouns via \textit{-шы/-ші} (e.g., \textit{жұмыс} ``work'' $\rightarrow$ \textit{жұмысшы} ``worker'').
+    \item \textbf{Verbal Negation Allomorphs (6 suffixes)}: The fundamental negation operator attaches directly to the verb stem:
+    \begin{equation}
+    \text{NEG} \in \{\text{\textit{-ба}}, \text{\textit{-бе}}, \text{\textit{-па}}, \text{\textit{-пе}}, \text{\textit{-ма}}, \text{\textit{-ме}}\}
+    \end{equation}
+    supplemented by negative past participles (\textit{-маған/-меген}) and present-future forms (\textit{-майды/-мейді}). Negation allomorphs possess exceptional semantic weight: altering two characters (e.g., \textit{келді} ``arrived'' vs. \textit{келмеді} ``did not arrive'') completely reverses the truth value of a proposition while preserving the majority of surface characters.
+    \item \textbf{Tense, Participle, and Verbal Noun Markers (22 suffixes)}:
+    \begin{itemize}
+        \item Past Participles: \textit{-ған, -ген, -қан, -кен}
+        \item Present-Future: \textit{-ады, -еді, -йды, -йді}
+        \item Habitual/Imperfective: \textit{-атын, -етін, -йтын, -йтін}
+        \item Prospective/Intentional: \textit{-мақ, -мек, -бақ, -бек, -пақ, -пек}
+        \item Direct Past: \textit{-ды, -ді, -ты, -ті}
+        \item Causal/Converb: \textit{-ғандықтан, -гендіктен, -қандықтан, -кендіктен}
+    \end{itemize}
+    \item \textbf{Personal Subject Agreement (16 suffixes)}: Predicative endings encoding 1st, 2nd, and 3rd person agreement across singular and plural:
+    \begin{equation}
+    \text{AGR} \in \{\text{\textit{-мын}}, \text{\textit{-мін}}, \text{\textit{-бын}}, \text{\textit{-бін}}, \text{\textit{-пын}}, \text{\textit{-пін}}, \text{\textit{-мыз}}, \text{\textit{-міз}}, \text{\textit{-быз}}, \text{\textit{-біз}}, \text{\textit{-пыз}}, \text{\textit{-піз}}, \text{\textit{-сың}}, \text{\textit{-сің}}, \text{\textit{-сыздар}}, \text{\textit{-сіздер}}\}
+    \end{equation}
+\end{enumerate}
+
+\subsubsection{Evidentiality and Epistemic Modality}
+A distinctive feature of Kipchak Turkic syntax is grammaticalized \textit{evidentiality}---morphological encoding of the information source:
+\begin{itemize}
+    \item \textbf{Direct Witnessed Past (\textit{-ды/-ді})}: Denotes events directly witnessed or authenticated by the speaker (e.g., \textit{Ол келді} ``He arrived [I saw it]'').
+    \item \textbf{Indirect Inferential / Hearsay Past (\textit{-ыпты/-іпті})}: Denotes inferred, reported, or non-witnessed occurrences (e.g., \textit{Ол келіпті} ``He arrived [reportedly / evidently]''), reinforced by the evidential copula \textit{екен}.
+\end{itemize}
+In automated fact verification, this distinction is crucial: attributing direct evidentiality to an unverified claim constitutes a factual hallucination, whereas indirect evidentials signal epistemic qualification.
+
+\subsection{Subword Tokenization Pathologies: The Token Inflation Problem}
+State-of-the-art neural language models rely on subword algorithms such as BPE~\citep{sennrich2016subword} or SentencePiece~\citep{kudo2018sentencepiece}. These algorithms build vocabularies by iteratively merging frequent character sequences. While highly effective for isolating languages like English, subword tokenizers induce severe pathologies in agglutinative languages.
+
+\paragraph{Mathematical Formalization of Token Inflation}
+Let $T(w; \mathcal{V})$ denote the sequence of subword tokens produced by tokenizer $\mathcal{V}$ for word $w$. The \textit{token inflation ratio} $\rho(D; \mathcal{V})$ over a document $D = (w_1, w_2, \dots, w_N)$ is defined as:
+\begin{equation}
+\label{eq:token_inflation}
+\rho(D; \mathcal{V}) = \frac{1}{N} \sum_{i=1}^N |T(w_i; \mathcal{V})|
+\end{equation}
+In an ideal morpheme-aligned tokenizer, $\rho(D)$ converges to the true linguistic morpheme rate $\mu^*(D) \approx 2.2$ morphemes per word in natural Kazakh discourse. 
+
+However, in multilingual models such as mBERT ($\mathcal{V}_{\text{mBERT}} = 119\text{k}$) and XLM-RoBERTa ($\mathcal{V}_{\text{XLM-R}} = 250\text{k}$), Kazakh tokens constitute less than 0.5\% of the pretraining corpus. As a consequence, complex agglutinative words undergo catastrophic fragmentation:
+\begin{itemize}
+    \item \textbf{Word}: \textit{жазбағандықтан} (``because [one] did not write'')
+    \item \textbf{Linguistic Morphemes}: \textit{жаз -ба -ған -дық -тан} (5 morphemes)
+    \item \textbf{mBERT Segmentation}: $[\text{\textsf{жа}}, \text{\textsf{\#\#з}}, \text{\textsf{\#\#ба}}, \text{\textsf{\#\#ған}}, \text{\textsf{\#\#ды}}, \text{\textsf{\#\#қ}}, \text{\textsf{\#\#тан}}]$ (7 tokens)
+    \item \textbf{XLM-RoBERTa Segmentation}: $[\text{\textsf{жа}}, \text{\textsf{з}}, \text{\textsf{ба}}, \text{\textsf{ған}}, \text{\textsf{ды}}, \text{\textsf{қтан}}]$ (6 tokens)
+\end{itemize}
+This subword fragmentation introduces two detrimental effects:
+\begin{enumerate}
+    \item \textbf{Semantic Boundary Erasure}: The lexical root \textit{жаз} is split into meaningless subwords (\texttt{жа}, \texttt{\#\#з}), destroying the lexical index necessary for semantic retrieval and cross-encoder matching.
+    \item \textbf{Gradient Dispersion and False Positive Accusations}: On short inputs (such as 10-word consumer reviews), token inflation expands the sequence length by 300--400\%. The model's self-attention mechanism attends over fragmented non-morphemic artifacts, interpreting rare subword combinations as unnatural machine anomalies and triggering false positive AI accusations.
+\end{enumerate}
+
+\paragraph{Convergence via FST Pre-Segmentation}
+Our Hybrid FST acts as a linguistic regularizer. By inserting explicit boundary markers prior to subword tokenization:
+\begin{equation}
+w \xrightarrow{\text{FST}} S \circ \text{` -'} \mu_1 \circ \text{` -'} \mu_2 \dots
+\end{equation}
+the subword tokenizer is constrained to tokenize roots and affixes independently. As established in our empirical evaluations, FST pre-segmentation reduces subword token inflation by 36.65\% ($p < 0.0001$), forcing tokenizers to converge from 3.48--4.12 tokens/word down to the natural Kazakh morphemic limit of 2.202 tokens/word.
+
+\subsection{Code-Switched and Loanword Morphology}
+A vital sociolinguistic reality of contemporary Kazakh digital text is pervasive bilingual code-switching with Russian. In commercial domains (banking, e-commerce, food delivery), users routinely attach native Kazakh inflectional suffixes to non-native Russian loan stems:
+\begin{itemize}
+    \item \textit{каспиден} $\rightarrow$ \textit{Каспи} (Russian/Brand stem) + \textit{-ден} (Kazakh ablative case)
+    \item \textit{доставкасы} $\rightarrow$ \textit{доставка} (Russian noun ``delivery'') + \textit{-сы} (Kazakh 3rd person possessive)
+    \item \textit{оплатасын} $\rightarrow$ \textit{оплата} (Russian noun ``payment'') + \textit{-сын} (Kazakh possessive accusative)
+    \item \textit{клиентке} $\rightarrow$ \textit{клиент} (Russian noun ``client'') + \textit{-ке} (Kazakh dative case)
+\end{itemize}
+Standard rule-based morphological analyzers reject these forms as out-of-vocabulary invalid words, while statistical tokenizers fragment them into irregular subwords. Our Hybrid FST maintains a dedicated lexicon of 45 high-frequency commercial loan stems ($\mathcal{L}_{\text{loan}}$), enabling the transducer to decouple foreign stems from attached Kazakh affixes before executing the native inflectional cascade. This hybrid handling eliminates OOV false alarms across mobile and social media text streams.

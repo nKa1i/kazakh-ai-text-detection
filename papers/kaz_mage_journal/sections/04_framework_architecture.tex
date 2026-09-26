@@ -1,0 +1,74 @@
+\section{Unified Framework Architecture}
+\label{sec:framework_architecture}
+
+To address the coupled challenges of subword token inflation, multi-domain generator shift, and ungrounded factual hallucinations, we introduce a unified, morphologically-grounded neural architecture. The framework integrates four coordinated modules: (1) Dual-Stream FST Gated Fusion for text classification, (2) Multi-Generator Supervised Contrastive Representation Learning, (3) Morpheme-Aware Hybrid Evidence Retrieval, and (4) the Continuous 2D Trust Matrix.
+
+\subsection{Dual-Stream FST Gated Fusion Network}
+Rather than discarding pretrained transformer parameters or relying solely on rule-based pre-segmentation, our architecture adopts a dual-stream representation strategy. 
+
+Let an input text $x = (w_1, \dots, w_n)$ be processed into two parallel streams: the raw surface sequence $x_{\text{raw}}$ and the FST-segmented sequence $x_{\text{fst}} = \mathrm{FST}(x)$. Both streams are projected into contextual representations via a shared or dual transformer backbone:
+\begin{align}
+\mathbf{H}_{\text{raw}} &= \mathrm{Encoder}_{\theta}(x_{\text{raw}}) \in \mathbb{R}^{L_1 \times d} \\
+\mathbf{H}_{\text{fst}} &= \mathrm{Encoder}_{\phi}(x_{\text{fst}}) \in \mathbb{R}^{L_2 \times d}
+\end{align}
+Pooled sentence representations $\mathbf{u} = \mathbf{h}_{\text{raw}, [\text{CLS}]}$ and $\mathbf{v} = \mathbf{h}_{\text{fst}, [\text{CLS}]}$ are combined through a learned gating mechanism:
+\begin{align}
+\mathbf{g} &= \sigma(\mathbf{W}_g [\mathbf{u}; \mathbf{v}] + \mathbf{b}_g) \\
+\mathbf{h}_{\text{fused}} &= \mathbf{g} \odot \mathbf{u} + (1 - \mathbf{g}) \odot \mathbf{v}
+\end{align}
+where $\sigma$ is the sigmoid function, $\odot$ denotes elementwise multiplication, and $\mathbf{W}_g \in \mathbb{R}^{d \times 2d}$ is a learnable gating projection. This enables the network to dynamically rely on subword contextual fluency for long formal passages while activating explicit morphological root-affix boundaries on short, highly inflected texts.
+
+\subsection{Multi-Generator Contrastive Learning Objective}
+To prevent supervised detectors from memorizing idiosyncratic generator tokens or surface formatting quirks, we introduce a multi-generator contrastive training objective. In a training minibatch of $2B$ samples consisting of human texts and synthetic generations from diverse LLMs (Sherkala-7B, LLaMA-2, GPT-4, and PaLM-2 variants), the total training objective balances standard cross-entropy classification and supervised contrastive loss:
+\begin{equation}
+\label{eq:total_contrastive_loss}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{CE}} + \lambda_{\text{con}} \mathcal{L}_{\text{SupCon}}
+\end{equation}
+where $\mathcal{L}_{\text{CE}}$ is the cross-entropy classification loss, and $\mathcal{L}_{\text{SupCon}}$~\citep{khosla2020supervised} pulls representations of texts sharing the same class label (human vs. machine) together while repelling dissimilar pairs regardless of the originating generator architecture:
+\begin{equation}
+\label{eq:supcon_formula}
+\mathcal{L}_{\text{SupCon}} = \sum_{i \in I} \frac{-1}{|P(i)|} \sum_{p \in P(i)} \log \frac{\exp(\mathbf{z}_i \cdot \mathbf{z}_p / \tau)}{\sum_{a \in A(i)} \exp(\mathbf{z}_i \cdot \mathbf{z}_a / \tau)}
+\end{equation}
+Here, $\mathbf{z}_i = \mathrm{Proj}(\mathbf{h}_{\text{fused}, i}) / \|\mathrm{Proj}(\mathbf{h}_{\text{fused}, i})\|_2$ represents the normalized projection head embedding, $P(i)$ is the index set of all positive samples sharing class label $y_i$, $A(i) = I \setminus \{i\}$, and $\tau = 0.07$ is the temperature hyperparameter. This objective enforces domain-invariant separation between human and synthetic distributions.
+
+\subsection{Hybrid Morpheme-Stemmed Evidence Retrieval}
+For evidence-grounded fact checking over an open corpus $\mathcal{E}$, candidate evidence passages are retrieved via a dual-stage hybrid index combining morpheme-stemmed BM25 with dense contrastive representations (\textsc{mContriever})~\citep{izacard2021contriever}. 
+
+Given claim $c$ and passage $e$, Kazakh morphological roots $c_{\text{morph}}$ and $e_{\text{morph}}$ are matched via sparse scoring:
+\begin{equation}
+S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morph}}} \mathrm{IDF}(t) \cdot \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
+\end{equation}
+In parallel, dense representations $\mathbf{h}_c, \mathbf{h}_e \in \mathbb{R}^d$ compute semantic similarity $\cos(\mathbf{h}_c, \mathbf{h}_e)$. Top candidates are synthesized via Reciprocal Rank Fusion (RRF)~\citep{karpukhin2020dpr}:
+\begin{equation}
+\label{eq:rrf_fusion}
+\mathrm{RRF}(c, e) = \sum_{m \in \{\text{BM25}, \text{Dense}\}} \frac{1}{k_0 + r_m(c, e)}
+\end{equation}
+yielding candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
+
+\subsection{Morphological NLI Cross-Encoder}
+Given claim $c$ and candidate evidence $E$, veracity stance is predicted by an NLI cross-encoder enhanced with an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$:
+\begin{equation}
+\label{eq:journal_nli}
+P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v [\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}] + \mathbf{b}_v\right)
+\end{equation}
+where $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$. As detailed in Section~\ref{sec:linguistic_foundation}, $\mathbf{m}_{\text{affix}}$ explicitly encodes verbal negation mismatch ($\Delta_{\text{neg}}$), calendar year divergence ($\Delta_{\text{year}}$), evidential past markers (\textit{-ыпты/-іпті}), and FST root Jaccard similarity ($J_{\text{root}}$), immunizing the classifier against lexical overlap shortcuts.
+
+\subsection{Continuous 2D Trust Matrix Formulation}
+We map model outputs into a continuous two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$ parameterized by:
+\begin{align}
+T_{\text{fact}} &= P(y = \textsc{Supported} \mid c, E) - P(y = \textsc{Refuted} \mid c, E) \in [-1, 1] \\
+T_{\text{gen}} &= 1 - P(\text{AI-Generated} \mid c) \in [0, 1]
+\end{align}
+The Cartesian plane is partitioned into four operational risk quadrants:
+\begin{itemize}
+    \item \textbf{Verified Authentic (Quadrant I, $T_{\text{fact}} > 0, T_{\text{gen}} > 0.5$)}: High factual grounding, human authorship.
+    \item \textbf{Verified AI-Assisted (Quadrant II, $T_{\text{fact}} > 0, T_{\text{gen}} \le 0.5$)}: High factual grounding, synthetic generation.
+    \item \textbf{Unverified Human (Quadrant III, $T_{\text{fact}} \le 0, T_{\text{gen}} > 0.5$)}: Refuted/unsupported claim, human origin.
+    \item \textbf{Adversarial Hallucination (Quadrant IV, $T_{\text{fact}} \le 0, T_{\text{gen}} \le 0.5$)}: Refuted/unsupported claim, synthetic origin.
+\end{itemize}
+The unified scalar Trust Metric $\mathcal{T}(x) \in [0, 1]$ computes the normalized Euclidean distance from the worst-case origin:
+\begin{equation}
+\label{eq:scalar_trust_metric}
+\mathcal{T}(x) = \sqrt{\frac{1}{2}\left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+\end{equation}
+enabling rigorous, continuous epistemic triage.

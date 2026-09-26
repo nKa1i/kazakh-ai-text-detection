@@ -1,0 +1,35 @@
+\section{Interactive System and Morphological Explainability}
+\label{sec:system_and_explainability}
+
+To bridge theoretical machine learning contributions with real-world auditing workflows, we implemented and deployed an end-to-end interactive demonstration system for morphologically-grounded AI text detection and fact verification.
+
+\subsection{Production Web Deployment on Hugging Face Spaces}
+The system is implemented using Gradio and Python 3.12 and is publicly accessible on the Hugging Face Hub at \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}. The production runtime executes within an isolated container environment, delivering low-latency inference across both generative detection and fact-checking pipelines.
+
+\subsection{Real-Time 2D Trust Matrix Cartesian Plane}
+Rather than presenting opaque probability scores, the user interface visualizes predictions on an interactive two-dimensional Cartesian plane rendered via Scalable Vector Graphics (SVG):
+\begin{itemize}
+    \item The horizontal axis maps the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$, where values near $+1.0$ indicate verified factual support and values near $-1.0$ denote active refutation.
+    \item The vertical axis plots the \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$, where $1.0$ denotes authentic human authorship and $0.0$ signifies synthetic machine generation.
+\end{itemize}
+The Cartesian plane is divided into four color-coded risk quadrants:
+\begin{enumerate}
+    \item \textbf{Verified Authentic (Upper Right)}: Green quadrant indicating high factual fidelity and authentic human provenance.
+    \item \textbf{Verified AI-Assisted (Upper Left)}: Cyan quadrant reflecting synthetic text that has been rigorously grounded in factual evidence.
+    \item \textbf{Unverified Human (Lower Right)}: Amber quadrant capturing human-written text that lacks factual corroboration or contains unverified speculation.
+    \item \textbf{Adversarial Hallucination (Lower Left)}: Crimson quadrant identifying machine-generated text containing fabricated or refuted claims.
+\end{enumerate}
+A dynamic crosshair marker plots the exact coordinate $(T_{\text{fact}}, T_{\text{gen}})$, accompanied by the scalar trust score $\mathcal{T}(x) \in [0, 1]$ computed via Equation~\eqref{eq:scalar_trust_metric}.
+
+\subsection{Dual-Model Comparative Diagnostic Mode}
+To demonstrate the concrete impact of morphological grounding, the interface includes a side-by-side comparative mode contrasting our full morphologically-grounded system (\textsc{Ours}) against an ungrounded baseline transformer (\textsc{Baseline}). The comparison clearly highlights cases where the baseline succumbs to subword token inflation on short reviews or falls into the \textsc{Hard NEI} lexical overlap shortcut trap, while our system correctly resolves the underlying semantic morphemes.
+
+\subsection{16-Feature Morphological Diagnostic Drawer}
+For end-user explainability and linguistic auditing, the interface provides an expandable diagnostic drawer exposing the internal activations of the 16-dimensional morphological vector:
+\begin{itemize}
+    \item \textbf{Stem and Root Highlighting}: Color-coded spans in the query claim and evidence passage illuminate matched morphological roots identified by the 83-rule FST analyzer, contrasting root Jaccard overlap against raw surface token overlap.
+    \item \textbf{Verbal Negation Drawer}: Displays extracted verbal polarity affixes (\textit{-ба/-бе/-па/-пе/-ма/-ме}), flagging directional negation conflicts ($\Delta_{\text{neg}}$) with explicit warning badges.
+    \item \textbf{Temporal and Calendar Resolver}: Lists all extracted 4-digit calendar years and highlights chronological discrepancies.
+    \item \textbf{Evidential and Epistemic Inspection}: Flags witnessed past suffixes (\textit{-ды/-ді}) versus non-witnessed inferential suffixes (\textit{-ыпты/-іпті}) and highlights modal certainty operators.
+\end{itemize}
+This transparent, multi-level explainability provides domain experts, journalists, and educators with actionable epistemic justification for every classification decision.
