@@ -61,3 +61,11 @@ ppt_images/
 
 kaggle_runner/logs/
 
+# LaTeX build artifacts in papers/
+papers/**/*.aux
+papers/**/*.bbl
+papers/**/*.blg
+papers/**/*.log
+papers/**/*.out
+papers/**/*.pdf
+
