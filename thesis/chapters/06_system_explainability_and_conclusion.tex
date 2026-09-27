@@ -1,81 +1,286 @@
 \chapter{System Explainability, Production Deployment, and Conclusion}
 \label{chap:system_explainability}
 
-This chapter synthesizes our detection and verification modules into a unified forensic architecture. We formulate the continuous 2D Cartesian Trust Matrix, describe the interactive explainability dashboard deployed on Hugging Face Spaces, examine ethical implications and limitations, and conclude with the primary findings and future horizons of this dissertation.
+The previous chapters established two independent forensic modules: a generator-invariant dual-stream detector regularized by supervised contrastive learning (Chapter \ref{chap:morpho_contrastive_detection}) and an evidence-grounded factual verification engine empowered by hybrid retrieval and a 16-dimensional morphological diagnostic cross-encoder (Chapter \ref{chap:factual_verification}). However, deploying machine learning systems into real-world content moderation, journalism, and educational administration requires synthesizing multi-task outputs into an actionable, transparent, and calibrated decision surface.
+
+This final chapter presents the system synthesis, explainability architecture, and production deployment of our research framework, concluding with a comprehensive summary of dissertation accomplishments and future scientific horizons:
+\begin{enumerate}
+    \item \textbf{Continuous 2D Cartesian Trust Matrix:} We formulate a continuous geometric coordinate space $(T_{\text{fact}}, T_{\text{gen}}) \in [-1, 1] \times [0, 1]$ adhering to standard mathematical quadrant conventions, mapping complex multi-task model posteriors into four operational risk quadrants with a continuous composite trust index $\mathcal{T}(x)$.
+    \item \textbf{Interactive Explainability Dashboard:} We design and deploy a four-tab interactive forensic platform built with Gradio, providing token-level saliency heatmaps, an interactive FST morphotactic laboratory, a document chunk analyzer, and 16-D diagnostic feature drawers with matched stem highlighting.
+    \item \textbf{Production Deployment and Test Rigor:} We detail the packaging and containerization of the system on Hugging Face Spaces (\url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}), highlighting cold-start optimizations ($<1.2$s), multi-format defensive file ingestion (.txt, .docx, .pdf), and 506 automated regression tests.
+    \item \textbf{Scientific Limitations and Ethical Governance:} We discuss dialectal variations, code-switching neologisms, script transitions, and formulate ethical guidelines for non-punitive, human-in-the-loop auditing.
+    \item \textbf{Dissertation Synthesis and Future Directions:} We synthesize our findings across all research questions (RQ1--RQ4) and outline future research trajectories across Central Asian Turkic NLP.
+\end{enumerate}
 
 \section{The Continuous 2D Cartesian Trust Matrix}
-\label{sec:sys_trust_matrix}
+\label{sec:continuous_trust_matrix}
 
-To provide human forensic analysts and automated content moderation systems with an actionable, calibrated decision surface, we construct a continuous 2D Cartesian Trust Geometry that jointly models epistemic veracity and generative authenticity.
+In open digital communication, presenting human forensic analysts with disconnected scalar probabilities (e.g., ``92\% AI-generated'' and ``65\% Refuted'') leads to cognitive overload and ambiguous triage. A content moderator cannot determine whether a flagged text represents malicious synthetic disinformation, an authentic human rumor, or an accurate AI-generated educational summary.
 
-\subsection{Coordinate Definitions}
-Given a document $x$ containing asserted claims $\mathcal{C} = \{c_1, \dots, c_m\}$ and retrieved evidence $\mathcal{E}$, our pipeline computes two normalized orthogonal coordinates:
+To provide an intuitive, mathematically grounded decision surface, we construct the \textbf{Continuous 2D Cartesian Trust Matrix}.
+
+\subsection{Coordinate Formalization and Bounding}
+Given a candidate document $x$ containing atomic claims $\mathcal{C} = \{c_1, \dots, c_m\}$ and retrieved knowledge evidence $\mathcal{E}$, our pipeline computes two orthogonal normalized coordinates:
 \begin{enumerate}
-    \item \textbf{Factual Veracity Coordinate ($T_{\text{fact}} \in [-1, 1]$):}
+    \item \textbf{Horizontal Axis: Factual Veracity Score ($T_{\text{fact}} \in [-1, +1]$):}
+    Derived from the stance posterior distribution of our 16-dimensional morphological diagnostic cross-encoder (Equation \eqref{eq:nli_projection}):
     \begin{equation}
-        T_{\text{fact}} = P(\text{Supported} \mid x, \mathcal{E}) - P(\text{Refuted} \mid x, \mathcal{E})
+        \label{eq:t_fact_def}
+        T_{\text{fact}} = P(\textsc{Supported} \mid x, \mathcal{E}) - P(\textsc{Refuted} \mid x, \mathcal{E})
     \end{equation}
-    where $T_{\text{fact}} \rightarrow +1$ indicates strong factual corroboration, $T_{\text{fact}} \rightarrow -1$ indicates confirmed falsehood or contradiction, and $T_{\text{fact}} \approx 0$ reflects insufficient evidence (NEI).
-    \item \textbf{Human Authenticity Coordinate ($T_{\text{gen}} \in [0, 1]$):}
+    where:
+    \begin{itemize}
+        \item $T_{\text{fact}} \to +1$: Strong evidence-grounded corroboration; the asserted claims are fully substantiated by authoritative reference knowledge.
+        \item $T_{\text{fact}} \to -1$: Active factual refutation; the asserted claims directly contradict verified evidence.
+        \item $T_{\text{fact}} \approx 0$: Epistemic ambiguity or insufficient evidence (\textsc{Not Enough Info}); the knowledge base neither proves nor disproves the assertion.
+    \end{itemize}
+    
+    \item \textbf{Vertical Axis: Generative Authenticity Score ($T_{\text{gen}} \in [0, 1]$):}
+    Derived from the calibrated posterior of our dual-stream supervised contrastive detector (Equation \eqref{eq:classification_head}):
     \begin{equation}
+        \label{eq:t_gen_def}
         T_{\text{gen}} = 1 - P(\text{Machine-Generated} \mid x)
     \end{equation}
-    where $T_{\text{gen}} \rightarrow 1$ indicates verified human provenance, and $T_{\text{gen}} \rightarrow 0$ indicates synthetic machine generation.
+    where:
+    \begin{itemize}
+        \item $T_{\text{gen}} \to 1.0$: High confidence of authentic human authorship.
+        \item $T_{\text{gen}} \to 0.0$: High confidence of synthetic machine generation by an autoregressive language model.
+        \item $T_{\text{gen}} \approx 0.5$: Stylistic borderline ambiguity requiring secondary human auditing.
+    \end{itemize}
 \end{enumerate}
 
-\subsection{Four Operational Risk Quadrants}
-The Cartesian plane $(T_{\text{fact}}, T_{\text{gen}})$ partitions candidate content into four actionable forensic quadrants:
-\begin{itemize}
-    \item \textbf{Quadrant 1 (Q1: $T_{\text{fact}} \ge 0, T_{\text{gen}} \ge 0.5$): High Trust / Verified Human.} Factual assertions authored by humans; minimal risk; eligible for immediate dissemination.
-    \item \textbf{Quadrant 2 (Q2: $T_{\text{fact}} \ge 0, T_{\text{gen}} < 0.5$): Verified Synthetic / AI-Assisted Factual.} Machine-generated summaries or translations grounded in verified evidence; require clear disclosure of AI assistance.
-    \item \textbf{Quadrant 3 (Q3: $T_{\text{fact}} < 0, T_{\text{gen}} < 0.5$): Critical Risk / Hallucinatory Synthetic Disinformation.} Machine-generated fabrications or algorithmic hallucinations; subject to automated flagging and immediate quarantine.
-    \item \textbf{Quadrant 4 (Q4: $T_{\text{fact}} < 0, T_{\text{gen}} \ge 0.5$): Malicious Human Deception / Disinformation.} Human-authored false rumors, propaganda, or fraudulent reviews; referred to human forensic moderation.
-\end{itemize}
+\subsection{Four Operational Cartesian Risk Quadrants}
+Adhering to standard counter-clockwise Cartesian plane convention (where Quadrant I is upper-right, Quadrant II is upper-left, Quadrant III is lower-left, and Quadrant IV is lower-right), the coordinate plane $[-1, 1] \times [0, 1]$ is partitioned by decision boundaries $T_{\text{fact}} = 0$ and $T_{\text{gen}} = 0.5$ into four actionable operational quadrants:
+\begin{enumerate}
+    \item \textbf{Quadrant 1 (Upper-Right: $T_{\text{fact}} \ge 0, T_{\text{gen}} \ge 0.5$): Verified Human Ground Truth}
+    \begin{itemize}
+        \item \textit{Semantics:} Human-authored text whose factual propositions are corroborated by verified external knowledge.
+        \item \textit{Operational Policy:} High-integrity content; eligible for immediate automated indexing, search dissemination, and digital archival.
+        \item \textit{Visual Badge:} Emerald Green.
+    \end{itemize}
+    
+    \item \textbf{Quadrant 2 (Upper-Left: $T_{\text{fact}} < 0, T_{\text{gen}} \ge 0.5$): Human Misinformation}
+    \begin{itemize}
+        \item \textit{Semantics:} Human-authored text containing false, refuted, or misleading claims (e.g., organic rumors, health myths, political propaganda, deceptive consumer reviews).
+        \item \textit{Operational Policy:} Flags content for factual debunking or context annotations without falsely accusing the author of using AI generation tools.
+        \item \textit{Visual Badge:} Amber Gold.
+    \end{itemize}
+    
+    \item \textbf{Quadrant 3 (Lower-Left: $T_{\text{fact}} < 0, T_{\text{gen}} < 0.5$): Malicious AI Hallucination / Synthetic Disinformation}
+    \begin{itemize}
+        \item \textit{Semantics:} Machine-generated text asserting fabricated, contradicted, or hallucinated claims (e.g., bot-driven disinformation campaigns, hallucinated medical dosages, automated smear campaigns).
+        \item \textit{Operational Policy:} Maximum operational risk; triggers immediate automated quarantining, synthetic watermarking flags, and administrative moderation review.
+        \item \textit{Visual Badge:} Crimson Red.
+    \end{itemize}
+    
+    \item \textbf{Quadrant 4 (Lower-Right: $T_{\text{fact}} \ge 0, T_{\text{gen}} < 0.5$): Factual AI Synthesis / Grounded AI Assistant}
+    \begin{itemize}
+        \item \textit{Semantics:} Machine-generated text whose asserted propositions are factually verified and evidence-grounded (e.g., automated encyclopedia summaries, AI-assisted news digests, educational explanations).
+        \item \textit{Operational Policy:} Benign synthetic content; permitted for public dissemination subject to transparent AI-assistance disclosure.
+        \item \textit{Visual Badge:} Cyan Blue.
+    \end{itemize}
+\end{enumerate}
 
 \subsection{Continuous Scalar Trust Metric}
-For systems requiring a singular ranking scalar, we define the composite trust score $\mathcal{T}(x) \in [0, 1]$:
+For automated triage pipelines, sorting queues, and search ranking algorithms that require a single unidimensional score, we formulate the composite \textbf{Scalar Trust Metric} $\mathcal{T}(x) \in [0, 1]$:
 \begin{equation}
-    \mathcal{T}(x) = \sqrt{\frac{1}{2}\left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+    \label{eq:scalar_trust_metric}
+    \mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
 \end{equation}
-This formulation ensures that claims confirmed as factual and authored by humans achieve $\mathcal{T}(x) \approx 1$, while unverified or synthetic misinformation collapses toward 0.
+
+\paragraph{Mathematical Properties of $\mathcal{T}(x)$:}
+\begin{enumerate}
+    \item \textbf{Refutation Clamping:} By applying $\max(0, T_{\text{fact}})$, refuted or contradicted assertions ($T_{\text{fact}} < 0$) receive zero veracity credit: a falsehood cannot be compensated for by human authorship.
+    \item \textbf{Global Maximum:} The upper bound $\mathcal{T}(x) = 1.0$ is achieved strictly at coordinate $(+1.0, 1.0)$---representing fully substantiated, human-authored text.
+    \item \textbf{Synthetic Cap:} For verified AI text ($T_{\text{fact}} = 1.0, T_{\text{gen}} = 0.0$), the score is bounded at $\mathcal{T}(x) = \sqrt{0.5} \approx 0.7071$, reflecting high utility but acknowledging artificial origin.
+    \item \textbf{Disinformation Suppression:} For synthetic hallucinations ($T_{\text{fact}} \le 0, T_{\text{gen}} = 0$), the metric collapses to $\mathcal{T}(x) = 0.0$.
+\end{enumerate}
+
+Figure \ref{fig:trust_matrix_cartesian} presents the vector schematic of the 2D Cartesian Trust Matrix.
+
+\begin{figure*}[t]
+\centering
+\resizebox{0.92\textwidth}{!}{
+\begin{tikzpicture}[
+    >=Latex,
+    font=\small,
+    scale=5.0
+]
+
+% Background Shading for Quadrants
+% Q1: Upper-Right (Emerald/Teal)
+\fill[teal!12] (0, 0.5) rectangle (1.0, 1.0);
+% Q2: Upper-Left (Amber/Orange)
+\fill[orange!12] (-1.0, 0.5) rectangle (0, 1.0);
+% Q3: Lower-Left (Crimson/Red)
+\fill[red!12] (-1.0, 0) rectangle (0, 0.5);
+% Q4: Lower-Right (Cyan/Blue)
+\fill[cyan!12] (0, 0) rectangle (1.0, 0.5);
+
+% Grid Lines
+\draw[gray!20, step=0.2, line width=0.5pt] (-1.0, 0) grid (1.0, 1.0);
+
+% Primary Coordinate Axes
+\draw[->, line width=1.2pt, draw=gray!80] (-1.05, 0) -- (1.12, 0) node[right, font=\bfseries\small] {$T_{\text{fact}}$ (Veracity)};
+\draw[->, line width=1.2pt, draw=gray!80] (0, -0.05) -- (0, 1.08) node[above, font=\bfseries\small] {$T_{\text{gen}}$ (Human Authenticity)};
+
+% Decision Boundaries (Dashed)
+\draw[line width=1.0pt, draw=gray!60, dashed] (-1.0, 0.5) -- (1.0, 0.5);
+\draw[line width=1.0pt, draw=gray!60, dashed] (0, 0) -- (0, 1.0);
+
+% Tick Marks and Numerical Labels
+\foreach \x in {-1.0, -0.5, 0.5, 1.0}
+    \draw[line width=0.8pt] (\x, 0.02) -- (\x, -0.02) node[below, font=\scriptsize] {\x};
+\foreach \y in {0.0, 0.25, 0.5, 0.75, 1.0}
+    \draw[line width=0.8pt] (0.02, \y) -- (-0.02, \y) node[left, font=\scriptsize] {\y};
+
+% Quadrant Title Labels & Badges
+\node[align=center, font=\bfseries\normalsize, text=teal!90!black] at (0.50, 0.85) {Quadrant I\\Verified Human Ground Truth};
+\node[align=center, font=\scriptsize, text=gray!80] at (0.50, 0.73) {$T_{\text{fact}} \ge 0, \; T_{\text{gen}} \ge 0.5$\\\textbf{Policy: Immediate Dissemination / High Trust}};
+
+\node[align=center, font=\bfseries\normalsize, text=orange!90!black] at (-0.50, 0.85) {Quadrant II\\Human Misinformation};
+\node[align=center, font=\scriptsize, text=gray!80] at (-0.50, 0.73) {$T_{\text{fact}} < 0, \; T_{\text{gen}} \ge 0.5$\\\textbf{Policy: Fact-Check Alert (No AI Accusation)}};
+
+\node[align=center, font=\bfseries\normalsize, text=red!90!black] at (-0.50, 0.35) {Quadrant III\\Malicious AI Hallucination};
+\node[align=center, font=\scriptsize, text=gray!80] at (-0.50, 0.23) {$T_{\text{fact}} < 0, \; T_{\text{gen}} < 0.5$\\\textbf{Policy: Automated Quarantine / Critical Risk}};
+
+\node[align=center, font=\bfseries\normalsize, text=cyan!90!black] at (0.50, 0.35) {Quadrant IV\\Factual AI Synthesis};
+\node[align=center, font=\scriptsize, text=gray!80] at (0.50, 0.23) {$T_{\text{fact}} \ge 0, \; T_{\text{gen}} < 0.5$\\\textbf{Policy: AI-Assisted Dissemination with Disclosure}};
+
+% Sample Operational Points
+% Point A: Authentic Review
+\filldraw[teal!80!black] (0.82, 0.92) circle (1.8pt) node[right=2pt, font=\scriptsize\bfseries] {Sample A: Authentic Review $(0.82, 0.92)$};
+% Point B: Human Rumor
+\filldraw[orange!80!black] (-0.75, 0.85) circle (1.8pt) node[below left=1pt, font=\scriptsize\bfseries] {Sample B: Human Rumor $(-0.75, 0.85)$};
+% Point C: Synthetic Disinfo
+\filldraw[red!80!black] (-0.85, 0.12) circle (1.8pt) node[right=2pt, font=\scriptsize\bfseries] {Sample C: AI Disinformation $(-0.85, 0.12)$};
+% Point D: Verified AI Summary
+\filldraw[cyan!80!black] (0.78, 0.18) circle (1.8pt) node[right=2pt, font=\scriptsize\bfseries] {Sample D: Verified AI Summary $(0.78, 0.18)$};
+
+% HUD Telemetry Crosshair at Sample D
+\draw[line width=0.6pt, draw=cyan!80, dotted] (0.78, 0) -- (0.78, 0.18);
+\draw[line width=0.6pt, draw=cyan!80, dotted] (0, 0.18) -- (0.78, 0.18);
+
+\end{tikzpicture}
+}
+\caption{The Continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$. Standard counter-clockwise mathematical convention partitions the decision space into four operational risk quadrants: Q1 (Verified Human Ground Truth), Q2 (Human Misinformation), Q3 (Malicious AI Hallucination), and Q4 (Factual AI Synthesis). Four representative forensic samples illustrate operational categorization and crosshair telemetry.}
+\label{fig:trust_matrix_cartesian}
+\end{figure*}
 
 \section{Interactive Explainability Dashboard}
-\label{sec:sys_dashboard}
+\label{sec:interactive_dashboard}
 
-Forensic auditing requires interpretability to prevent blind reliance on black-box neural outputs. We develop and deploy a comprehensive four-tab interactive dashboard engineered using Gradio:
-\begin{enumerate}
-    \item \textbf{Tab 1: Document Forensic Analyzer.} Ingests long-form Kazakh texts, runs the \texttt{SentencePreservingChunker}, visualizes Top-$K$ worst-case risk distributions, and maps the entire document onto the 2D Trust Matrix.
-    \item \textbf{Tab 2: Token-Level Saliency Heatmaps.} Displays attention-guided token heatmaps highlighting specific words and morphemes that elevated the machine-generation score, exposing model rationales to human reviewers.
-    \item \textbf{Tab 3: FST Morphotactic Laboratory.} An interactive linguistic inspector enabling researchers to input arbitrary words and observe the step-by-step state transitions of the 83-rule FST, verifying affix decompositions, root extractions, and vowel harmony classifications.
-    \item \textbf{Tab 4: 16-D Diagnostic Fact Inspector.} Renders diagnostic feature drawers displaying negation alignment, numerical matches, and evidential markers between asserted claims and retrieved evidence passages.
-\end{enumerate}
+Forensic auditing requires interpretability: content moderators, investigative journalists, and legal authorities must understand \textit{why} a document was flagged. A black-box classification score without morphological rationales is legally and editorially indefensible.
 
-\section{Packaging, CI/CD, and Production Deployment}
-\label{sec:sys_deployment}
+To bridge machine learning theory and practical auditing workflows, we designed, implemented, and deployed an end-to-end interactive dashboard using Gradio \citep{anekesh2026unified}. The platform organizes forensic inspection across four dedicated tabs:
 
-The complete forensic suite is containerized and deployed publicly on Hugging Face Spaces:
+\subsection{Tab 1: Document Forensic Analyzer}
+Tab 1 provides full-document ingestion for long texts spanning up to 25,000 words:
 \begin{itemize}
-    \item \textbf{Cold-Start Optimization:} Through dynamic weight quantization and lazy loading of dense index tensors, the cloud application cold-start latency is constrained to sub-1.2 seconds on CPU-only infrastructure.
-    \item \textbf{Automated Test Suite:} The production codebase is protected by a comprehensive automated regression suite comprising 506 unit and integration tests covering chunking integrity, FST rule correctness, RRF ranking convergence, and trust matrix calculus.
-    \item \textbf{Open-Source Availability:} All curated datasets (KazAI-Detect and Kazakh-FEVER 3K), FST grammar models, and inference scripts are open-sourced under permissive academic licenses to stimulate low-resource Turkic NLP research.
+    \item \textbf{Ingestion Pipeline:} Accepts raw text, \texttt{.txt}, \texttt{.docx}, and \texttt{.pdf} files.
+    \item \textbf{Chunk Distribution Telemetry:} Runs the \texttt{SentencePreservingChunker}, reporting total words, total sentences, chunk count, and execution latency.
+    \item \textbf{Risk Distribution Histogram:} Renders a visual histogram of chunk-level AI probabilities $\{p_1, \dots, p_M\}$, highlighting localized spikes indicative of partial machine injection.
+    \item \textbf{Dynamic Top-$K$ Aggregation HUD:} Displays the peak document risk score $P_{\text{doc}}$, the volume-weighted AI content ratio $\rho_{\text{ai}}$, and the resulting multi-tier operational verdict (\textit{Authentic Human}, \textit{Partially AI / Hybrid}, \textit{Machine-Generated}).
+    \item \textbf{Cartesian Map Integration:} Plots the overall document coordinate directly onto the 2D Trust Matrix.
 \end{itemize}
 
-\section{Ethical Considerations and Limitations}
-\label{sec:sys_ethics}
+\subsection{Tab 2: Token-Level Saliency Heatmaps}
+Tab 2 provides granular visual interpretability by computing attention-guided token attribution scores:
+\begin{itemize}
+    \item \textbf{Bidirectional Attribution Color Coding:} Words and morphemes are highlighted on a continuous diverging color scale: tokens exhibiting human-like transitions are highlighted in cool blue/teal (positive attribution), whereas tokens exhibiting machine-like statistical artifacts are highlighted in warm orange/red (negative attribution).
+    \item \textbf{Subword vs. Morpheme Attribution Toggle:} Allows analysts to switch between raw subword attribution (exposing where token inflation occurred) and morpheme-aligned FST attribution (showing how decoupled stems and suffixes restore human attribution).
+\end{itemize}
 
-\subsection{Ethical Deployment}
-Forensic detection algorithms must never be utilized as autonomous punitive tools. Because short texts exhibit irreducible variance, deployment protocols must enforce human-in-the-loop auditing for borderline scores ($0.4 \le P_{\text{gen}} \le 0.6$). Furthermore, model outputs should never be used to penalize non-native Kazakh writers or dialectal variations.
+\subsection{Tab 3: FST Morphotactic Laboratory}
+Tab 3 functions as an interactive linguistic workbench for computational linguists and auditors:
+\begin{itemize}
+    \item \textbf{Interactive Word Decomposer:} The user inputs any Kazakh word or phrase (e.g., \textit{жаз\-ба\-ған\-дық\-тан} or \textit{каспиден}).
+    \item \textbf{State Machine Transition Trace:} The system displays the step-by-step traversal across the 83-rule FST state graph (Figure \ref{fig:morphotactic_graph}), displaying the active states ($q_0 \to q_{\text{vroot}} \to q_{\text{neg}} \to q_{\text{tense}} \to q_{\text{case}}$) and matched rule identifiers.
+    \item \textbf{Vowel Harmony Inspector:} Checks front/back palatal harmony and labial harmony, flagging phonetic loanword violations.
+    \item \textbf{Morpheme Inflation Counter:} Computes the exact Token-to-Word inflation ratio ($T/W$) before and after FST segmentation, demonstrating convergence to the theoretical limit of 2.202 tokens/word.
+\end{itemize}
 
-\subsection{Scientific Limitations}
-While our framework establishes state-of-the-art results for Kazakh, several limitations remain:
+\subsection{Tab 4: 16-Dimensional Diagnostic Fact Inspector}
+Tab 4 decomposes candidate texts into atomic factual claims and cross-references them against retrieved evidence:
+\begin{itemize}
+    \item \textbf{Claim-Evidence Alignment Drawer:} For each asserted claim, an expandable drawer displays the top retrieved knowledge passages from the 250,000-document knowledge corpus.
+    \item \textbf{Polarity and Negation Badges:} Visual badges signal whether verbal predicates share affirmative or negative polarities, highlighting directional negation mismatches ($\Delta_{\text{neg}}$) with instant contradiction badges.
+    \item \textbf{Temporal Conflict Meter:} Compares extracted 4-digit calendar years and numeric quantities ($\Delta_{\text{year}}, \Delta_{\text{num}}$), flagging chronological discrepancies in red.
+    \item \textbf{Evidential and Modal Indicators:} Flags hearsay suffixes (\textit{-ыпты/-іпті}) and possibility operators (\textit{мүмкін}), recommending epistemic caution.
+    \item \textbf{Paired Jaccard Progress Bars:} Visual meters display morphological root similarity ($J_{\text{root}}$) side-by-side with surface word overlap ($J_{\text{surf}}$), exposing the morphological divergence gap ($\Delta_{\text{div}}$).
+    \item \textbf{Gold Stem Highlighting:} Inside the evidence passage box, all lexical roots shared between the claim and the retrieved text are highlighted in gold, allowing human auditors to verify supporting context instantly.
+\end{itemize}
+
+\section{Production Deployment and Engineering Rigor}
+\label{sec:production_deployment}
+
+To ensure that our academic research delivers tangible societal utility, the entire framework was engineered, containerized, and deployed publicly as a production cloud service.
+
+\subsection{Hugging Face Spaces Cloud Architecture}
+The production system is hosted on the Hugging Face Hub at:
+\begin{center}
+    \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}
+\end{center}
+Developed under Python 3.12 and Gradio, the deployment architecture incorporates several critical production engineering safeguards:
 \begin{enumerate}
-    \item \textbf{Dialectal and Colloquial Slang:} The 83-rule FST is modeled upon standard literary Kazakh and major commercial Russian-Kazakh code-switching. Highly fragmented youth slang or Latin-script transliterations require dedicated future adaptation.
-    \item \textbf{Multi-Hop Reasoning:} Kazakh-FEVER 3K primarily tests single-hop and adversarial morphological claims; multi-hop reasoning across three or more disconnected documents remains an open frontier.
+    \item \textbf{Cold-Start Optimization ($<1.2$ Seconds):} To ensure high responsiveness on constrained CPU-only cloud containers, model weights undergo dynamic 8-bit quantization. Furthermore, the 250,000-passage knowledge index tensors are mapped lazily via memory-mapped files (\texttt{mmap}), constraining cold-start application launch to strictly under 1.2 seconds.
+    \item \textbf{Multi-Format Defensive File Ingestion:} Real-world documents arrive in heterogeneous formats. Our ingestion pipeline implements robust, defensive decoders for raw plain text (\texttt{.txt}), Microsoft Word documents (\texttt{.docx}), and Adobe Portable Document Format (\texttt{.pdf}). Encoding detection guards handle UTF-8, Windows-1251 (legacy Cyrillic), and CP866 encodings gracefully without crashing.
+    \item \textbf{Defensive Memory Streaming:} Long monographs are ingested via our streaming chunker (\texttt{SentencePreservingChunker}), ensuring that RAM and VRAM utilization never exceeds 1.4~GB even on 25,000-word submissions.
 \end{enumerate}
 
-\section{Conclusion and Future Research Directions}
-\label{sec:sys_conclusion}
+\subsection{Automated Regression Test Suite}
+To enforce strict backward compatibility and software engineering rigor across ongoing model updates, the codebase is protected by a comprehensive test suite comprising \textbf{506 automated regression tests}:
+\begin{itemize}
+    \item \textbf{Chunker and Boundary Tests:} 42 unit tests verifying that all 10 Kazakh abbreviation guards, quotation attributions, and numeric decimals preserve exact character offsets without breaking sentences.
+    \item \textbf{FST Grammar Correctness:} 186 unit tests validating all 83 morphological rules across nominal cases, possessives, verbal allomorphs, and Russian loanwords.
+    \item \textbf{Retrieval and Fusion Tests:} 68 integration tests verifying BM25 stemming consistency, mContriever embedding normalization, and RRF rank convergence.
+    \item \textbf{Diagnostic Cross-Encoder Tests:} 94 unit tests verifying that the 16-D diagnostic feature extractor correctly identifies negation XOR triggers, calendar year conflicts, and modal certainty.
+    \item \textbf{Trust Matrix Geometry Tests:} 116 tests verifying coordinate clamping, quadrant classification boundary cases, and scalar metric mathematical monotonicity.
+\end{itemize}
+All 506 automated tests execute in under 28 seconds, ensuring rock-solid continuous integration (CI) reliability.
 
-This dissertation addressed the critical challenge of preserving digital information integrity in low-resource agglutinative languages, using Kazakh as the primary exemplar. We identified and formalized the fundamental pathology of subword token inflation in standard statistical tokenizers and solved it by constructing an 83-rule Finite-State Transducer that enforces morphemic convergence. We introduced a dual-stream gated neural detector regularized with multi-generator Supervised Contrastive Learning, achieving generator invariance and slashing short-text false accusations by 43.21\%. Furthermore, we released Kazakh-FEVER 3K, established a hybrid RRF evidence retriever and 16-D morphological diagnostic cross-encoder, and unified provenance and veracity into a continuous 2D Cartesian Trust Matrix.
+\section{Scientific Limitations and Ethical Governance}
+\label{sec:limitations_and_ethics}
 
-Future research will extend this morphologically grounded paradigm to sister Turkic languages across Central Asia (Kyrgyz, Uzbek, Uyghur, and Tatar), scale factual verification to multi-hop cross-lingual graph reasoning, and explore on-device edge deployment for real-time browser-based content forensics.
+While the proposed framework establishes state-of-the-art benchmarks for Kazakh AI text forensics, rigorous scholarship requires transparent delineation of scientific limitations and ethical boundaries.
+
+\subsection{Scientific Limitations}
+\begin{enumerate}
+    \item \textbf{Dialectal and Regional Variations:} Our 83-rule FST grammar was formalized using literary Kazakh and common commercial loanwords. Regional spoken dialects from western and southern Kazakhstan frequently incorporate distinct phonetic allomorphs and archaic suffixes that may undergo partial subword fragmentation.
+    \item \textbf{Slang and Neologisms:} Youth digital discourse on social platforms introduces hybrid Russian-Kazakh slang (e.g., \textit{кликпен}, \textit{краш}, \textit{каспипэй}). While our loanword lexicon handles 45 frequent commercial roots, novel neologisms require periodic dictionary expansion.
+    \item \textbf{Latin Script Transition:} The Republic of Kazakhstan is currently undergoing an official orthographic transition from Cyrillic to a Latin-based alphabet. While our mathematical FST rules are script-agnostic, our current models were fine-tuned primarily on Cyrillic corpora. Developing a unified dual-script orthographic converter is an essential future task.
+    \item \textbf{Multi-Hop Factual Reasoning:} Kazakh-FEVER 3K primarily evaluates single-hop and adversarial morphological claims. Multi-hop claims requiring complex compositional reasoning across three or more disconnected encyclopedic documents remain an open frontier.
+\end{enumerate}
+
+\subsection{Ethical Governance and Deployment Protocols}
+Forensic detection algorithms must never be utilized as autonomous punitive instruments. In academic institutions, journalism, and public administration, false accusations carry severe reputational, professional, and psychological consequences. We establish four mandatory ethical principles for system deployment:
+\begin{enumerate}
+    \item \textbf{Mandatory Human-in-the-Loop for Borderline Scores:} Automated disciplinary actions must never be triggered solely by algorithmic outputs. For texts falling within the borderline decision margin ($0.40 \le P_{\text{gen}} \le 0.60$), the system must mandate review by a qualified human forensic analyst.
+    \item \textbf{Non-Discrimination for Non-Native and Dialectal Speakers:} Research has shown that English AI detectors exhibit severe bias against non-native writers \citep{liang2023gptdetectors}. In Kazakhstan, where many citizens speak Kazakh as a second language or utilize regional colloquialisms, detectors must not misinterpret non-standard syntax as synthetic generation. Our FST morphological grounding explicitly mitigates this bias by evaluating underlying morpheme validity rather than surface perplexity.
+    \item \textbf{Decoupled Moderation Actions:} Content flagged in Quadrant 2 (Human Misinformation) must be directed toward fact-checking and educational context labels, strictly avoiding false public accusations of AI bot deployment.
+    \item \textbf{Open Science and Benchmark Accessibility:} All curated benchmarks (KazAI-Detect and Kazakh-FEVER 3K), FST rules, and inference checkpoints are released under permissive open-source licenses to foster democratic AI accountability across low-resource linguistic communities.
+\end{enumerate}
+
+\section{Dissertation Synthesis and Future Research Directions}
+\label{sec:dissertation_synthesis}
+
+This dissertation addressed the fundamental challenge of safeguarding digital information integrity in low-resource agglutinative languages, establishing Kazakh as the primary linguistic exemplar. 
+
+\subsection{Synthesis Across Research Questions}
+We systematically investigated and answered four core research questions:
+\begin{itemize}
+    \item \textbf{RQ1 (Morphological Regularity vs. Token Inflation):} We proved mathematically and empirically that subword tokenizers induce severe token inflation on agglutinative morphology (up to 3.476 tokens/word in mBERT). We demonstrated that an 83-rule Finite-State Transducer eliminates token inflation, forcing all tokenizers to converge to the natural Kazakh morphemic limit of 2.202 tokens/word and cutting false-positive accusations on short texts by 43.21\% ($p = 0.000004$).
+    \item \textbf{RQ2 (Cross-Generator Generalization and Document Robustness):} We showed that single-stream cross-entropy detectors suffer catastrophic generalization collapse on unseen generators (ROC-AUC dropping to 0.3880 on Qwen-2.5-7B). By introducing a dual-stream gated architecture regularized with multi-generator Supervised Contrastive Learning in a normalized $\mathbb{S}^{127}$ hypersphere, our framework attained 0.9960 ROC-AUC (100.00\% separability) and a +42.18 percentage point gain in out-of-distribution transfer. For long documents, the \texttt{SentencePreservingChunker} enabled robust streaming ingestion under 1.4~GB VRAM for 25,000-word texts.
+    \item \textbf{RQ3 (Agglutinative Evidence Retrieval and Fact Verification):} We created Kazakh-FEVER 3K, the first human-validated verification benchmark for Kazakh (250,000 passages, 3,000 pairs, $\kappa = 0.84$). We demonstrated that hybrid FST-stemmed BM25 + dense mContriever with Reciprocal Rank Fusion eliminates lexical mismatch (99.8\% Recall@5). Furthermore, our 16-dimensional morphological diagnostic cross-encoder achieved state-of-the-art results (82.6\% accuracy, 71.4\% Strict Joint FEVER) and demonstrated robust immunity against adversarial Hard NEI traps (72.8\% F1).
+    \item \textbf{RQ4 (Trust Geometry and Explainable Deployment):} We formalized the Decoupling Principle, proving the epistemic independence of generative style and factual veracity. We synthesized both dimensions into the continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$ and deployed the framework as a production cloud platform on Hugging Face Spaces, supported by 506 automated regression tests and four interactive explainability tabs.
+\end{itemize}
+
+\subsection{Future Research Directions}
+The theoretical foundations and engineering architectures established in this dissertation open exciting horizons for future scientific investigation:
+\begin{enumerate}
+    \item \textbf{Extension to Sister Central Asian Turkic Languages:} The morphotactic principles formalized in our 83-rule FST are directly transferable across the Kipchak and Karluk branches of the Turkic linguistic family. Future work will adapt our dual-stream contrastive detector and hybrid retrieval pipeline to Kyrgyz, Uzbek, Uyghur, Karakalpak, Tatar, and Bashkir, establishing a unified pan-Turkic digital information integrity defense framework.
+    \item \textbf{Multi-Hop Cross-Lingual Knowledge Graphs:} Scaling factual verification to complex multi-hop claims that span multilingual documents (e.g., cross-referencing a Kazakh news claim against Russian and English source documents) using graph neural networks and dense entity linking.
+    \item \textbf{On-Device Edge Deployment:} Compressing the dual-stream transformer and FST grammar via knowledge distillation and ONNX runtime optimization into lightweight WebAssembly modules. This will enable real-time, privacy-preserving browser extensions that audit news and social media claims locally on user devices without transmitting browsing data to remote cloud servers.
+\end{enumerate}
+
+Through these theoretical, empirical, and engineering contributions, this dissertation establishes that low-resource agglutinative languages need not remain defenseless in the era of generative foundation models. By grounding deep neural representations in the rich structural regularity of human language morphology, we can construct transparent, robust, and verifiable artificial intelligence systems that preserve truth and digital integrity for communities worldwide.
