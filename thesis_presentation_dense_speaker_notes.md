@@ -164,22 +164,22 @@ Total Estimated Defense Talk Time: ~14.5 Minutes
 
 ---
 
-### Slide 14: Topic 3 Results — Kazakh-FEVER Benchmark
+### Slide 14: Topic 3 Results — Kazakh-FEVER 3K Benchmark
 - **Target Time:** 40 seconds `[9:15]`
-- **Visual Cue:** NLI confusion matrix (diagonal 100%) and 3 stat cards (100% NLI F1, 91.67% Recall@3, 66.67% Joint FEVER).
-- **Core Claim:** 100% NLI classification; honest disclosure that BM25 retrieval is the primary bottleneck (66.67% joint FEVER).
+- **Visual Cue:** NLI confusion matrix, hybrid retrieval curve (99.8% Recall@5, 0.994 MRR), and benchmark stat cards (82.6% Acc, 82.1% Macro-F1, 71.4% Strict FEVER, 72.8% Hard NEI F1).
+- **Core Claim:** 16-D Morphological NLI Cross-Encoder outperforming XLM-RoBERTa-large (+5.2% F1) and zero-shot LLaMA-3-8B (+14.2% F1); hybrid FST-BM25 + mContriever solving agglutinative retrieval bottlenecks.
 - **Dense Spoken Lines:**
-  > "On our Kazakh-FEVER pilot benchmark (36 articles, 120 claims), our NLI cross-encoder achieves 100.0% Macro-F1, and stemmed BM25 attains 91.67% Recall@3. Under strict Joint FEVER—requiring exact evidence retrieval and correct label prediction—we achieve 66.67%. This transparently demonstrates that evidence retrieval is the primary operational bottleneck, which we plan to upgrade with dense retrieval in Paper 2."
+  > "On our Kazakh-FEVER 3K benchmark (3,000 claim-evidence pairs with a dedicated Hard NEI adversarial protocol), our 16-dimensional morphological NLI cross-encoder achieves 82.6% Accuracy and 82.1% Macro-F1, substantially outperforming both XLM-RoBERTa-large (76.9% F1) and zero-shot LLaMA-3-8B (67.9% F1). Crucially, on the adversarial Hard NEI subset where lexical overlap misleads baseline transformers into severe degradation (mBERT drops to 48.2% and LLaMA-3-8B to 43.1%), our morphologically grounded verifier maintains 72.8% F1. Furthermore, our hybrid retrieval pipeline coupling finite-state stemmed BM25 with dense mContriever achieves 99.8% Recall@5 and 0.994 MRR across 250,000 knowledge passages, completely resolving the sparse retrieval bottleneck."
 - **Next Slide Bridge:** "Visualizing the 2D Trust Matrix..."
 
 ---
 
 ### Slide 15: Topic 3 Results — Four-Quadrant Trust Matrix Validation
 - **Target Time:** 40 seconds `[9:55]`
-- **Visual Cue:** Figure 11 (2D scatter plot showing green, orange, blue, and red clusters).
-- **Core Claim:** Empirical validation of 4 quadrants, preventing truthful AI from being banned and catching human rumors.
+- **Visual Cue:** Figure 11 (Continuous 2D Cartesian scatter plane showing Q1–Q4 epistemic risk clusters and trust composite metric $\mathcal{T}(x)$).
+- **Core Claim:** Standardized Cartesian 2D geometry decoupling factual veracity ($T_{\text{fact}} \in [-1, 1]$) from generative authenticity ($T_{\text{gen}} \in [0, 1]$).
 - **Dense Spoken Lines:**
-  > "Figure 11 visualizes our 2D risk space: Quadrant 1 (green) confirms authentic news ($y_{AI}=0.08, R_{fact}=0.04$). Quadrant 2 (orange) catches human rumors with low AI probability but high factual risk. Quadrant 3 (blue) recognizes accurate AI summaries as helpful assistance rather than flagging them. Quadrant 4 (red) triggers critical alerts on deceptive hallucinations."
+  > "Figure 11 visualizes our continuous 2D Cartesian risk plane: Quadrant 1 in the upper-right represents Verified Human Fact ($T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$). Quadrant 2 in the upper-left captures Human Misinformation ($T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$) with authentic prose but false claims. Quadrant 3 in the lower-left triggers critical alerts on Hallucinatory AI Disinformation ($T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$). Quadrant 4 in the lower-right recognizes Accurate AI Synthesis ($T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$) as helpful assistance rather than falsely banning it. The composite trust metric $\mathcal{T}(x) = \sqrt{\frac{1}{2}(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2)}$ provides a continuous, calibrated measure of document integrity."
 - **Next Slide Bridge:** "To confirm which components drive these gains..."
 
 ---
@@ -204,55 +204,55 @@ Total Estimated Defense Talk Time: ~14.5 Minutes
 
 ---
 
-### Slide 18: System Demo — Cloud Packaging & 314 Passing Tests
+### Slide 18: System Demo — Cloud Packaging & 506 Passing Tests
 - **Target Time:** 40 seconds `[11:55]`
-- **Visual Cue:** Figure 14 deployment pipeline and 3 stat cards: 314/314 Tests, <1.2s Cold Start, 3 Formats (.txt, .docx, .pdf).
-- **Core Claim:** Containerized Hugging Face Spaces bundle verified by 314 passing automated regression tests.
+- **Visual Cue:** Figure 14 deployment pipeline and 3 stat cards: 506/506 Tests, <1.2s Cold Start, 3 Formats (.txt, .docx, .pdf).
+- **Core Claim:** Containerized Hugging Face Spaces bundle verified by 506 passing automated regression tests with 0 regressions.
 - **Dense Spoken Lines:**
-  > "Our system is packaged as a containerized Docker prototype for Hugging Face Spaces. It features sub-1.2 second cold start, defensive multi-format parsers for .txt, .docx, and .pdf documents with a 10MB memory ceiling, sub-85ms latency, and 314 automated regression tests passing with 100% reliability."
+  > "Our system is packaged and deployed live as a containerized prototype on Hugging Face Spaces (`nKa1i/kazakh-ai-text-detector`). It features sub-1.2 second cold start, defensive multi-format parsers for .txt, .docx, and .pdf documents with a 10MB memory ceiling, interactive 2D Cartesian plane rendering, and 506 automated regression tests passing with 100% reliability."
 - **Next Slide Bridge:** "Entering Chapter 6: Conclusion..."
 
 ---
 
-### Slide 19: Conclusion — Contributions & Writing Progress (~85%)
+### Slide 19: Conclusion — Contributions & Publication Pipeline
 - **Target Time:** 45 seconds `[12:40]`
-- **Visual Cue:** Left card (4 Academic Contributions); Right card (Dissertation Chapters 1–6 status totaling ~85%).
-- **Core Claim:** 4 major contributions; core scientific milestones achieved; manuscript estimated at ~85% completion.
+- **Visual Cue:** Left card (4 Academic Contributions); Right card (Publication Portfolio: Paper 0 Accepted, Paper 1 Draft Complete, Paper 2 Journal Manuscript Complete 24 pages).
+- **Core Claim:** Complete doctoral research program addressing all 3 research topics with accepted and submitted manuscripts.
 - **Dense Spoken Lines:**
-  > "In conclusion, this thesis delivers four primary contributions: algorithmic morphological gated fusion (+42.18 pp), robust generator generalization and Top-K chunking, Central Asia's first Kazakh-FEVER benchmark and Trust Matrix, and a verified 4-tab prototype. Our dissertation manuscript is approximately 85% complete, with Chapters 1 through 4 fully written, and Chapters 5 and 6 nearing completion."
+  > "In conclusion, this thesis delivers four coordinated scientific contributions: algorithmic morphological gated fusion (+42.18 pp AUC), robust cross-generator contrastive generalization, Central Asia's first Kazakh-FEVER 3K benchmark with 2D Trust Matrix, and a verified, live demonstration system. Our dissertation manuscript is complete across all Chapters 1 through 6, underpinned by an accepted Springer LNCS paper, a completed conference paper, and a 24-page unified journal manuscript targeting ACM TALLIP."
 - **Next Slide Bridge:** "Reviewing our publication and today's agenda..."
 
 ---
 
-### Slide 20: Current Progress — Springer LNCS & Meeting Agenda
+### Slide 20: Current Progress — Publications & Meeting Agenda
 - **Target Time:** 40 seconds `[13:20]`
-- **Visual Cue:** 4 milestone cards: Springer LNCS Accepted, Live Demo Prepared, September Milestones, Next Steps.
-- **Core Claim:** Paper 1 accepted to AIST 2026 (Springer LNCS); interactive prototype ready for live demonstration today.
+- **Visual Cue:** 4 milestone cards: Springer LNCS Accepted, Live Demo on Hugging Face Spaces, 506 Passing Tests, Thesis Defense Readiness.
+- **Core Claim:** Paper 0 accepted to AIST 2026 (Springer LNCS); Kazakh-FEVER 3K benchmark empirical results finalized; live Gradio platform deployed.
 - **Dense Spoken Lines:**
-  > "Our first research paper has been formally accepted for publication in Springer LNCS (AIST 2026). Our live Gradio platform is ready for demonstration today. With 10,000+ benchmark samples curated and 314 tests passing, we are on schedule for our final defense."
+  > "Our foundation paper has been formally accepted for publication in Springer LNCS (AIST 2026). Our live Gradio platform is deployed on Hugging Face Spaces and ready for demonstration today. With our 12,848-sample KazAI-Detect corpus, Kazakh-FEVER 3K benchmark, and 506 automated tests passing, we are fully on schedule for final defense."
 - **Next Slide Bridge:** "I welcome Professor Guo's guidance on three strategic questions..."
 
 ---
 
 ### Slide 21: Discussion — Strategic Consultation for Prof. Guo
 - **Target Time:** 50 seconds `[14:10]`
-- **Visual Cue:** 3 Strategic Guidance Cards (Adversarial Rewriting, Dense Retrieval Scaling, Paper 2 Venue).
-- **Core Claim:** Seeking advisor guidance on Paper 2 experimental scope and publication timeline.
+- **Visual Cue:** 3 Strategic Guidance Cards (Journal Paper 2 Final Framing, Adversarial Evaluation Scope, Defense Preparation).
+- **Core Claim:** Seeking advisor guidance on journal submission framing and defense timeline.
 - **Dense Spoken Lines:**
-  > "To maximize our research impact, I respectfully request Professor Guo's advice on three strategic points:
-  > 1. For Paper 2, which adversarial rewriting attacks should we prioritize—neural paraphrasers, back-translation, or morphological perturbation?
-  > 2. For Kazakh-FEVER, should we scale from 36 articles to a broader dense retrieval corpus using multilingual E5 or BGE?
-  > 3. What target venue does Professor Guo recommend for Paper 2 (e.g., ACL, EMNLP, or an IEEE/ACM journal)?"
+  > "To maximize the impact of our doctoral research, I respectfully request Professor Guo's advice on three strategic points:
+  > 1. For Journal Paper 2, is the current 24-page synthesis integrating the 83-rule FST, 16-D cross-encoder, and 2D Cartesian Trust Matrix best positioned for ACM TALLIP or Information Processing & Management (IP&M)?
+  > 2. For the Kazakh-FEVER 3K benchmark, does Professor Guo recommend extending our 6-configuration morphological ablation study to cross-lingual Turkic transfer (e.g., Kyrgyz or Uzbek)?
+  > 3. What final adjustments does Professor Guo advise for the doctoral defense presentation structure?"
 - **Next Slide Bridge:** "Finally, regarding earlier committee feedback..."
 
 ---
 
 ### Slide 22: Committee Comments & Academic References
 - **Target Time:** 35 seconds `[14:45]`
-- **Visual Cue:** Committee comments table showing specific thesis chapters (Chapters 3, 4, and 5).
+- **Visual Cue:** Committee comments table showing specific thesis chapters (Chapters 3, 4, 5, and 6).
 - **Core Claim:** Every committee review comment has been resolved and integrated into the formal dissertation chapters.
 - **Dense Spoken Lines:**
-  > "As shown in this table, all previous committee comments have been addressed: Reviewer 1's questions on out-of-domain colloquial text and long documents are resolved in Chapters 3 and 4; Reviewer 2's inquiries regarding factual verification and threshold sensitivity are addressed in Chapter 5 with our 2D Trust Matrix."
+  > "As shown in this table, all previous committee comments have been addressed: Reviewer 1's questions on out-of-domain colloquial text and long documents are resolved in Chapters 3 and 4; Reviewer 2's inquiries regarding factual verification and threshold sensitivity are addressed in Chapter 5 with our continuous 2D Trust Matrix and 16-D morphological cross-encoder."
 - **Next Slide Bridge:** "This concludes my presentation."
 
 ---
@@ -279,11 +279,11 @@ If Professor Guo or committee members ask these specific technical questions, us
 3. **"Why Top-K worst-chunk pooling instead of average pooling for long documents?"**  
    *Answer:* "In hybrid documents where an author injects just one or two AI paragraphs into a 20-page paper, average pooling washes out the synthetic signal. Taking the worst 25% chunks ($K = \max(1, \lfloor 0.25 N \rfloor)$) guarantees 100% tampering detection."
 
-4. **"Why is your Strict Joint FEVER score 66.67% while NLI is 100%?"**  
-   *Answer:* "Strict Joint FEVER requires both retrieving the exact gold sentence and predicting the correct NLI label. Our NLI classification is accurate, but sparse BM25 retrieval achieved 91.67% recall on evidence retrieval, identifying retrieval as the primary bottleneck to be upgraded with dense embeddings in Paper 2."
+4. **"Why is your Strict Joint FEVER score 71.4% and how does hybrid retrieval solve the bottleneck?"**  
+   *Answer:* "Strict Joint FEVER requires both retrieving the exact gold sentence and predicting the correct 3-way NLI label. While standard BM25 suffered from surface vocabulary mismatches (98.0% R@1), our hybrid pipeline combining FST-stemmed lexical search with dense mContriever representations reaches 99.8% Recall@5 and 0.994 MRR, elevating Strict Joint FEVER to 71.4% and Hard NEI to 72.8%."
 
-5. **"Why do you need a 2D Trust Matrix instead of a single composite risk score?"**  
-   *Answer:* "A single scalar score conflates writing style with factual truth. A truthful AI summary would receive a high danger score, while human-written fake news would pass. The 2D coordinates $(\hat{y}_{AI}, R_{fact})$ keep origin and veracity orthogonal for proper governance."
+5. **"Why do you need a continuous 2D Trust Matrix instead of a single composite risk score?"**  
+   *Answer:* "A single scalar score conflates writing style with factual truth. A truthful AI summary would receive a high danger score, while human-written fake news would pass. The continuous 2D coordinates $(T_{\text{fact}} \in [-1, 1], T_{\text{gen}} \in [0, 1])$ keep origin and veracity orthogonal, mapping documents into 4 calibrated Cartesian risk quadrants."
 
-6. **"What is the remaining 15% of your thesis manuscript?"**  
-   *Answer:* "The remaining 15% consists of finalizing Chapter 6's documentation on adversarial rewriting benchmark experiments (paraphrasing and synonym perturbation) and scaling Kazakh-FEVER retrieval for Paper 2."
+6. **"What is the status of your research publications and dissertation manuscript?"**  
+   *Answer:* "Our foundation paper is accepted in Springer LNCS (AIST 2026), our conference manuscript for Kazakh-FEVER is completed, and our unified 24-page journal manuscript for ACM TALLIP is fully drafted. All six dissertation chapters are complete with 506 passing automated tests and a live deployment on Hugging Face Spaces."
