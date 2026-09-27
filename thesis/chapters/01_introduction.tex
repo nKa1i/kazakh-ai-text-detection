@@ -1,0 +1,72 @@
+\chapter{Introduction and Problem Formulation}
+\label{chap:introduction}
+
+The emergence of modern Large Language Models (LLMs) has fundamentally transformed automated natural language generation across virtually every domain of human discourse. State-of-the-art autoregressive foundation models demonstrate unprecedented linguistic fluency, synthesizing long-form essays, commercial user reviews, and domain-specific commentaries that are frequently indistinguishable from human prose \citep{devlin2019bert,touvron2023llama}. However, this dual-use capability introduces severe vulnerabilities regarding digital information integrity, algorithmic disinformation campaigns, deceptive commercial manipulation, and academic plagiarism \citep{uchendu2020authorship,sadasivan2023can}. Consequently, the development of robust, generalizable forensic mechanisms capable of auditing text provenance and verifying factual veracity has emerged as a paramount challenge in computational linguistics and artificial intelligence safety \citep{mitchell2023detectgpt,wang2024raid}.
+
+\section{Context and Scientific Motivation}
+\label{sec:intro_context}
+
+The overwhelming majority of contemporary research in machine-generated text (MAGE) detection has focused almost exclusively on high-resource, isolating or analytic languages, most notably English \citep{gehrmann2019gltr,kirchenbauer2023watermark,hans2024binoculars}. In isolating languages, grammatical relationships and semantic roles are encoded primarily through strict syntactic word order and discrete function words. Under these typological conditions, standard statistical classifiers and token probability metrics operate under relatively stable vocabulary distributions.
+
+In sharp contrast, low-resource and morphologically complex languages remain acutely vulnerable. The Central Asian language ecosystem, centered on the Turkic linguistic family, represents a critical blind spot in current AI forensic pipelines. Kazakh, the official state language of the Republic of Kazakhstan, is spoken by over 16 million people and exhibits rich agglutinative morphology characterized by strict morphotactic affixation and phonological vowel harmony. Despite the rapid digital transformation of the region, NLP tools for Kazakh are impeded by severe data scarcity, inadequate linguistic resource engineering, and the systematic failure of standard multilingual foundation models to capture delicate agglutinative phenomena.
+
+\section{Morphological Characteristics and the Agglutinative Challenge}
+\label{sec:intro_linguistic_challenge}
+
+Kazakh belongs to the Kipchak branch of the Turkic language family \citep{tyers2016finite}. Its grammatical architecture is strictly agglutinative: lexical roots undergo extensive, sequential affixation where each morpheme corresponds to a distinct, discrete grammatical category (e.g., number, possession, case, voice, tense, aspect, mood, and person). Suffixation proceeds in a rigid morphotactic order:
+\begin{equation}
+    \text{Word Form} = \text{Root} + \text{Derivational Affixes} + \text{Plural} + \text{Possessive} + \text{Case} + \text{Predicative}
+\end{equation}
+
+Furthermore, suffix allomorph selection is strictly governed by vowel harmony (palatal harmony, where suffixes harmonize with the front/back quality of the preceding vowel) and consonant assimilation (voicing and nasalization rules) \citep{oflazer1994twolevel,bekmanova2021kazakh}. Consequently, a single lexical stem can generate thousands of valid surface word forms, resulting in extraordinary lexical sparsity.
+
+When standard subword tokenization algorithms---such as Byte-Pair Encoding (BPE) \citep{sennrich2016subword} or SentencePiece unigram models \citep{kudo2018sentencepiece}---are deployed on Kazakh corpora, they exhibit a severe pathology that we formalize as \textit{subword token inflation}. Because standard subword vocabularies are learned statistically over mixed or multilingual corpora (e.g., in mBERT \citep{devlin2019bert} or XLM-RoBERTa \citep{conneau2020xlmr}), they lack morphological awareness. Complex agglutinated affix chains are routinely fractured into arbitrary, semantically fragmented byte tokens, inflating token counts by up to 3.8 times relative to English counterparts. This fragmentation obscures core semantic roots, severely degrades transformer attention mechanisms, and inflates false positive accusation rates on short consumer texts ($\le 60$ characters) to over 12\%, severely undermining operational utility in real-world deployment.
+
+\section{Decoupling Origin from Veracity}
+\label{sec:intro_decoupling}
+
+A widespread, dangerous assumption in conventional digital forensics is the conflation of generative origin with factual truth. It is commonly presumed that human-authored text is inherently truthful, whereas machine-generated text is inherently fictitious or hallucinatory. In real-world digital ecosystems, this assumption fails catastrophically:
+\begin{enumerate}
+    \item \textbf{Factual Synthetic Content:} An advanced LLM prompted with authoritative source knowledge can generate completely verified, factual summaries, news briefings, and encyclopedia entries.
+    \item \textbf{Deceptive Human Content:} Human actors routinely author malicious disinformation, politically motivated propaganda, and fraudulent commercial reviews.
+    \item \textbf{Hallucinatory Machine Content:} LLMs generating text from parametric memory frequently invent fictitious citations, fabricate dates, and produce fluent non-sequiturs.
+\end{enumerate}
+
+Therefore, digital information integrity requires decoupling \textit{generative provenance} (whether a text was produced by a human or a machine) from \textit{epistemic veracity} (whether the factual claims asserted in the text are supported by verifiable evidence). A comprehensive forensic framework must simultaneously evaluate both orthogonal dimensions.
+
+\section{Research Objectives and Questions}
+\label{sec:intro_rqs}
+
+This dissertation systematically investigates and resolves these foundational vulnerabilities by formulating and answering four central Research Questions (RQs):
+
+\begin{itemize}
+    \item \textbf{RQ1 (Morphological Regularity \& Token Inflation):} How can formal finite-state linguistic models be constructed to represent Kazakh nominal and verbal morphotactics, and to what extent does rule-based morphological pre-segmentation mitigate subword token inflation and reduce false positive accusations in transformer-based detectors?
+    \item \textbf{RQ2 (Cross-Generator \& Document Generalization):} How can supervised contrastive representation learning and streaming chunking architectures be formulated to achieve generator-invariant detection across unseen LLMs (such as Qwen-2.5 and LLaMA derivatives) while bounding computational complexity on document-scale inputs?
+    \item \textbf{RQ3 (Evidence-Grounded Factual Verification):} How can evidence retrieval and natural language inference be adapted to handle high lexical sparsity and morphological trap phenomena in agglutinative low-resource languages, and how can an adversarial benchmark isolate linguistic reasoning from lexical shortcuts?
+    \item \textbf{RQ4 (Trust Geometry \& Explainability):} How can generative provenance and factual veracity be mathematically unified into a continuous multidimensional trust geometry that provides calibrated risk categorization and transparent, morpheme-level interpretability for human auditors?
+\end{itemize}
+
+\section{Summary of Main Contributions}
+\label{sec:intro_contributions}
+
+The principal contributions of this dissertation are organized across four pillars:
+
+\begin{enumerate}
+    \item \textbf{The 83-Rule FST Morphological Engine:} We design and formalize an 83-rule Finite-State Transducer covering Kazakh nominal declension, verbal conjugation tiers, polarity allomorphs, and Russian-Kazakh loanword morphotactics. We mathematically prove and empirically demonstrate that FST pre-segmentation mitigates subword token inflation by 36.65\% ($p < 0.0001$), forcing statistical subword tokenizers to converge toward the empirical natural Kazakh morphemic limit of 2.202 tokens per word.
+    \item \textbf{Generator-Invariant Detection Framework:} We construct a dual-stream gated neural architecture combining contextual transformer representations with explicit morphological vectors, regularized by multi-generator Supervised Contrastive Learning (SupCon). Evaluated on the 12,848-sample KazAI-Detect benchmark, our model achieves a +42.18 percentage point gain in out-of-distribution AUROC, yields 100.00\% AUROC on held-out Qwen-2.5-7B under Leave-One-Generator-Out (LOGO) evaluation, cuts short-text false positive rates by 43.21\% ($p = 0.000004$), and enables document-scale streaming ingestion with an abbreviation-guarded chunker under a 1.4 GB VRAM ceiling.
+    \item \textbf{The Kazakh-FEVER 3K Benchmark and Verifier:} We release Kazakh-FEVER 3K, the first human-validated fact verification benchmark for Kazakh comprising 3,000 claim-evidence pairs with a dedicated \textsc{Hard NEI} adversarial protocol. We implement a hybrid retrieval system (morpheme-stemmed BM25 + dense mContriever with Reciprocal Rank Fusion, achieving 99.8\% Recall@5 and 0.994 MRR) and a 16-dimensional morphological diagnostic cross-encoder achieving 82.6\% accuracy and 71.4\% Strict Joint FEVER score.
+    \item \textbf{Continuous 2D Trust Matrix and Public Deployment:} We formalize the continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$, mapping document assertions into calibrated risk quadrants with a continuous metric $\mathcal{T}(x) \in [0, 1]$. We deploy the complete architecture as an interactive four-tab explainability dashboard on Hugging Face Spaces with sub-1.2-second cold-start latency, fully validated by 506 automated regression tests.
+\end{enumerate}
+
+\section{Dissertation Organization}
+\label{sec:intro_organization}
+
+The remainder of this dissertation is structured as follows:
+\begin{itemize}
+    \item \textbf{Chapter \ref{chap:related_work}} surveys related literature across AI text detection, computational morphology for Turkic languages, automated fact verification, and contrastive representation learning.
+    \item \textbf{Chapter \ref{chap:linguistic_foundation}} details the linguistic architecture of Kazakh, formulates the subword token inflation pathology, and formalizes the 83-rule Finite-State Transducer.
+    \item \textbf{Chapter \ref{chap:morpho_contrastive_detection}} presents the dual-stream gated detector, multi-generator SupCon regularization, streaming document chunking, and empirical evaluations on KazAI-Detect.
+    \item \textbf{Chapter \ref{chap:factual_verification}} introduces the Kazakh-FEVER 3K benchmark, the Hard NEI protocol, hybrid RRF evidence retrieval, and the 16-D morphological diagnostic cross-encoder.
+    \item \textbf{Chapter \ref{chap:system_explainability}} establishes the continuous 2D Cartesian Trust Matrix, details the interactive dashboard, discusses deployment and ethics, and concludes with future research directions.
+    \item \textbf{Appendices \ref{app:fst_grammar}--\ref{app:error_cases}} provide the complete 83-rule FST specification, annotation protocols, and qualitative error matrices.
+\end{itemize}

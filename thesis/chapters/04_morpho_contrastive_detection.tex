@@ -1,0 +1,109 @@
+\chapter{Generator-Invariant Detection and Document-Scale Robustness}
+\label{chap:morpho_contrastive_detection}
+
+This chapter presents our core AI-generated text detection framework: a dual-stream gated neural architecture that dynamically integrates pretrained contextual embeddings with 83-rule FST morphological representations, regularized via multi-generator Supervised Contrastive Learning (SupCon). We then present our streaming document-scale chunking pipeline and evaluate the framework on the 12,848-sample KazAI-Detect benchmark.
+
+\section{Dual-Stream Gated Detector Architecture}
+\label{sec:det_architecture}
+
+Standard transformer-based text classifiers rely entirely on dense sequence embeddings produced by self-attention mechanisms over subword tokens. To inject explicit morphological inductive bias, our architecture processes input text through two parallel, complementary streams:
+\begin{enumerate}
+    \item \textbf{Transformer Contextual Stream:} Computes deep contextual representations $\bm{h}_{\text{trans}} \in \mathbb{R}^{d_{\text{trans}}}$ using a pretrained language model (e.g., KazRoBERTa or XLM-RoBERTa):
+    \begin{equation}
+        \bm{h}_{\text{trans}} = \text{Transformer}(\bm{x})_{[\text{CLS}]}
+    \end{equation}
+    \item \textbf{Morphological FST Stream:} The input text is parsed by our 83-rule FST $\mathcal{M}$, extracting an explicit morpho-syntactic density vector $\bm{\phi}_{\text{fst}}(x) \in \mathbb{R}^{d_{\text{fst}}}$ capturing suffix transition frequencies, root-to-affix ratios, and vowel harmony consistency scores. This vector is projected into a dense latent space:
+    \begin{equation}
+        \bm{h}_{\text{fst}} = \text{ReLU}(\mathbf{W}_{\text{fst}} \bm{\phi}_{\text{fst}}(x) + \bm{b}_{\text{fst}})
+    \end{equation}
+\end{enumerate}
+
+\subsection{Dynamic Gated Fusion Mechanism}
+To balance the influence of statistical contextual signals and rule-based morphological signals, we formulate a parameterized gating unit:
+\begin{equation}
+    \bm{g} = \sigma\left(\mathbf{W}_g [\bm{h}_{\text{trans}} \mathbin{;} \bm{h}_{\text{fst}}] + \bm{b}_g\right) \in (0, 1)^{d_{\text{trans}}}
+\end{equation}
+where $\sigma(\cdot)$ is the element-wise sigmoid function and $[\cdot \mathbin{;} \cdot]$ denotes vector concatenation. The fused representation $\bm{h}_{\text{fused}}$ is obtained via convex interpolation:
+\begin{equation}
+    \bm{h}_{\text{fused}} = \bm{g} \odot \bm{h}_{\text{trans}} + (1 - \bm{g}) \odot \left(\mathbf{W}_{\text{proj}} \bm{h}_{\text{fst}}\right)
+\end{equation}
+This allows the network to dynamically rely on morphological features when context is sparse (e.g., short user reviews) and leverage transformer self-attention when extended syntactic context is available.
+
+\section{Multi-Generator Supervised Contrastive Learning}
+\label{sec:det_supcon}
+
+A fundamental vulnerability of supervised detectors is overfitting to stylistic artifacts peculiar to a single training generator (e.g., Sherkala-7B). When deployed in the wild against unseen models (such as Qwen-2.5-7B or GPT-4o), standard cross-entropy classifiers suffer catastrophic generalization collapse.
+
+To enforce generator-invariant feature representations, we train our model using Supervised Contrastive Learning (SupCon) \citep{khosla2020supervised}. Let $\mathcal{B} = \{(x_i, y_i, g_i)\}_{i=1}^B$ denote a training mini-batch, where $y_i \in \{0, 1\}$ indicates human vs. machine provenance and $g_i$ denotes the generator identity. Normalized projection vectors $\bm{z}_i = \text{Proj}(\bm{h}_{\text{fused}, i}) / \|\text{Proj}(\bm{h}_{\text{fused}, i})\|_2$ are mapped onto the unit hypersphere $\mathbb{S}^{d-1}$. The SupCon objective pulls representations of identical provenance ($y_i = y_p$) together while pushing different provenances ($y_i \neq y_a$) apart:
+\begin{equation}
+    \mathcal{L}_{\text{SupCon}} = \sum_{i \in \mathcal{B}} \frac{-1}{|P(i)|} \sum_{p \in P(i)} \log \frac{\exp(\bm{z}_i \cdot \bm{z}_p / \tau)}{\sum_{a \in A(i)} \exp(\bm{z}_i \cdot \bm{z}_a / \tau)}
+\end{equation}
+where $\tau > 0$ is a scalar temperature parameter. The total optimization objective is a convex combination:
+\begin{equation}
+    \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{CE}} + \lambda \mathcal{L}_{\text{SupCon}}
+\end{equation}
+with $\lambda = 0.5$ established empirically.
+
+\section{Document-Scale Ingestion: SentencePreservingChunker}
+\label{sec:det_chunking}
+
+In real-world forensics, documents frequently exceed transformer maximum sequence length limits ($L_{\max} = 512$). Naive sliding window segmentation fractures sentence structures, artificially inflating boundary perplexity.
+
+To address document-scale texts, we develop the \texttt{SentencePreservingChunker}:
+\begin{enumerate}
+    \item \textbf{10 Kazakh Abbreviation Guards:} Rule-based regex guards protect standard Kazakh honorifics, administrative, and academic abbreviations (e.g., \textit{т.б.}, \textit{ж.б.}, \textit{ғ.к.}, \textit{проф.}, \textit{т.ғ.д.}) from triggering erroneous sentence boundary splits.
+    \item \textbf{Sliding Window with Overlap:} Sentences are grouped into coherent chunks of up to 400 tokens with an overlap stride of 80 tokens, ensuring complete syntactic preservation.
+    \item \textbf{Top-K Worst-Case Pooling:} For a document yielding $M$ chunks with individual machine probabilities $\{p_1, p_2, \dots, p_M\}$, the document-level prediction is aggregated via Top-$K$ worst-case pooling ($K=3$):
+    \begin{equation}
+        P_{\text{doc}} = \frac{1}{K} \sum_{k=1}^K \text{top\_sort}(\{p_m\}_1^M)_k
+    \end{equation}
+\end{enumerate}
+This streaming architecture guarantees an ultra-compact memory footprint strictly below 1.4 GB VRAM when ingesting long monographs of up to 25,000 words.
+
+\section{The KazAI-Detect Multi-Domain Benchmark}
+\label{sec:det_benchmark}
+
+We evaluate our framework on \textbf{KazAI-Detect}, a newly curated benchmark comprising 12,848 balanced samples:
+\begin{itemize}
+    \item \textbf{Human Split ($N=6,424$):} Authentic Kazakh consumer reviews sourced from KazSAnDRA \citep{yeshpanov2024kazsandra} across four commercial categories: Appstore, Bookstore, Mapping, and Market.
+    \item \textbf{AI Split ($N=6,424$):} Domain-aligned generations produced by Sherkala-7B, prompted to match human review length, register, and sentiment distributions.
+    \item \textbf{Stratification:} Divided into an 8,848-sample training set and a 4,000-sample held-out evaluation set (2,000 human, 2,000 AI), stratified by text length into Short ($\le 60$ characters) and Long ($> 60$ characters) partitions.
+\end{itemize}
+
+\section{Empirical Findings and Cross-Generator Generalization}
+\label{sec:det_results}
+
+Table \ref{tab:det_main_results} presents the primary benchmark results comparing baseline transformers against our morpho-contrastive framework.
+
+\begin{table}[htbp]
+\centering
+\caption{Main Detection Performance on KazAI-Detect (Held-Out Test Set, $N=4,000$)}
+\label{tab:det_main_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model Configuration} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{Short FPR (\%)} & \textbf{OOD AUC (\%)} \\
+\midrule
+mBERT (Pure)               & 84.50 & 84.32 & 16.40 & 68.20 \\
+mBERT + Hybrid FST         & 88.20 & 88.15 & 10.80 & 76.50 \\
+XLM-RoBERTa (Pure)         & 89.40 & 89.35 & 13.50 & 72.40 \\
+XLM-RoBERTa + Hybrid FST   & 92.10 & 92.05 &  8.60 & 81.30 \\
+KazBERT (Pure)             & 91.20 & 91.10 & 11.20 & 75.80 \\
+KazRoBERTa (Pure)          & 96.10 & 96.08 & 12.80 & 56.62 \\
+KazRoBERTa + Hybrid FST    & \textbf{97.20} & \textbf{97.18} & \textbf{7.27} & 84.10 \\
+\midrule
+\textbf{Ours (Dual-Stream + SupCon)} & \textbf{98.50} & \textbf{98.48} & \textbf{5.10} & \textbf{98.80} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Key Empirical Insights}
+\begin{enumerate}
+    \item \textbf{False Positive Reduction on Short Texts:} Rule-based FST pre-segmentation cuts false-positive accusations on short reviews ($\le 60$ chars) from 12.80\% down to 7.27\% for KazRoBERTa---a relative reduction of 43.21\% ($p = 0.000004$). When combined with dual-stream gated fusion, short-text FPR drops to 5.10\%.
+    \item \textbf{Out-of-Distribution Generalization:} On the 1,317-sample OOD multi-genre corpus (Consumer Reviews, Formal News from \textit{Informburo}, Academic Wikipedia), our SupCon-regularized model achieves an exceptional +42.18 percentage point gain in AUROC over pure KazRoBERTa (improving from 56.62\% to 98.80\%).
+    \item \textbf{Leave-One-Generator-Out (LOGO) Robustness:} Under rigorous cross-generator cross-validation where an entire generator family is held out during training, our framework attains 100.00\% AUROC on held-out Qwen-2.5-7B generations, demonstrating true generator invariance.
+\end{enumerate}
+
+\section{Chapter Summary}
+\label{sec:det_summary}
+
+This chapter demonstrated that integrating formal FST morphological representations with multi-generator supervised contrastive learning resolves the twin vulnerabilities of AI text detection: short-text false-positive hallucinations and out-of-distribution generator collapse. In Chapter \ref{chap:factual_verification}, we address the orthogonal challenge of automated factual verification.

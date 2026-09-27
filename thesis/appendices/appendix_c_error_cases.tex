@@ -1,0 +1,63 @@
+\chapter{Extended Qualitative Error Analysis and Ablation Matrix}
+\label{app:error_cases}
+
+This appendix presents qualitative forensic case studies, failure mode analyses, and the complete 6-configuration ablation matrix across fine-grained morphological categories.
+
+\section{Forensic Case Studies in Informal Colloquial Text}
+\label{sec:app_error_colloquial}
+
+Colloquial digital feedback on e-commerce platforms exhibits heavy slang, phonetic elisions, and Russian-Kazakh code-switching. Below are two representative forensic evaluations:
+
+\subsection{Case 1: True Positive (Human Accurately Identified)}
+\begin{quote}
+\textbf{Text:} \textit{``Каспи редті клиентке үлкен суммаға ашқызғандарың адамгершілікке жатпайды (недобросовестно). Кішкентай соманы менюдің бір жеріне тығып қойыпсыңдар. Білетін, шұқылайтын адам болмаса қораға кіргізіп тұрсыңдар ғой. Айтса айтты дейсіңдер. Плюсі, жылдам істейді.''} \\
+\textbf{Translation:} \textit{``Opening a Kaspi Red for a client with such a large amount is unfair (dishonest). You hid the smaller sum somewhere in the menu. Unless someone knows and digs into it, you're trapping them... On the plus side, it works fast.''} \\
+\textbf{Pure KazRoBERTa Score:} $P(\text{AI}) = 0.742$ (False Positive Accusation) \\
+\textbf{Ours (Hybrid FST + SupCon):} $P(\text{AI}) = 0.081$ (Correctly Classified as Human) \\
+\textbf{Forensic Rationale:} The pure transformer model was misled by subword fragmentation on the Russian loanword \textit{``недобросовестно''} and the rare causative-passive inflection \textit{``ашқызғандарың''}. Our 83-rule FST segmented these morphemes cleanly, allowing the gating unit to recognize authentic human stylistic markers.
+\end{quote}
+
+\subsection{Case 2: True Positive (Machine Generation Detected)}
+\begin{quote}
+\textbf{Text:} \textit{``Бұл қосымша өте ыңғайлы және сапалы қызмет көрсетеді. Барлық функциялары түсінікті әрі пайдалы. Күнделікті өмірде таптырмас көмекші болды. Барлық қолданушыларға осы қызметті пайдалануды ұсынамын.''} \\
+\textbf{Translation:} \textit{``This application provides very convenient and high-quality service. All its functions are clear and useful. It has become an indispensable helper in daily life. I recommend using this service to all users.''} \\
+\textbf{Ours (Hybrid FST + SupCon):} $P(\text{AI}) = 0.994$ (Correctly Flagged as AI-Generated) \\
+\textbf{Forensic Rationale:} The text exhibits typical LLM low-entropy token transitions, overly formal literary register for a simple mobile review, and an absence of dialectal or colloquial affixes.
+\end{quote}
+
+\section{Morphological Ambiguity Resolution Failure Modes}
+\label{sec:app_error_ambiguity}
+
+Despite achieving high empirical accuracy, our FST encounters failure modes primarily related to homophonous suffix collisions:
+\begin{enumerate}
+    \item \textbf{Case vs. Possessive Ambiguity:} The surface ending \textit{-ы/-і} can denote either 3rd-person possession or short accusative forms depending on syntactic dependency. In isolated short texts lacking explicit heads, misparses can occur.
+    \item \textbf{Novel Russian Neologisms:} Emerging commercial abbreviations (e.g., \textit{кликпен}, \textit{каспипэй}) absent from the initial loanword lexicon require fallback to heuristic subword stemming.
+\end{enumerate}
+
+\section{Complete 6-Configuration Morphological Feature Ablation Matrix}
+\label{sec:app_ablation_matrix}
+
+Table \ref{tab:complete_ablation_matrix} provides the exhaustive 6-configuration ablation results across all individual syntactic diagnostic categories on the Kazakh-FEVER 3K benchmark.
+
+\begin{table}[htbp]
+\centering
+\caption{Comprehensive Diagnostic Ablation Matrix on Kazakh-FEVER 3K}
+\label{tab:complete_ablation_matrix}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Configuration} & \textbf{Acc (\%)} & \textbf{Macro-F1 (\%)} & \textbf{Supported F1} & \textbf{Refuted F1} & \textbf{Hard NEI F1} \\
+\midrule
+\textbf{Full Model (16-D Morpho)} & \textbf{82.6} & \textbf{82.1} & \textbf{85.4} & \textbf{81.2} & \textbf{72.8} \\
+$\Delta$ w/o Negation Alignment     & 79.5 & 78.7 & 84.1 & 74.3 & 68.3 \\
+$\Delta$ w/o Temporal/Calendar      & 80.2 & 79.5 & 84.6 & 78.1 & 69.1 \\
+$\Delta$ w/o Evidentials/Modals     & 80.8 & 80.2 & 84.9 & 79.4 & 69.8 \\
+$\Delta$ w/o Case Role Matching     & 81.1 & 80.5 & 85.0 & 79.8 & 70.4 \\
+$\Delta$ w/o FST Root Stemming      & 75.3 & 74.6 & 80.2 & 72.5 & 64.2 \\
+\midrule
+\textbf{Baseline (Surface Tokens)} & 72.1 & 71.5 & 78.4 & 69.2 & 63.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The systematic degradation observed when ablating FST root stemming ($-7.3$ pp accuracy) and negation alignment ($-6.9$ pp on Refuted F1) conclusively verifies that explicit morphological modeling is indispensable for factual verification in agglutinative languages.

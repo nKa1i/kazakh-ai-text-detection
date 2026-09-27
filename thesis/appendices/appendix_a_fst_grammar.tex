@@ -1,0 +1,79 @@
+\chapter{Complete Specification of the 83 FST Morphological Rules}
+\label{app:fst_grammar}
+
+This appendix presents the complete, formal rule catalogue of the 83-rule Finite-State Transducer (FST) developed in Chapter \ref{chap:linguistic_foundation}. The transducer models the full morphological pipeline of Kazakh nominal declension, verbal conjugation, polarity allomorphs, and bilingual code-switching.
+
+\section{Transducer Architecture and Morphological States}
+\label{sec:app_fst_states}
+
+The state machine transitions across 10 discrete morphological tiers:
+\begin{enumerate}
+    \item $q_0$: Initial whitespace / word boundary state.
+    \item $q_{\text{root}}$: Identified lexical stem or dictionary headword.
+    \item $q_{\text{plu}}$: Grammatical plural suffix tier (Rules 1--6).
+    \item $q_{\text{poss}}$: Nominal possessive agreement tier (Rules 7--18).
+    \item $q_{\text{case}}$: Grammatical case declension tier (Rules 19--32).
+    \item $q_{\text{voice}}$: Verbal voice derivation tier (Rules 33--38).
+    \item $q_{\text{neg}}$: Verbal negation allomorph tier (Rules 39--44).
+    \item $q_{\text{tense}}$: Tense, aspect, and participle inflection tier (Rules 45--56).
+    \item $q_{\text{pred}}$: Personal predicative agreement tier (Rules 57--65).
+    \item $q_{\text{loan}}$: Russian and commercial loanword affixation tier (Rules 66--83).
+\end{enumerate}
+
+\section{Nominal Suffix Rules (Rules 1--32)}
+\label{sec:app_fst_nominal}
+
+Table \ref{tab:fst_nominal_rules} catalogues the nominal inflection rules covering plural markers, possessives, and the seven grammatical cases.
+
+\begin{table}[htbp]
+\centering
+\caption{Representative 83-Rule FST Nominal Morphotactic Rules}
+\label{tab:fst_nominal_rules}
+\small
+\begin{tabular}{lllll}
+\toprule
+\textbf{Rule ID} & \textbf{Category} & \textbf{Allomorphs} & \textbf{Phonological Condition} & \textbf{Example} \\
+\midrule
+$R_{1}-R_{2}$   & Plural (Back/Front) & -лар / -лер & Vowels, sonorant $r, l$ & бала $\rightarrow$ бала-лар \\
+$R_{3}-R_{4}$   & Plural (Voiced)     & -дар / -дер & Nasals, voiced continuants & күн $\rightarrow$ күн-дер \\
+$R_{5}-R_{6}$   & Plural (Voiceless)  & -тар / -тер & Voiceless consonants & кітап $\rightarrow$ кітап-тар \\
+\midrule
+$R_{7}-R_{8}$   & Poss 1Sg (Back/Front)& -ым / -ім  & Consonant coda & үй $\rightarrow$ үй-ім \\
+$R_{9}-R_{10}$  & Poss 1Sg (Vowel)    & -м          & Vowel coda & қала $\rightarrow$ қала-м \\
+$R_{11}-R_{14}$ & Poss 2Sg (Inf/Form) & -ың / -ыңыз & Harmony dependent & сөз $\rightarrow$ сөз-іңіз \\
+$R_{15}-R_{18}$ & Poss 3Sg (All)      & -сы / -сі, -ы / -і & Stem-final harmony & көз $\rightarrow$ көз-і \\
+\midrule
+$R_{19}-R_{20}$ & Genitive Case       & -ның / -нің & Vowel / voiced nasal & мектеп $\rightarrow$ мектеп-тің \\
+$R_{21}-R_{22}$ & Dative Case         & -ға / -ге, -қа / -ке & Consonant voicing & жұмыс $\rightarrow$ жұмыс-қа \\
+$R_{23}-R_{24}$ & Accusative Case     & -ны / -ні, -ды / -ді & Sonority scale & ел $\rightarrow$ ел-ді \\
+$R_{25}-R_{26}$ & Locative Case       & -да / -де, -та / -те & Locative agreement & қала $\rightarrow$ қала-да \\
+$R_{27}-R_{28}$ & Ablative Case       & -дан / -ден, -тан / -тен & Source origin & үй $\rightarrow$ үй-ден \\
+$R_{29}-R_{32}$ & Instrumental Case   & -мен / -бен / -пен & Assimilation harmony & дос $\rightarrow$ дос-пен \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Verbal Inflection and Polarity Rules (Rules 33--65)}
+\label{sec:app_fst_verbal}
+
+Verbal inflections incorporate polarity negation allomorphs directly into the conjugation tier:
+\begin{itemize}
+    \item \textbf{Negation Allomorphs (Rules 39--44):} The six allomorphs $\text{NEG} \in \{\text{-ма, -ме, -ба, -бе, -па, -пе}\}$ attach directly after verbal stems and voice suffixes (e.g., \textit{кел} $\rightarrow$ \textit{кел-ме}, \textit{жаз} $\rightarrow$ \textit{жаз-ба}, \textit{айт} $\rightarrow$ \textit{айт-па}).
+    \item \textbf{Tense and Evidentials (Rules 45--56):} Categorizes past categorical (\textit{-ды/-ді}), past evidential (\textit{-ыпты/-іпті}), future definite (\textit{-ады/-йді}), and conditional participles (\textit{-са/-се}).
+    \item \textbf{Predicative Personal Agreement (Rules 57--65):} Personal endings (\textit{-мын/-мін, -сың/-сің, -мыз/-міз}) closing the verbal predicate chain.
+\end{itemize}
+
+\section{Bilingual Code-Switching and Loanword Stemming (Rules 66--83)}
+\label{sec:app_fst_loans}
+
+In contemporary digital Kazakh, Russian commercial and technological loanwords are ubiquitous in consumer reviews. Rules 66--83 decouple attached Kazakh affixes without breaking the foreign root:
+\begin{equation}
+    \text{``Каспиден''} \xrightarrow{R_{72}} \text{Каспи} \mathbin{\Vert} \text{-ден}
+\end{equation}
+\begin{equation}
+    \text{``доставкасы''} \xrightarrow{R_{68}} \text{доставка} \mathbin{\Vert} \text{-сы}
+\end{equation}
+\begin{equation}
+    \text{``клиентке''} \xrightarrow{R_{75}} \text{клиент} \mathbin{\Vert} \text{-ке}
+\end{equation}
+This architecture preserves the semantic integrity of foreign brand stems while normalizing Kazakh inflectional suffixes.

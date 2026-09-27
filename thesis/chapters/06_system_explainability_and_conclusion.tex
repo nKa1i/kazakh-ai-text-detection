@@ -1,0 +1,81 @@
+\chapter{System Explainability, Production Deployment, and Conclusion}
+\label{chap:system_explainability}
+
+This chapter synthesizes our detection and verification modules into a unified forensic architecture. We formulate the continuous 2D Cartesian Trust Matrix, describe the interactive explainability dashboard deployed on Hugging Face Spaces, examine ethical implications and limitations, and conclude with the primary findings and future horizons of this dissertation.
+
+\section{The Continuous 2D Cartesian Trust Matrix}
+\label{sec:sys_trust_matrix}
+
+To provide human forensic analysts and automated content moderation systems with an actionable, calibrated decision surface, we construct a continuous 2D Cartesian Trust Geometry that jointly models epistemic veracity and generative authenticity.
+
+\subsection{Coordinate Definitions}
+Given a document $x$ containing asserted claims $\mathcal{C} = \{c_1, \dots, c_m\}$ and retrieved evidence $\mathcal{E}$, our pipeline computes two normalized orthogonal coordinates:
+\begin{enumerate}
+    \item \textbf{Factual Veracity Coordinate ($T_{\text{fact}} \in [-1, 1]$):}
+    \begin{equation}
+        T_{\text{fact}} = P(\text{Supported} \mid x, \mathcal{E}) - P(\text{Refuted} \mid x, \mathcal{E})
+    \end{equation}
+    where $T_{\text{fact}} \rightarrow +1$ indicates strong factual corroboration, $T_{\text{fact}} \rightarrow -1$ indicates confirmed falsehood or contradiction, and $T_{\text{fact}} \approx 0$ reflects insufficient evidence (NEI).
+    \item \textbf{Human Authenticity Coordinate ($T_{\text{gen}} \in [0, 1]$):}
+    \begin{equation}
+        T_{\text{gen}} = 1 - P(\text{Machine-Generated} \mid x)
+    \end{equation}
+    where $T_{\text{gen}} \rightarrow 1$ indicates verified human provenance, and $T_{\text{gen}} \rightarrow 0$ indicates synthetic machine generation.
+\end{enumerate}
+
+\subsection{Four Operational Risk Quadrants}
+The Cartesian plane $(T_{\text{fact}}, T_{\text{gen}})$ partitions candidate content into four actionable forensic quadrants:
+\begin{itemize}
+    \item \textbf{Quadrant 1 (Q1: $T_{\text{fact}} \ge 0, T_{\text{gen}} \ge 0.5$): High Trust / Verified Human.} Factual assertions authored by humans; minimal risk; eligible for immediate dissemination.
+    \item \textbf{Quadrant 2 (Q2: $T_{\text{fact}} \ge 0, T_{\text{gen}} < 0.5$): Verified Synthetic / AI-Assisted Factual.} Machine-generated summaries or translations grounded in verified evidence; require clear disclosure of AI assistance.
+    \item \textbf{Quadrant 3 (Q3: $T_{\text{fact}} < 0, T_{\text{gen}} < 0.5$): Critical Risk / Hallucinatory Synthetic Disinformation.} Machine-generated fabrications or algorithmic hallucinations; subject to automated flagging and immediate quarantine.
+    \item \textbf{Quadrant 4 (Q4: $T_{\text{fact}} < 0, T_{\text{gen}} \ge 0.5$): Malicious Human Deception / Disinformation.} Human-authored false rumors, propaganda, or fraudulent reviews; referred to human forensic moderation.
+\end{itemize}
+
+\subsection{Continuous Scalar Trust Metric}
+For systems requiring a singular ranking scalar, we define the composite trust score $\mathcal{T}(x) \in [0, 1]$:
+\begin{equation}
+    \mathcal{T}(x) = \sqrt{\frac{1}{2}\left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+\end{equation}
+This formulation ensures that claims confirmed as factual and authored by humans achieve $\mathcal{T}(x) \approx 1$, while unverified or synthetic misinformation collapses toward 0.
+
+\section{Interactive Explainability Dashboard}
+\label{sec:sys_dashboard}
+
+Forensic auditing requires interpretability to prevent blind reliance on black-box neural outputs. We develop and deploy a comprehensive four-tab interactive dashboard engineered using Gradio:
+\begin{enumerate}
+    \item \textbf{Tab 1: Document Forensic Analyzer.} Ingests long-form Kazakh texts, runs the \texttt{SentencePreservingChunker}, visualizes Top-$K$ worst-case risk distributions, and maps the entire document onto the 2D Trust Matrix.
+    \item \textbf{Tab 2: Token-Level Saliency Heatmaps.} Displays attention-guided token heatmaps highlighting specific words and morphemes that elevated the machine-generation score, exposing model rationales to human reviewers.
+    \item \textbf{Tab 3: FST Morphotactic Laboratory.} An interactive linguistic inspector enabling researchers to input arbitrary words and observe the step-by-step state transitions of the 83-rule FST, verifying affix decompositions, root extractions, and vowel harmony classifications.
+    \item \textbf{Tab 4: 16-D Diagnostic Fact Inspector.} Renders diagnostic feature drawers displaying negation alignment, numerical matches, and evidential markers between asserted claims and retrieved evidence passages.
+\end{enumerate}
+
+\section{Packaging, CI/CD, and Production Deployment}
+\label{sec:sys_deployment}
+
+The complete forensic suite is containerized and deployed publicly on Hugging Face Spaces:
+\begin{itemize}
+    \item \textbf{Cold-Start Optimization:} Through dynamic weight quantization and lazy loading of dense index tensors, the cloud application cold-start latency is constrained to sub-1.2 seconds on CPU-only infrastructure.
+    \item \textbf{Automated Test Suite:} The production codebase is protected by a comprehensive automated regression suite comprising 506 unit and integration tests covering chunking integrity, FST rule correctness, RRF ranking convergence, and trust matrix calculus.
+    \item \textbf{Open-Source Availability:} All curated datasets (KazAI-Detect and Kazakh-FEVER 3K), FST grammar models, and inference scripts are open-sourced under permissive academic licenses to stimulate low-resource Turkic NLP research.
+\end{itemize}
+
+\section{Ethical Considerations and Limitations}
+\label{sec:sys_ethics}
+
+\subsection{Ethical Deployment}
+Forensic detection algorithms must never be utilized as autonomous punitive tools. Because short texts exhibit irreducible variance, deployment protocols must enforce human-in-the-loop auditing for borderline scores ($0.4 \le P_{\text{gen}} \le 0.6$). Furthermore, model outputs should never be used to penalize non-native Kazakh writers or dialectal variations.
+
+\subsection{Scientific Limitations}
+While our framework establishes state-of-the-art results for Kazakh, several limitations remain:
+\begin{enumerate}
+    \item \textbf{Dialectal and Colloquial Slang:} The 83-rule FST is modeled upon standard literary Kazakh and major commercial Russian-Kazakh code-switching. Highly fragmented youth slang or Latin-script transliterations require dedicated future adaptation.
+    \item \textbf{Multi-Hop Reasoning:} Kazakh-FEVER 3K primarily tests single-hop and adversarial morphological claims; multi-hop reasoning across three or more disconnected documents remains an open frontier.
+\end{enumerate}
+
+\section{Conclusion and Future Research Directions}
+\label{sec:sys_conclusion}
+
+This dissertation addressed the critical challenge of preserving digital information integrity in low-resource agglutinative languages, using Kazakh as the primary exemplar. We identified and formalized the fundamental pathology of subword token inflation in standard statistical tokenizers and solved it by constructing an 83-rule Finite-State Transducer that enforces morphemic convergence. We introduced a dual-stream gated neural detector regularized with multi-generator Supervised Contrastive Learning, achieving generator invariance and slashing short-text false accusations by 43.21\%. Furthermore, we released Kazakh-FEVER 3K, established a hybrid RRF evidence retriever and 16-D morphological diagnostic cross-encoder, and unified provenance and veracity into a continuous 2D Cartesian Trust Matrix.
+
+Future research will extend this morphologically grounded paradigm to sister Turkic languages across Central Asia (Kyrgyz, Uzbek, Uyghur, and Tatar), scale factual verification to multi-hop cross-lingual graph reasoning, and explore on-device edge deployment for real-time browser-based content forensics.
