@@ -623,8 +623,8 @@ HEATMAP_CSS = """
 
 .hud-quad-q1 { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: 700; }
 .hud-quad-q2 { background: #fff1f2; border-color: #f43f5e; color: #9f1239; font-weight: 700; }
-.hud-quad-q3 { background: #f0f9ff; border-color: #0ea5e9; color: #0369a1; font-weight: 700; }
-.hud-quad-q4 { background: #fffbeb; border-color: #f59e0b; color: #92400e; font-weight: 700; }
+.hud-quad-q3 { background: #fffbeb; border-color: #f59e0b; color: #92400e; font-weight: 700; }
+.hud-quad-q4 { background: #f0f9ff; border-color: #0ea5e9; color: #0369a1; font-weight: 700; }
 
 .trust-meter-row {
     display: grid;
@@ -1334,16 +1334,16 @@ def render_2d_trust_matrix_plane(
         quad_name_en = "Human Misinformation"
         quad_name_kz = "Адам қателігі"
         point_color = "#f43f5e"
-    elif "Q3" in raw_quad or "Accurate AI" in raw_quad or "Нақты AI" in raw_quad:
+    elif "Q3" in raw_quad or "Disinformation" in raw_quad or "дезинформация" in raw_quad:
         quad_code = "Q3"
-        quad_name_en = "Accurate AI Synthesis"
-        quad_name_kz = "Нақты AI синтезі"
-        point_color = "#0ea5e9"
-    elif "Q4" in raw_quad or "Disinformation" in raw_quad or "дезинформация" in raw_quad:
-        quad_code = "Q4"
         quad_name_en = "Hallucinatory AI Disinformation"
         quad_name_kz = "AI дезинформациясы"
         point_color = "#f59e0b"
+    elif "Q4" in raw_quad or "Accurate AI" in raw_quad or "Нақты AI" in raw_quad:
+        quad_code = "Q4"
+        quad_name_en = "Accurate AI Synthesis"
+        quad_name_kz = "Нақты AI синтезі"
+        point_color = "#0ea5e9"
     else:
         if t_fact_clamped > 0.0 and t_gen_clamped >= 0.5:
             quad_code = "Q1"
@@ -1355,16 +1355,16 @@ def render_2d_trust_matrix_plane(
             quad_name_en = "Human Misinformation"
             quad_name_kz = "Адам қателігі"
             point_color = "#f43f5e"
-        elif t_fact_clamped > 0.0 and t_gen_clamped < 0.5:
+        elif t_fact_clamped <= 0.0 and t_gen_clamped < 0.5:
             quad_code = "Q3"
-            quad_name_en = "Accurate AI Synthesis"
-            quad_name_kz = "Нақты AI синтезі"
-            point_color = "#0ea5e9"
-        else:
-            quad_code = "Q4"
             quad_name_en = "Hallucinatory AI Disinformation"
             quad_name_kz = "AI дезинформациясы"
             point_color = "#f59e0b"
+        else:
+            quad_code = "Q4"
+            quad_name_en = "Accurate AI Synthesis"
+            quad_name_kz = "Нақты AI синтезі"
+            point_color = "#0ea5e9"
 
     safe_raw_quad = html.escape(raw_quad, quote=True)
     safe_quad_code = html.escape(quad_code, quote=True)
@@ -1382,10 +1382,10 @@ def render_2d_trust_matrix_plane(
         q1_sub = "Verified Human Fact"
         q2_label = "Q2: Адам қателігі"
         q2_sub = "Human Misinformation"
-        q3_label = "Q3: Нақты AI синтезі"
-        q3_sub = "Accurate AI Synthesis"
-        q4_label = "Q4: AI дезинформация"
-        q4_sub = "Hallucinatory AI Disinformation"
+        q3_label = "Q3: AI дезинформация"
+        q3_sub = "Hallucinatory AI Disinformation"
+        q4_label = "Q4: Нақты AI синтезі"
+        q4_sub = "Accurate AI Synthesis"
 
         x_title = "Деректік ақиқаттық (T_fact) →"
         y_title = "↑ Адам жазған / AI қаупі (T_gen)"
@@ -1402,10 +1402,10 @@ def render_2d_trust_matrix_plane(
         q1_sub = "High Veracity · Human Style"
         q2_label = "Q2: Human Misinformation"
         q2_sub = "Low Veracity · Human Style"
-        q3_label = "Q3: Accurate AI Synthesis"
-        q3_sub = "High Veracity · AI Generated"
-        q4_label = "Q4: Hallucinatory AI Disinformation"
-        q4_sub = "Low Veracity · AI Disinformation"
+        q3_label = "Q3: Hallucinatory AI Disinformation"
+        q3_sub = "Low Veracity · AI Disinformation"
+        q4_label = "Q4: Accurate AI Synthesis"
+        q4_sub = "High Veracity · AI Generated"
 
         x_title = "Factual Veracity (T_fact) →"
         y_title = "↑ Human Origin vs AI Risk (T_gen)"
@@ -1442,15 +1442,15 @@ def render_2d_trust_matrix_plane(
         f'  <text x="120" y="95" text-anchor="middle" font-size="10.5" font-weight="700" fill="#9f1239">{q2_label}</text>\n'
         f'  <text x="120" y="112" text-anchor="middle" font-size="8.5" fill="#be123c">{q2_sub}</text>\n'
         f'\n'
-        f'  <!-- Bottom-Right: Q3 Accurate AI Synthesis -->\n'
-        f'  <rect x="200" y="160" width="160" height="100" fill="#f0f9ff" fill-opacity="{1.0 if quad_code == "Q3" else 0.5}" stroke="{"#0ea5e9" if quad_code == "Q3" else "#e0f2fe"}" stroke-width="{"2.5" if quad_code == "Q3" else "1"}"/>\n'
-        f'  <text x="280" y="215" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0369a1">{q3_label}</text>\n'
-        f'  <text x="280" y="232" text-anchor="middle" font-size="8.5" fill="#0284c7">{q3_sub}</text>\n'
+        f'  <!-- Bottom-Left: Q3 Hallucinatory AI Disinformation -->\n'
+        f'  <rect x="40" y="160" width="160" height="100" fill="#fffbeb" fill-opacity="{1.0 if quad_code == "Q3" else 0.5}" stroke="{"#f59e0b" if quad_code == "Q3" else "#fef3c7"}" stroke-width="{"2.5" if quad_code == "Q3" else "1"}"/>\n'
+        f'  <text x="120" y="215" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">{q3_label}</text>\n'
+        f'  <text x="120" y="232" text-anchor="middle" font-size="8.5" fill="#b45309">{q3_sub}</text>\n'
         f'\n'
-        f'  <!-- Bottom-Left: Q4 Hallucinatory AI Disinformation -->\n'
-        f'  <rect x="40" y="160" width="160" height="100" fill="#fffbeb" fill-opacity="{1.0 if quad_code == "Q4" else 0.5}" stroke="{"#f59e0b" if quad_code == "Q4" else "#fef3c7"}" stroke-width="{"2.5" if quad_code == "Q4" else "1"}"/>\n'
-        f'  <text x="120" y="215" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">{q4_label}</text>\n'
-        f'  <text x="120" y="232" text-anchor="middle" font-size="8.5" fill="#b45309">{q4_sub}</text>\n'
+        f'  <!-- Bottom-Right: Q4 Accurate AI Synthesis -->\n'
+        f'  <rect x="200" y="160" width="160" height="100" fill="#f0f9ff" fill-opacity="{1.0 if quad_code == "Q4" else 0.5}" stroke="{"#0ea5e9" if quad_code == "Q4" else "#e0f2fe"}" stroke-width="{"2.5" if quad_code == "Q4" else "1"}"/>\n'
+        f'  <text x="280" y="215" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0369a1">{q4_label}</text>\n'
+        f'  <text x="280" y="232" text-anchor="middle" font-size="8.5" fill="#0284c7">{q4_sub}</text>\n'
         f'\n'
         f'  <!-- Center Crosshairs: Vertical at X=200 (T_fact=0.0), Horizontal at Y=160 (T_gen=0.5) -->\n'
         f'  <line x1="200" y1="60" x2="200" y2="260" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,4"/>\n'

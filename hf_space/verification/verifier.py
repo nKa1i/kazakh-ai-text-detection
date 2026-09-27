@@ -262,17 +262,17 @@ class TrustworthyDocumentVerifier:
         composite_trust = math.sqrt(0.5 * (max(0.0, t_fact) ** 2 + t_gen ** 2))
         composite_trust = max(0.0, min(1.0, float(composite_trust)))
 
-        # Four-Quadrant Classification:
-        # Q1: T_fact > 0 and T_gen >= 0.5 ("Verified Human Fact")
-        # Q2: T_fact <= 0 and T_gen >= 0.5 ("Human Misinformation")
-        # Q3: T_fact > 0 and T_gen < 0.5 ("Accurate AI Synthesis")
-        # Q4: T_fact <= 0 and T_gen < 0.5 ("Hallucinatory AI Disinformation")
+        # Four-Quadrant Classification (Standard Cartesian Counter-Clockwise):
+        # Q1: T_fact > 0 and T_gen >= 0.5 ("Verified Human Fact", Upper-Right)
+        # Q2: T_fact <= 0 and T_gen >= 0.5 ("Human Misinformation", Upper-Left)
+        # Q3: T_fact <= 0 and T_gen < 0.5 ("Hallucinatory AI Disinformation", Lower-Left)
+        # Q4: T_fact > 0 and T_gen < 0.5 ("Accurate AI Synthesis", Lower-Right)
         if not verification_results:
             if t_gen >= 0.5:
                 quadrant_code = "Q1"
                 quadrant_verdict = "Verified Human Fact"
             else:
-                quadrant_code = "Q3"
+                quadrant_code = "Q4"
                 quadrant_verdict = "Accurate AI Synthesis"
         else:
             if t_fact > 0.0:
@@ -280,14 +280,14 @@ class TrustworthyDocumentVerifier:
                     quadrant_code = "Q1"
                     quadrant_verdict = "Verified Human Fact"
                 else:
-                    quadrant_code = "Q3"
+                    quadrant_code = "Q4"
                     quadrant_verdict = "Accurate AI Synthesis"
             else:
                 if t_gen >= 0.5:
                     quadrant_code = "Q2"
                     quadrant_verdict = "Human Misinformation"
                 else:
-                    quadrant_code = "Q4"
+                    quadrant_code = "Q3"
                     quadrant_verdict = "Hallucinatory AI Disinformation"
 
         return DocumentTrustResult(

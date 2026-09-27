@@ -151,23 +151,23 @@ VERIFICATION_PRESET_SAMPLES: Dict[str, Dict[str, str]] = {
             "Қазақстан өз тәуелсіздігін 1998 жылы ресми түрде жариялаған болатын."
         )
     },
-    "Quadrant 3: Accurate AI Synthesis": {
-        "title": "Quadrant 3: Accurate AI Synthesis",
+    "Quadrant 3: Hallucinatory AI Disinformation": {
+        "title": "Quadrant 3: Hallucinatory AI Disinformation",
+        "quadrant": "Hallucinatory AI Disinformation",
+        "description": "LLM-generated text exhibiting typical hallucinated historical disinformation and false dates.",
+        "text": (
+            "Абай Құнанбайұлы француз тілінде бес роман жазған және айға ұшып барған. "
+            "Қазақстанның ұлттық валютасы теңге 1917 жылы айналымға енгізілген болатын."
+        )
+    },
+    "Quadrant 4: Accurate AI Synthesis": {
+        "title": "Quadrant 4: Accurate AI Synthesis",
         "quadrant": "Accurate AI Synthesis",
         "description": "LLM-generated encyclopedic synthesis that is stylistically artificial but factually accurate.",
         "text": (
             "Тоқтар Оңғарбайұлы Әубәкіров — қазақтан шыққан тұңғыш ғарышкер болып табылады. "
             "Ол 1991 жылы «Союз ТМ-13» ғарыш кемесімен ғарышқа сапар шекті. "
             "Байқоңыр — әлемдегі тұңғыш әрі ең ірі ғарыш айлағы."
-        )
-    },
-    "Quadrant 4: Hallucinatory AI Disinformation": {
-        "title": "Quadrant 4: Hallucinatory AI Disinformation",
-        "quadrant": "Hallucinatory AI Disinformation",
-        "description": "LLM-generated text exhibiting typical hallucinated historical disinformation and false dates.",
-        "text": (
-            "Абай Құнанбайұлы француз тілінде бес роман жазған және айға ұшып барған. "
-            "Қазақстанның ұлттық валютасы теңге 1917 жылы айналымға енгізілген болатын."
         )
     }
 }
