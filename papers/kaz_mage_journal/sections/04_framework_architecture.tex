@@ -9,6 +9,104 @@ To address the coupled challenges of subword token inflation, multi-domain gener
     \item \textbf{Morphological NLI Cross-Encoder \& 2D Trust Matrix}: Conditioning veracity predictions on a 16-dimensional morphological diagnostic vector and mapping outputs to continuous Cartesian epistemic quadrants.
 \end{enumerate}
 
+\begin{figure*}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{
+\begin{tikzpicture}[
+    >=Latex,
+    node distance=0.8cm and 0.9cm,
+    font=\small,
+    box/.style={rectangle, draw=gray!70, fill=white, rounded corners=4pt, minimum width=2.5cm, minimum height=0.9cm, align=center, line width=0.7pt},
+    inbox/.style={box, fill=blue!10, draw=blue!60, font=\small\bfseries},
+    fststyle/.style={box, fill=teal!10, draw=teal!60},
+    encstyle/.style={box, fill=blue!5, draw=blue!50},
+    gatestyle/.style={box, fill=purple!10, draw=purple!60, font=\small\bfseries},
+    retstyle/.style={box, fill=orange!10, draw=orange!60},
+    nlistyle/.style={box, fill=teal!10, draw=teal!70},
+    headstyle/.style={box, fill=cyan!10, draw=cyan!70, font=\small\bfseries},
+    matrixstyle/.style={box, fill=purple!15, draw=purple!80, font=\small\bfseries, minimum height=1.3cm},
+    panel/.style={rectangle, draw=gray!30, fill=gray!2, rounded corners=6pt, line width=0.6pt, inner sep=8pt},
+    panellabel/.style={font=\bfseries\footnotesize, text=gray!80, anchor=north west},
+    arr/.style={->, line width=0.8pt, draw=gray!70},
+    darr/.style={->, line width=0.8pt, draw=blue!70},
+    tarr/.style={->, line width=0.8pt, draw=teal!70},
+    narr/.style={->, line width=0.8pt, draw=purple!70}
+]
+
+% Input
+\node[inbox] (input) at (0, 2.5) {Input Text / Claim $x$\\$(w_1, \dots, w_n)$};
+
+% Upper Subsystem: AI Detection & Representation
+\node[box, fill=gray!8, right=1.0cm of input, yshift=1.4cm] (raw_tok) {Surface Tokenizer\\(BPE / SentencePiece)};
+\node[fststyle, right=1.0cm of input, yshift=-0.2cm] (fst_eng) {83-Rule FST Engine\\Morpheme Boundary Split};
+
+\node[encstyle, right=0.8cm of raw_tok] (enc_raw) {Encoder$_\theta(x_{\text{raw}})$\\$\mathbf{H}_{\text{raw}} \in \mathbb{R}^{L_1 \times d}$};
+\node[encstyle, right=0.8cm of fst_eng] (enc_fst) {Encoder$_\phi(x_{\text{fst}})$\\$\mathbf{H}_{\text{fst}} \in \mathbb{R}^{L_2 \times d}$};
+
+\node[gatestyle, right=0.8cm of $(enc_raw)!0.5!(enc_fst)$] (gate) {Cross-Stream Attention\\Dynamic Gate $\mathbf{g} \in [0, 1]^d$\\$\mathbf{h}_{\text{fused}} = \mathbf{g}\odot\mathbf{u} + (\mathbf{1}-\mathbf{g})\odot\mathbf{v}$};
+
+\node[box, fill=blue!8, draw=blue!60, right=0.8cm of gate, yshift=0.8cm] (supcon) {Hyperspherical SupCon\\$\mathbf{z} \in \mathbb{S}^{127} \subset \mathbb{R}^{128}$\\Multi-Gen Regularization};
+\node[headstyle, right=0.8cm of gate, yshift=-0.8cm] (det_head) {Binary Detection Head\\$\hat{\mathbf{y}}_{\text{det}} = \mathrm{softmax}(\mathbf{W}_c\mathbf{h} + \mathbf{b})$\\$T_{\text{gen}} \in [0, 1]$};
+
+% Lower Subsystem: Retrieval & Fact Verification
+\node[retstyle, below=3.6cm of input] (corpus) {Knowledge Base $\mathcal{E}$\\$\sim$250K Passages};
+\node[retstyle, right=1.0cm of corpus] (hybrid_ret) {Hybrid Retrieval\\Stemmed BM25 + mContriever\\Reciprocal Rank Fusion};
+\node[nlistyle, right=0.8cm of hybrid_ret] (evidence) {Candidate Evidence\\Top-$k$ Contexts $E$};
+
+\node[nlistyle, right=0.8cm of evidence, yshift=0.7cm] (nli_cross) {Cross-Encoder $[c; E]$\\Contextual $\mathbf{h}_{[\text{CLS}]}$};
+\node[fststyle, right=0.8cm of evidence, yshift=-0.7cm] (affix_ext) {16-D Affix Extractor\\$\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$};
+
+\node[headstyle, right=0.8cm of $(nli_cross)!0.5!(affix_ext)$] (nli_head) {Class-Weighted NLI Head\\$[\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}] \to \hat{\mathbf{y}}_{\text{nli}}$\\$T_{\text{fact}} \in [-1, +1]$};
+
+% Right Subsystem: 2D Trust Matrix & Decision
+\node[matrixstyle, right=1.0cm of $(det_head)!0.5!(nli_head)$] (trust_matrix) {Continuous 2D Trust Matrix\\
+\footnotesize $\mathcal{T}(x) = \sqrt{\frac{1}{2}(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2)}$\\[4pt]
+\scriptsize
+\begin{tabular}{c|c}
+Q2: Human Misinfo & Q1: Verified Fact \\
+\hline
+Q3: AI Disinfo & Q4: Accurate AI
+\end{tabular}
+};
+
+% Connecting Arrows Upper
+\draw[arr] (input.east) -- ++(0.5,0) |- (raw_tok.west);
+\draw[arr] (input.east) -- ++(0.5,0) |- (fst_eng.west);
+\draw[darr] (raw_tok) -- (enc_raw);
+\draw[tarr] (fst_eng) -- (enc_fst);
+\draw[darr] (enc_raw.east) -- ++(0.3,0) |- (gate.west);
+\draw[tarr] (enc_fst.east) -- ++(0.3,0) |- (gate.west);
+\draw[narr] (gate.east) -- ++(0.3,0) |- (supcon.west);
+\draw[narr] (gate.east) -- ++(0.3,0) |- (det_head.west);
+
+% Connecting Arrows Lower
+\draw[arr] (input.south) -- ++(0,-1.5) -| (hybrid_ret.north);
+\draw[arr] (corpus) -- (hybrid_ret);
+\draw[arr] (hybrid_ret) -- (evidence);
+\draw[arr] (evidence.east) -- ++(0.3,0) |- (nli_cross.west);
+\draw[arr] (evidence.east) -- ++(0.3,0) |- (affix_ext.west);
+\draw[narr] (nli_cross.east) -- ++(0.3,0) |- (nli_head.west);
+\draw[narr] (affix_ext.east) -- ++(0.3,0) |- (nli_head.west);
+
+% Joint Arrows to Trust Matrix
+\draw[darr] (det_head.east) -- ++(0.5,0) |- ([yshift=4pt]trust_matrix.west) node[midway, above, font=\scriptsize] {$T_{\text{gen}}$};
+\draw[narr] (nli_head.east) -- ++(0.5,0) |- ([yshift=-4pt]trust_matrix.west) node[midway, below, font=\scriptsize] {$T_{\text{fact}}$};
+
+% Background Panels
+\begin{scope}[on background layer]
+\node[panel, fit=(raw_tok)(enc_raw)(fst_eng)(enc_fst)(gate)(supcon)(det_head)] (panel_det) {};
+\node[panellabel] at (panel_det.north west) {Module 1 \& 2: Dual-Stream FST Gated Detector \& Supervised Contrastive Regularization};
+
+\node[panel, fit=(corpus)(hybrid_ret)(evidence)(nli_cross)(affix_ext)(nli_head)] (panel_ver) {};
+\node[panellabel] at (panel_ver.north west) {Module 3 \& 4: Hybrid Morpheme Retrieval \& 16-D Morphological NLI Verifier};
+\end{scope}
+
+\end{tikzpicture}
+}
+\caption{Architectural overview of our unified, morphologically-grounded framework. \textbf{Upper}: Dual-stream transformer encoders process raw surface tokens and FST-segmented morpheme sequences, dynamically fused via cross-stream gating and regularized by multi-generator contrastive learning ($\mathbb{S}^{127}$ hypersphere) to predict generation probability $T_{\text{gen}}$. \textbf{Lower}: Morphologically-stemmed hybrid retrieval extracts candidate evidence passages, followed by a 16-dimensional morphological diagnostic cross-encoder computing factuality score $T_{\text{fact}}$. \textbf{Right}: Joint continuous evaluation in the 2D Cartesian Trust Matrix maps claims to epistemic risk quadrants (Q1--Q4).}
+\label{fig:framework_overview}
+\end{figure*}
+
 \subsection{Dual-Stream FST Gated Fusion Network}
 \label{sec:dual_stream_fusion}
 Standard subword tokenizers (e.g., SentencePiece, BPE) split inflected Kazakh words into arbitrary byte fragments, destroying grammatical affix markers and inflating sequence lengths by up to 300\% on short texts. Rather than discarding pretrained transformer parameters or relying exclusively on rigid rule-based segmentation, our architecture implements a dual-stream representation mechanism.
