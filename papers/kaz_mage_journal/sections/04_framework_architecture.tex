@@ -1,74 +1,190 @@
 \section{Unified Framework Architecture}
 \label{sec:framework_architecture}
 
-To address the coupled challenges of subword token inflation, multi-domain generator shift, and ungrounded factual hallucinations, we introduce a unified, morphologically-grounded neural architecture. The framework integrates four coordinated modules: (1) Dual-Stream FST Gated Fusion for text classification, (2) Multi-Generator Supervised Contrastive Representation Learning, (3) Morpheme-Aware Hybrid Evidence Retrieval, and (4) the Continuous 2D Trust Matrix.
+To address the coupled challenges of subword token inflation, multi-domain generator shift, and ungrounded factual hallucinations in agglutinative languages, we introduce a unified, morphologically-grounded neural architecture. The framework integrates four coordinated, interdependent modules:
+\begin{enumerate}
+    \item \textbf{Dual-Stream FST Gated Fusion}: Jointly modeling raw contextual text and explicit morpheme-boundary sequences.
+    \item \textbf{Multi-Generator Supervised Contrastive Learning}: Regularizing representations within a normalized $\mathbb{R}^{128}$ hypersphere to prevent generator-specific overfitting.
+    \item \textbf{Hybrid Morpheme-Stemmed Evidence Retrieval}: Coupling finite-state stemmed sparse search with dense multilingual representations.
+    \item \textbf{Morphological NLI Cross-Encoder \& 2D Trust Matrix}: Conditioning veracity predictions on a 16-dimensional morphological diagnostic vector and mapping outputs to continuous Cartesian epistemic quadrants.
+\end{enumerate}
 
 \subsection{Dual-Stream FST Gated Fusion Network}
-Rather than discarding pretrained transformer parameters or relying solely on rule-based pre-segmentation, our architecture adopts a dual-stream representation strategy. 
+\label{sec:dual_stream_fusion}
+Standard subword tokenizers (e.g., SentencePiece, BPE) split inflected Kazakh words into arbitrary byte fragments, destroying grammatical affix markers and inflating sequence lengths by up to 300\% on short texts. Rather than discarding pretrained transformer parameters or relying exclusively on rigid rule-based segmentation, our architecture implements a dual-stream representation mechanism.
 
-Let an input text $x = (w_1, \dots, w_n)$ be processed into two parallel streams: the raw surface sequence $x_{\text{raw}}$ and the FST-segmented sequence $x_{\text{fst}} = \mathrm{FST}(x)$. Both streams are projected into contextual representations via a shared or dual transformer backbone:
+Let an input text $x = (w_1, w_2, \dots, w_n)$ be processed into two complementary views: the raw surface sequence $x_{\text{raw}}$ and the linguistically segmented sequence $x_{\text{fst}} = \mathrm{FST}(x)$, where our 83-rule Finite-State Transducer (Section~\ref{sec:linguistic_foundation}) has decoupled stems from inflectional and derivational affix chains. Both sequences are mapped into contextual representations via parallel transformer encoders:
 \begin{align}
+\label{eq:encoder_streams}
 \mathbf{H}_{\text{raw}} &= \mathrm{Encoder}_{\theta}(x_{\text{raw}}) \in \mathbb{R}^{L_1 \times d} \\
 \mathbf{H}_{\text{fst}} &= \mathrm{Encoder}_{\phi}(x_{\text{fst}}) \in \mathbb{R}^{L_2 \times d}
 \end{align}
-Pooled sentence representations $\mathbf{u} = \mathbf{h}_{\text{raw}, [\text{CLS}]}$ and $\mathbf{v} = \mathbf{h}_{\text{fst}, [\text{CLS}]}$ are combined through a learned gating mechanism:
-\begin{align}
-\mathbf{g} &= \sigma(\mathbf{W}_g [\mathbf{u}; \mathbf{v}] + \mathbf{b}_g) \\
-\mathbf{h}_{\text{fused}} &= \mathbf{g} \odot \mathbf{u} + (1 - \mathbf{g}) \odot \mathbf{v}
-\end{align}
-where $\sigma$ is the sigmoid function, $\odot$ denotes elementwise multiplication, and $\mathbf{W}_g \in \mathbb{R}^{d \times 2d}$ is a learnable gating projection. This enables the network to dynamically rely on subword contextual fluency for long formal passages while activating explicit morphological root-affix boundaries on short, highly inflected texts.
+where $L_1$ and $L_2$ denote the respective tokenized sequence lengths, $d$ is the hidden dimensionality ($d = 768$ for base models), and the encoders $\mathrm{Encoder}_{\theta}$ and $\mathrm{Encoder}_{\phi}$ may either share weights or maintain separate parameterizations.
 
-\subsection{Multi-Generator Contrastive Learning Objective}
-To prevent supervised detectors from memorizing idiosyncratic generator tokens or surface formatting quirks, we introduce a multi-generator contrastive training objective. In a training minibatch of $2B$ samples consisting of human texts and synthetic generations from diverse LLMs (Sherkala-7B, LLaMA-2, GPT-4, and PaLM-2 variants), the total training objective balances standard cross-entropy classification and supervised contrastive loss:
+To allow reciprocal information exchange across linguistic representations, we compute cross-stream multi-head attention between the surface sequence and the morphological stream:
 \begin{equation}
-\label{eq:total_contrastive_loss}
-\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{CE}} + \lambda_{\text{con}} \mathcal{L}_{\text{SupCon}}
+\label{eq:cross_stream_attn}
+\mathbf{C}_{\text{raw} \leftarrow \text{fst}} = \mathrm{softmax}\left(\frac{(\mathbf{H}_{\text{raw}} \mathbf{W}_Q) (\mathbf{H}_{\text{fst}} \mathbf{W}_K)^{\top}}{\sqrt{d_k}}\right) (\mathbf{H}_{\text{fst}} \mathbf{W}_V)
 \end{equation}
-where $\mathcal{L}_{\text{CE}}$ is the cross-entropy classification loss, and $\mathcal{L}_{\text{SupCon}}$~\citep{khosla2020supervised} pulls representations of texts sharing the same class label (human vs. machine) together while repelling dissimilar pairs regardless of the originating generator architecture:
+where $\mathbf{W}_Q, \mathbf{W}_K, \mathbf{W}_V \in \mathbb{R}^{d \times d_k}$ are projection matrices with $d_k = d / h$ across $h$ attention heads.
+
+Pooled sentence-level representations $\mathbf{u} = \mathbf{h}_{\text{raw}, [\text{CLS}]} \in \mathbb{R}^d$ and $\mathbf{v} = \mathbf{h}_{\text{fst}, [\text{CLS}]} \in \mathbb{R}^d$ are subsequently fused via a learned, content-dependent gating mechanism:
+\begin{align}
+\label{eq:gating_equation}
+\mathbf{g} &= \sigma\left(\mathbf{W}_g [\mathbf{u}; \mathbf{v}] + \mathbf{b}_g\right) \in [0, 1]^d \\
+\label{eq:fused_representation}
+\mathbf{h}_{\text{fused}} &= \mathbf{g} \odot \mathbf{u} + (\mathbf{1} - \mathbf{g}) \odot \mathbf{v} \in \mathbb{R}^d
+\end{align}
+where $\sigma$ denotes the elementwise sigmoid function, $\odot$ represents the Hadamard product, $\mathbf{W}_g \in \mathbb{R}^{d \times 2d}$ is a trainable projection tensor, and $\mathbf{b}_g \in \mathbb{R}^d$ is a bias vector. 
+
+The gating vector $\mathbf{g}$ functions as a dynamic linguistic arbiter: for long formal passages characterized by standard syntax, the gate weights the surface contextual stream $\mathbf{u}$ heavily; conversely, for brief, colloquial, or heavily inflected inputs where subword token inflation is severe, $\mathbf{g}$ routes gradient flow toward the regularized morphological stream $\mathbf{v}$. For binary generative text detection (human vs.\ machine), the fused vector is projected to prediction logits:
+\begin{equation}
+\label{eq:detection_head}
+\hat{\mathbf{y}}_{\text{det}} = \mathrm{softmax}\left(\mathbf{W}_c \mathbf{h}_{\text{fused}} + \mathbf{b}_c\right) \in \mathbb{R}^2
+\end{equation}
+where $\mathbf{W}_c \in \mathbb{R}^{2 \times d}$ and $\mathbf{b}_c \in \mathbb{R}^2$.
+
+\subsection{Multi-Generator Supervised Contrastive Learning in Normalized Hypersphere}
+\label{sec:contrastive_learning}
+Supervised binary detectors trained exclusively on cross-entropy loss tend to memorize surface idiosyncratic tokens of the specific generator seen during training (e.g., lexical preferences of Sherkala-7B), leading to catastrophic failure when confronted with unseen generative architectures such as Qwen-2.5-7B or GPT-4. To enforce generator-invariant feature representations, we incorporate supervised contrastive learning~\citep{khosla2020supervised} within a multi-generator training regime.
+
+Given a fused contextual embedding $\mathbf{h}_{\text{fused}, i}$, a two-layer non-linear projection head $g_\psi(\cdot)$ maps the representation into a low-dimensional hyperspherical subspace:
+\begin{equation}
+\label{eq:projection_head}
+\mathbf{z}_i = \frac{g_\psi(\mathbf{h}_{\text{fused}, i})}{\|g_\psi(\mathbf{h}_{\text{fused}, i})\|_2} \in \mathbb{S}^{m-1} \subset \mathbb{R}^{128}
+\end{equation}
+where $g_\psi(\mathbf{h}) = \mathbf{W}_2 \mathrm{ReLU}(\mathbf{W}_1 \mathbf{h} + \mathbf{b}_1) + \mathbf{b}_2$ with $\mathbf{W}_1 \in \mathbb{R}^{d \times d}$, $\mathbf{W}_2 \in \mathbb{R}^{128 \times d}$, and $\mathbb{S}^{127}$ denotes the unit hypersphere in $\mathbb{R}^{128}$.
+
+Within a multi-generator training minibatch of size $2B$ comprising human texts and synthetic samples generated across multiple LLM families (Sherkala-7B, Qwen-2.5-7B, LLaMA-2/3, PaLM-2, and GPT-4), the supervised contrastive loss $\mathcal{L}_{\text{SupCon}}$ pulls representations of texts sharing the same class label (human vs.\ machine) into compact geometric clusters while repelling dissimilar samples:
 \begin{equation}
 \label{eq:supcon_formula}
 \mathcal{L}_{\text{SupCon}} = \sum_{i \in I} \frac{-1}{|P(i)|} \sum_{p \in P(i)} \log \frac{\exp(\mathbf{z}_i \cdot \mathbf{z}_p / \tau)}{\sum_{a \in A(i)} \exp(\mathbf{z}_i \cdot \mathbf{z}_a / \tau)}
 \end{equation}
-Here, $\mathbf{z}_i = \mathrm{Proj}(\mathbf{h}_{\text{fused}, i}) / \|\mathrm{Proj}(\mathbf{h}_{\text{fused}, i})\|_2$ represents the normalized projection head embedding, $P(i)$ is the index set of all positive samples sharing class label $y_i$, $A(i) = I \setminus \{i\}$, and $\tau = 0.07$ is the temperature hyperparameter. This objective enforces domain-invariant separation between human and synthetic distributions.
+where $I \equiv \{1, \dots, 2B\}$ indexes the multiview batch, $A(i) \equiv I \setminus \{i\}$, $P(i) \equiv \{p \in A(i) : y_p = y_i\}$ denotes the set of indices sharing gold class label $y_i$, and $\tau = 0.07$ is the temperature scaling hyperparameter.
 
-\subsection{Hybrid Morpheme-Stemmed Evidence Retrieval}
-For evidence-grounded fact checking over an open corpus $\mathcal{E}$, candidate evidence passages are retrieved via a dual-stage hybrid index combining morpheme-stemmed BM25 with dense contrastive representations (\textsc{mContriever})~\citep{izacard2021contriever}. 
-
-Given claim $c$ and passage $e$, Kazakh morphological roots $c_{\text{morph}}$ and $e_{\text{morph}}$ are matched via sparse scoring:
+The complete training objective balances classification cross-entropy and hyperspherical contrastive regularization:
 \begin{equation}
+\label{eq:total_contrastive_loss}
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{CE}} + \lambda_{\text{con}} \mathcal{L}_{\text{SupCon}}
+\end{equation}
+where $\lambda_{\text{con}} = 0.5$ is a balancing coefficient. By penalizing generator-specific clustering and rewarding class-consistent alignment, this objective constructs a smooth, domain-invariant representation space.
+
+\subsection{Hybrid Morpheme-Stemmed Evidence Retrieval Pipeline}
+\label{sec:hybrid_retrieval}
+To verify claims against an open-domain knowledge corpus $\mathcal{E}$ containing $N \approx 250,000$ passages, standard sparse keyword matching (BM25) degrades severely in Kazakh due to the morphological divergence of inflected query words from corpus passages. Conversely, multilingual dense retrievers often struggle with exact proper names and numerical entities in low-resource settings.
+
+We overcome this dilemma via a dual-stage hybrid retrieval pipeline combining morpheme-stemmed sparse indexing with dense contrastive representations (\textsc{mContriever})~\citep{izacard2021contriever}.
+
+\paragraph{Morpheme-Stemmed Sparse Retrieval}
+Each query claim $c$ and corpus passage $e \in \mathcal{E}$ is processed through the 83-rule FST stemmer to strip inflectional affixes while preserving canonical dictionary stems, producing stemmed sequences $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score is computed over these stemmed representations:
+\begin{equation}
+\label{eq:bm25_formula}
 S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morph}}} \mathrm{IDF}(t) \cdot \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
 \end{equation}
-In parallel, dense representations $\mathbf{h}_c, \mathbf{h}_e \in \mathbb{R}^d$ compute semantic similarity $\cos(\mathbf{h}_c, \mathbf{h}_e)$. Top candidates are synthesized via Reciprocal Rank Fusion (RRF)~\citep{karpukhin2020dpr}:
+where $f(t, e_{\text{morph}})$ is the term frequency of stem $t$ in passage $e$, $\mathrm{avgdl}$ is the average document length across $\mathcal{E}$, $k_1 = 1.5$, and $b = 0.75$.
+
+\paragraph{Dense Contrastive Semantic Retrieval}
+Concurrently, the unstemmed surface texts $c$ and $e$ are projected into $d$-dimensional semantic vectors using the pretrained multilingual contrastive encoder \textsc{mContriever}:
+\begin{equation}
+\label{eq:dense_retrieval}
+\mathbf{h}_c = \mathrm{Encoder}_{\text{dense}}(c), \quad \mathbf{h}_e = \mathrm{Encoder}_{\text{dense}}(e) \in \mathbb{R}^d
+\end{equation}
+Dense retrieval similarity is given by the cosine inner product $S_{\text{dense}}(c, e) = \cos(\mathbf{h}_c, \mathbf{h}_e)$.
+
+\paragraph{Reciprocal Rank Fusion}
+To combine sparse and dense ranking lists without requiring costly score normalization, we synthesize top candidate passages via Reciprocal Rank Fusion (RRF)~\citep{karpukhin2020dpr}:
 \begin{equation}
 \label{eq:rrf_fusion}
 \mathrm{RRF}(c, e) = \sum_{m \in \{\text{BM25}, \text{Dense}\}} \frac{1}{k_0 + r_m(c, e)}
 \end{equation}
-yielding candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
+where $r_m(c, e)$ denotes the rank order of passage $e$ under retriever $m$, and $k_0 = 60$ is a rank smoothing parameter. The top-$k$ retrieved passages are concatenated to form the candidate evidence passage $E = \{e_{(1)}, \dots, e_{(k)}\}$.
 
-\subsection{Morphological NLI Cross-Encoder}
-Given claim $c$ and candidate evidence $E$, veracity stance is predicted by an NLI cross-encoder enhanced with an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$:
+\subsection{Morphological NLI Cross-Encoder and Diagnostic Vector}
+\label{sec:morpho_nli}
+Given claim $c$ and retrieved evidence passage $E$, the verification engine must assign a categorical stance label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
+
+Standard cross-encoders feed the tokenized sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ into a pretrained transformer backbone to extract the contextual representation $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$. However, when candidate evidence shares substantial surface vocabulary with a refuted or ungrounded claim, standard self-attention mechanisms often fall victim to lexical overlap shortcuts~\citep{schuster2019fever}. To immunize the classifier against superficial heuristics, we extract an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$.
+
+\paragraph{The 16-Dimensional Morphological Diagnostic Extractor}
+The vector $\mathbf{m}_{\text{affix}} \in [0, 1]^{16}$ captures fine-grained morphosyntactic, temporal, and semantic alignment properties across five functional tiers:
+\begin{enumerate}
+    \item \textbf{Polarity and Verbal Negation Alignment ($m_0, m_1, m_2$)}: Indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}), negative past participles (\textit{-маған/-меген}), present-future negative forms (\textit{-майды/-мейді}), and negative copular particles (\textit{емес, жоқ}). Dimension $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$ captures directional negation mismatch (XOR), acting as an explicit contradiction trigger when topical overlap is high.
+    \item \textbf{Temporal and Numerical Conflict Detection ($m_3, m_4$)}: Feature $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects calendar year conflicts, triggering when the extracted sets of 4-digit calendar years $\mathcal{Y}_c$ and $\mathcal{Y}_e$ are non-empty and disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$). Feature $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative numerical mismatches where numerical quantities in $c$ are absent from $E$.
+    \item \textbf{Evidentiality and Epistemic Modality ($m_5, m_6, m_7, m_8$)}: Features $m_5$ and $m_6$ detect indirect inferential evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$ respectively, separating non-witnessed hearsay from direct witnessed past assertions (\textit{-ды/-ді}). Features $m_7$ and $m_8$ identify modal necessity operators (\textit{керек, тиіс, қажет, міндетті}) and modal possibility operators (\textit{мүмкін, ықтимал}), distinguishing factual certainty from hypothetical qualification.
+    \item \textbf{Morphological Root vs.\ Surface Overlap ($m_9, m_{10}, m_{11}$)}: Using our 83-rule FST analyzer, we extract canonical dictionary root sets $\mathcal{R}_c, \mathcal{R}_e$ and surface word token sets $\mathcal{S}_c, \mathcal{S}_e$. Dimension $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$ computes FST root Jaccard similarity, while $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$ measures raw surface overlap. Dimension $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$ quantifies morphological divergence, signaling cases where agglutinative inflectional masking conceals shared semantic roots.
+    \item \textbf{Syntactic Agreement and Length Normalization ($m_{12}, m_{13}, m_{14}, m_{15}$)}: Dimension $m_{12} = s_{\text{match}} \in \{0, 1\}$ indicates whether the primary grammatical subject proper noun in $c$ is grounded in $E$. Dimension $m_{13} = J_{\text{case}}$ measures Jaccard root agreement specifically across tokens bearing nominal case inflections (genitive, dative, accusative, locative, ablative). Finally, $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize claim and evidence sequence lengths.
+\end{enumerate}
+
+\paragraph{Fused Classification and Class-Weighted Loss}
+The pooled contextual embedding $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$ and the morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ are concatenated and projected to stance logits:
 \begin{equation}
-\label{eq:journal_nli}
-P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v [\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}] + \mathbf{b}_v\right)
+\label{eq:nli_verifier}
+P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v \left[\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}\right] + \mathbf{b}_v\right)
 \end{equation}
-where $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$. As detailed in Section~\ref{sec:linguistic_foundation}, $\mathbf{m}_{\text{affix}}$ explicitly encodes verbal negation mismatch ($\Delta_{\text{neg}}$), calendar year divergence ($\Delta_{\text{year}}$), evidential past markers (\textit{-ыпты/-іпті}), and FST root Jaccard similarity ($J_{\text{root}}$), immunizing the classifier against lexical overlap shortcuts.
+where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ is a trainable projection matrix and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector.
 
-\subsection{Continuous 2D Trust Matrix Formulation}
-We map model outputs into a continuous two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$ parameterized by:
-\begin{align}
-T_{\text{fact}} &= P(y = \textsc{Supported} \mid c, E) - P(y = \textsc{Refuted} \mid c, E) \in [-1, 1] \\
-T_{\text{gen}} &= 1 - P(\text{AI-Generated} \mid c) \in [0, 1]
-\end{align}
-The Cartesian plane is partitioned into four operational risk quadrants:
+To counteract class imbalance in the fact verification benchmark ($N_{\textsc{Sup}} = 274$, $N_{\textsc{Ref}} = 154$, $N_{\textsc{NEI}} = 210$ across the 638 training pairs), the verifier is trained using a normalized class-weighted cross-entropy loss:
+\begin{equation}
+\label{eq:class_weighted_loss}
+\mathcal{L}_{\text{NLI}} = - \sum_{k=1}^3 w_k \cdot y_k \log P(y = k \mid c, E)
+\end{equation}
+where $y_k \in \{0, 1\}$ denotes the gold one-hot label indicator for class $k$, and $w_k$ is the normalized inverse-frequency class weight:
+\begin{equation}
+\label{eq:class_weights}
+w_k = 3 \cdot \frac{N_k^{-1}}{\sum_{j=1}^3 N_j^{-1}}
+\end{equation}
+scaled such that $\sum_{k=1}^3 w_k = 3.0$. For our training distribution, this yields exact weights $w_{\textsc{Sup}} = 0.735$, $w_{\textsc{Ref}} = 1.307$, and $w_{\textsc{NEI}} = 0.958$. This weighting prevents majority-class collapse onto \textsc{Supported} and penalizes false certainty on \textsc{Not Enough Info} (Hard NEI), directly enforcing calibrated epistemic restraint.
+
+\paragraph{Differential Optimization Scheme}
+To preserve pretrained linguistic encodings while allowing the newly initialized classification head to adapt rapidly, we parameterize optimization using differential learning rates:
+\begin{equation}
+\label{eq:differential_lr}
+\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \quad \text{lr}_{\text{head}} = 2 \times 10^{-4}
+\end{equation}
+assigning a $10\times$ higher learning rate to the fusion projection head. Parameters are updated using AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $\lambda = 0.01$) governed by a cosine annealing learning rate scheduler with linear warmup across the first 10\% of total training steps:
+\begin{equation}
+\label{eq:cosine_schedule}
+\eta(t) = \begin{cases}
+\eta_{\text{base}} \cdot \frac{t}{T_{\text{warm}}}, & 0 \le t < T_{\text{warm}} \\
+\eta_{\text{base}} \cdot \frac{1}{2} \left(1 + \cos\left(\pi \frac{t - T_{\text{warm}}}{T_{\text{total}} - T_{\text{warm}}}\right)\right), & T_{\text{warm}} \le t \le T_{\text{total}}
+\end{cases}
+\end{equation}
+where $T_{\text{warm}} = 0.1 \cdot T_{\text{total}}$, guaranteeing stable gradient descent across epochs.
+
+\subsection{Continuous 2D Trust Matrix Cartesian Geometry}
+\label{sec:trust_matrix_formulation}
+In contemporary digital ecosystems, evaluating text authenticity cannot be treated as a one-dimensional binary classification task. An authentic human-written post may propagate dangerous health disinformation, while a machine-synthesized text from an educational assistant may deliver impeccably sourced scientific facts.
+
+To capture these orthogonal dimensions, we formulate the continuous 2D Trust Matrix, mapping model outputs into a bounded Cartesian space $\mathcal{T} = [-1, 1] \times [0, 1]$.
+
+\paragraph{Coordinate Dimensions}
+The horizontal axis represents the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$, defined as the calibrated differential between entailment and refutation posteriors:
+\begin{equation}
+\label{eq:trust_fact}
+T_{\text{fact}} = P(y = \textsc{Supported} \mid c, E) - P(y = \textsc{Refuted} \mid c, E)
+\end{equation}
+where $T_{\text{fact}} > 0$ signifies evidence-grounded verification, $T_{\text{fact}} \le 0$ denotes active refutation or uncorroborated assertion, and $T_{\text{fact}} \approx 0$ reflects neutral ambiguity (\textsc{Not Enough Info}).
+
+The vertical axis plots the \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$, reflecting the posterior probability that the claim originates from human authorship rather than machine synthesis:
+\begin{equation}
+\label{eq:trust_gen}
+T_{\text{gen}} = 1 - P(\text{AI-Generated} \mid c)
+\end{equation}
+where $P(\text{AI-Generated} \mid c)$ is produced by the dual-stream contrastive detector (Equation~\eqref{eq:detection_head}).
+
+\paragraph{Operational Cartesian Risk Quadrants}
+The continuous space $\mathcal{T}$ is partitioned into four operational risk quadrants:
 \begin{itemize}
-    \item \textbf{Verified Authentic (Quadrant I, $T_{\text{fact}} > 0, T_{\text{gen}} > 0.5$)}: High factual grounding, human authorship.
-    \item \textbf{Verified AI-Assisted (Quadrant II, $T_{\text{fact}} > 0, T_{\text{gen}} \le 0.5$)}: High factual grounding, synthetic generation.
-    \item \textbf{Unverified Human (Quadrant III, $T_{\text{fact}} \le 0, T_{\text{gen}} > 0.5$)}: Refuted/unsupported claim, human origin.
-    \item \textbf{Adversarial Hallucination (Quadrant IV, $T_{\text{fact}} \le 0, T_{\text{gen}} \le 0.5$)}: Refuted/unsupported claim, synthetic origin.
+    \item \textbf{Quadrant I (Upper Right, $T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$)}: \textit{Verified Human Ground Truth}---Factually substantiated assertions authored by humans, representing high-credibility digital content.
+    \item \textbf{Quadrant II (Upper Left, $T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$)}: \textit{Human Misinformation}---Erroneous, misleading, or refuted assertions authored by humans, requiring fact-checking interventions without false AI accusations.
+    \item \textbf{Quadrant III (Lower Left, $T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$)}: \textit{Malicious AI Hallucination}---Factually ungrounded, refuted, or fabricated assertions produced by generative LLMs, posing acute risks for automated disinformation.
+    \item \textbf{Quadrant IV (Lower Right, $T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$)}: \textit{Factual AI Synthesis}---Accurate, verified assertions synthesized by AI models, suitable for benign automated summarization or educational deployment.
 \end{itemize}
-The unified scalar Trust Metric $\mathcal{T}(x) \in [0, 1]$ computes the normalized Euclidean distance from the worst-case origin:
+
+\paragraph{Continuous Scalar Trust Metric}
+To enable automated triage and ranking across large content streams, we compute a unified scalar \textbf{Trust Metric} $\mathcal{T}(x) \in [0, 1]$ representing the normalized Euclidean distance from the worst-case origin $(0, 0)$:
 \begin{equation}
 \label{eq:scalar_trust_metric}
-\mathcal{T}(x) = \sqrt{\frac{1}{2}\left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+\mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
 \end{equation}
-enabling rigorous, continuous epistemic triage.
+This geometric formulation penalizes refuted assertions (clamping negative $T_{\text{fact}}$ to zero) and synthetic provenance, while maximizing reward strictly for corroborated, human-authored truth.

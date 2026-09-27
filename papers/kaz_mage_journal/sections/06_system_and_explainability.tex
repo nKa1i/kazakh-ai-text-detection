@@ -1,35 +1,45 @@
 \section{Interactive System and Morphological Explainability}
 \label{sec:system_and_explainability}
 
-To bridge theoretical machine learning contributions with real-world auditing workflows, we implemented and deployed an end-to-end interactive demonstration system for morphologically-grounded AI text detection and fact verification.
+To bridge theoretical machine learning contributions with real-world auditing workflows, we designed, implemented, and deployed an end-to-end interactive demonstration system for morphologically-grounded AI text detection and fact verification in Kazakh.
 
 \subsection{Production Web Deployment on Hugging Face Spaces}
-The system is implemented using Gradio and Python 3.12 and is publicly accessible on the Hugging Face Hub at \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}. The production runtime executes within an isolated container environment, delivering low-latency inference across both generative detection and fact-checking pipelines.
+The complete system is containerized and publicly hosted on the Hugging Face Hub at \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}. Developed with Gradio and Python 3.12, the production application integrates the dual-stream generative detector, the hybrid morpheme BM25 + dense mContriever retrieval engine, and the 16-dimensional morphological cross-encoder verifier into a responsive, low-latency web interface.
 
-\subsection{Real-Time 2D Trust Matrix Cartesian Plane}
-Rather than presenting opaque probability scores, the user interface visualizes predictions on an interactive two-dimensional Cartesian plane rendered via Scalable Vector Graphics (SVG):
+\subsection{Continuous 2D Trust Matrix Cartesian Plane Visualizer}
+Rather than presenting human annotators and journalists with opaque scalar confidence percentages, our system translates multi-task predictions into an intuitive two-dimensional Cartesian coordinate space $\mathcal{T} = [-1, 1] \times [0, 1]$ rendered dynamically via Scalable Vector Graphics (SVG):
 \begin{itemize}
-    \item The horizontal axis maps the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$, where values near $+1.0$ indicate verified factual support and values near $-1.0$ denote active refutation.
-    \item The vertical axis plots the \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$, where $1.0$ denotes authentic human authorship and $0.0$ signifies synthetic machine generation.
+    \item \textbf{Horizontal Axis ($T_{\text{fact}} \in [-1, 1]$)}: Represents the Factual Veracity Score, derived as the posterior differential between entailment and refutation ($P(\textsc{Supported}) - P(\textsc{Refuted})$). Positive coordinates signify evidence-grounded verification, negative coordinates denote factual refutation, and values near zero indicate epistemic ambiguity (\textsc{Not Enough Info}).
+    \item \textbf{Vertical Axis ($T_{\text{gen}} \in [0, 1]$)}: Represents the Generative Authenticity Score ($1 - P(\text{AI-Generated} \mid c)$), where coordinates approaching $1.0$ indicate authentic human authorship and coordinates approaching $0.0$ indicate synthetic machine generation.
 \end{itemize}
-The Cartesian plane is divided into four color-coded risk quadrants:
+
+\paragraph{Operational Cartesian Risk Quadrants}
+The Cartesian plane is partitioned into four distinct operational risk quadrants, each mapped to a dedicated decision rubric and visual color coding:
 \begin{enumerate}
-    \item \textbf{Verified Authentic (Upper Right)}: Green quadrant indicating high factual fidelity and authentic human provenance.
-    \item \textbf{Verified AI-Assisted (Upper Left)}: Cyan quadrant reflecting synthetic text that has been rigorously grounded in factual evidence.
-    \item \textbf{Unverified Human (Lower Right)}: Amber quadrant capturing human-written text that lacks factual corroboration or contains unverified speculation.
-    \item \textbf{Adversarial Hallucination (Lower Left)}: Crimson quadrant identifying machine-generated text containing fabricated or refuted claims.
+    \item \textbf{Quadrant I (Upper Right: $T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$)}: \textit{Verified Human Ground Truth} (Emerald green). Represents human-written texts that are corroborated by authoritative reference evidence, denoting high-integrity digital content.
+    \item \textbf{Quadrant II (Upper Left: $T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$)}: \textit{Human Misinformation} (Amber gold). Captures false, misleading, or unsupported claims produced by human writers. This distinction is critical for content moderation, ensuring that human errors or propaganda are flagged for fact-checking without generating false accusations of automated synthetic generation.
+    \item \textbf{Quadrant III (Lower Left: $T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$)}: \textit{Malicious AI Hallucination} (Crimson red). Flags ungrounded, fabricated, or refuted assertions generated by large language models, representing the most acute disinformation risk in digital media.
+    \item \textbf{Quadrant IV (Lower Right: $T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$)}: \textit{Factual AI Synthesis} (Cyan blue). Identifies verified, evidence-grounded machine-generated text, such as automated encyclopedia summaries or educational explanations.
 \end{enumerate}
-A dynamic crosshair marker plots the exact coordinate $(T_{\text{fact}}, T_{\text{gen}})$, accompanied by the scalar trust score $\mathcal{T}(x) \in [0, 1]$ computed via Equation~\eqref{eq:scalar_trust_metric}.
+
+The dynamic SVG canvas plots an interactive crosshair at coordinate $(T_{\text{fact}}, T_{\text{gen}})$, accompanied by an active HUD telemetry bar reporting the continuous scalar Trust Metric $\mathcal{T}(x) \in [0, 1]$:
+\begin{equation}
+\label{eq:journal_scalar_trust}
+\mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
+\end{equation}
+which rewards both human authenticity and factual corroboration while penalizing refuted or synthetic claims.
 
 \subsection{Dual-Model Comparative Diagnostic Mode}
-To demonstrate the concrete impact of morphological grounding, the interface includes a side-by-side comparative mode contrasting our full morphologically-grounded system (\textsc{Ours}) against an ungrounded baseline transformer (\textsc{Baseline}). The comparison clearly highlights cases where the baseline succumbs to subword token inflation on short reviews or falls into the \textsc{Hard NEI} lexical overlap shortcut trap, while our system correctly resolves the underlying semantic morphemes.
+To make the tangible advantages of morphological grounding immediately apparent to practitioners, the interface incorporates a real-time model toggle between \textit{Ours (Hybrid + Morpho)} and \textit{Baseline (Surface Only)}. 
 
-\subsection{16-Feature Morphological Diagnostic Drawer}
-For end-user explainability and linguistic auditing, the interface provides an expandable diagnostic drawer exposing the internal activations of the 16-dimensional morphological vector:
+In the baseline mode, the verification pipeline relies solely on raw subword cross-encoding without morphological feature fusion. In side-by-side comparative audits on adversarial test cases, users can directly observe how subtle suffix insertions---such as the negation infix \textit{-ме-} or the epistemic modal \textit{мүмкін}---mislead the baseline into predicting \textsc{Supported} due to high entity overlap. In contrast, our proposed system captures the morphological inflection and accurately shifts the prediction to \textsc{Refuted} or \textsc{Not Enough Info}.
+
+\subsection{16-Feature Morphological Diagnostic Drawers and Stem Highlighting}
+Beneath the primary executive trust assessment, the interface extracts all atomic claims and organizes them into a structured verification table with expandable diagnostic drawers:
 \begin{itemize}
-    \item \textbf{Stem and Root Highlighting}: Color-coded spans in the query claim and evidence passage illuminate matched morphological roots identified by the 83-rule FST analyzer, contrasting root Jaccard overlap against raw surface token overlap.
-    \item \textbf{Verbal Negation Drawer}: Displays extracted verbal polarity affixes (\textit{-ба/-бе/-па/-пе/-ма/-ме}), flagging directional negation conflicts ($\Delta_{\text{neg}}$) with explicit warning badges.
-    \item \textbf{Temporal and Calendar Resolver}: Lists all extracted 4-digit calendar years and highlights chronological discrepancies.
-    \item \textbf{Evidential and Epistemic Inspection}: Flags witnessed past suffixes (\textit{-ды/-ді}) versus non-witnessed inferential suffixes (\textit{-ыпты/-іпті}) and highlights modal certainty operators.
+    \item \textbf{Verbal Negation Drawer}: Displays extracted verbal polarity allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, \textit{-маған/-меген}) and negative copular particles (\textit{емес, жоқ}), flagging directional negation conflicts ($\Delta_{\text{neg}}$) with instant contradiction badges.
+    \item \textbf{Temporal and Numerical Conflict Resolver}: Highlights 4-digit calendar years and numeric quantities in both claim and evidence, signaling chronological or quantitative divergence ($\Delta_{\text{year}}, \Delta_{\text{num}}$).
+    \item \textbf{Evidential and Epistemic Modality Badges}: Flags indirect inferential suffixes (\textit{-ыпты/-іпті}) and modal certainty markers (\textit{керек, тиіс, қажет, мүмкін, ықтимал}), indicating speculative claims that warrant a \textsc{Not Enough Info} verdict.
+    \item \textbf{FST Root Jaccard vs.\ Surface Token Overlap}: Displays paired visual progress bars comparing finite-state morphological root similarity ($J_{\text{root}}$) against raw surface token overlap ($J_{\text{surf}}$), quantifying the inflectional divergence gap ($\Delta_{\text{div}}$).
+    \item \textbf{Real-Time Matched Stem Highlighting}: Within the evidence passage box embedded inside each diagnostic drawer, all lexical roots shared between the claim and the retrieved passage (as resolved by our 83-rule FST analyzer) are highlighted in gold. This provides immediate visual interpretability, allowing journalists and auditors to verify why a particular passage supports or refutes the claim.
 \end{itemize}
-This transparent, multi-level explainability provides domain experts, journalists, and educators with actionable epistemic justification for every classification decision.
