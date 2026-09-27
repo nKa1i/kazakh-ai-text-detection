@@ -483,18 +483,18 @@ class TestUiIntegration(unittest.TestCase):
         self.assertIn("lvl-human-misinfo", card_q2)
         self.assertIn("REFUTED", tbl_q2)
 
-        # 4. Quadrant 3: Accurate AI Synthesis
-        q3_text = get_verification_preset_text("Quadrant 3: Accurate AI Synthesis")
+        # 4. Quadrant 3: Hallucinatory AI Disinformation
+        q3_text = get_verification_preset_text("Quadrant 3: Hallucinatory AI Disinformation")
         card_q3, tbl_q3 = handle_verify_document(q3_text, lang_choice="en")
-        self.assertIn("Accurate AI Synthesis", card_q3)
-        self.assertIn("lvl-ai-synthesis", card_q3)
-        self.assertIn("SUPPORTED", tbl_q3)
+        self.assertIn("Hallucinatory AI Disinformation", card_q3)
+        self.assertIn("lvl-ai-disinfo", card_q3)
 
-        # 5. Quadrant 4: Hallucinatory AI Disinformation
-        q4_text = get_verification_preset_text("Quadrant 4: Hallucinatory AI Disinformation")
+        # 5. Quadrant 4: Accurate AI Synthesis
+        q4_text = get_verification_preset_text("Quadrant 4: Accurate AI Synthesis")
         card_q4, tbl_q4 = handle_verify_document(q4_text, lang_choice="en")
-        self.assertIn("Hallucinatory AI Disinformation", card_q4)
-        self.assertIn("lvl-ai-disinfo", card_q4)
+        self.assertIn("Accurate AI Synthesis", card_q4)
+        self.assertIn("lvl-ai-synthesis", card_q4)
+        self.assertIn("SUPPORTED", tbl_q4)
 
 
 

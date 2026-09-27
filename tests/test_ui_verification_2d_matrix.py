@@ -246,6 +246,32 @@ class TestUIVerification2DMatrix(unittest.TestCase):
         self.assertIn("Адам жазған / AI қаупі", html_kz)
         self.assertIn("Q4", html_kz)
 
+    def test_standardized_cartesian_quadrant_mappings(self):
+        """
+        Verify all 4 quadrants follow standard Cartesian counter-clockwise convention:
+        Q1 (Top-Right): Verified Human Fact (T_fact > 0, T_gen >= 0.5)
+        Q2 (Top-Left): Human Misinformation (T_fact <= 0, T_gen >= 0.5)
+        Q3 (Bottom-Left): Hallucinatory AI Disinformation (T_fact <= 0, T_gen < 0.5)
+        Q4 (Bottom-Right): Accurate AI Synthesis (T_fact > 0, T_gen < 0.5)
+        """
+        from ui.highlighting import render_2d_trust_matrix_plane
+
+        # Q1: Upper-Right
+        q1_html = render_2d_trust_matrix_plane(t_fact=0.8, t_gen=0.8, quadrant="", lang="en")
+        self.assertIn("Q1 (Verified Human Fact)", q1_html)
+
+        # Q2: Upper-Left
+        q2_html = render_2d_trust_matrix_plane(t_fact=-0.8, t_gen=0.8, quadrant="", lang="en")
+        self.assertIn("Q2 (Human Misinformation)", q2_html)
+
+        # Q3: Lower-Left
+        q3_html = render_2d_trust_matrix_plane(t_fact=-0.8, t_gen=0.2, quadrant="", lang="en")
+        self.assertIn("Q3 (Hallucinatory AI Disinformation)", q3_html)
+
+        # Q4: Lower-Right
+        q4_html = render_2d_trust_matrix_plane(t_fact=0.8, t_gen=0.2, quadrant="", lang="en")
+        self.assertIn("Q4 (Accurate AI Synthesis)", q4_html)
+
     def test_render_trust_summary_card_contains_2d_matrix(self):
         """Verify summary card embeds the 2D Cartesian SVG plane for both None and verified inputs."""
         from ui.highlighting import render_trust_summary_card
