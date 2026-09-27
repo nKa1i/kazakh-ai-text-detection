@@ -102,6 +102,8 @@ class TestDissertationCompilation(unittest.TestCase):
                 cwd=str(PROJECT_ROOT),
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 check=False,
             )
             self.assertEqual(result.returncode, 0, f"git diff failed with error: {result.stderr}")
@@ -133,11 +135,19 @@ class TestDissertationCompilation(unittest.TestCase):
 
         if needs_compile:
             cmd = ["xelatex", "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
-            res = subprocess.run(cmd, cwd=str(THESIS_DIR), capture_output=True, text=True, timeout=180)
+            res = subprocess.run(
+                cmd,
+                cwd=str(THESIS_DIR),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=180,
+            )
             self.assertEqual(
                 res.returncode,
                 0,
-                f"xelatex compilation failed with code {res.returncode}:\n{res.stdout[-1500:]}",
+                f"xelatex compilation failed with code {res.returncode}:\n{res.stdout[-1500:] if res.stdout else ''}",
             )
 
             bibtex_bin = shutil.which("bibtex")
@@ -147,12 +157,30 @@ class TestDissertationCompilation(unittest.TestCase):
                     cwd=str(THESIS_DIR),
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     timeout=60,
                 )
                 self.assertEqual(res_bib.returncode, 0, f"bibtex failed:\n{res_bib.stdout}")
 
-                subprocess.run(cmd, cwd=str(THESIS_DIR), capture_output=True, text=True, timeout=180)
-                subprocess.run(cmd, cwd=str(THESIS_DIR), capture_output=True, text=True, timeout=180)
+                subprocess.run(
+                    cmd,
+                    cwd=str(THESIS_DIR),
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=180,
+                )
+                subprocess.run(
+                    cmd,
+                    cwd=str(THESIS_DIR),
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=180,
+                )
 
         self.assertTrue(main_pdf.is_file(), f"Expected compiled PDF at {main_pdf}")
 
@@ -172,6 +200,8 @@ class TestDissertationCompilation(unittest.TestCase):
                     [pdfinfo_bin, str(main_pdf)],
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     check=False,
                 )
                 match = re.search(r"Pages:\s+(\d+)", info_res.stdout)
