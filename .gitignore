@@ -61,11 +61,29 @@ ppt_images/
 
 kaggle_runner/logs/
 
-# LaTeX build artifacts in papers/
+# LaTeX build artifacts in papers/ and thesis/
 papers/**/*.aux
 papers/**/*.bbl
 papers/**/*.blg
 papers/**/*.log
 papers/**/*.out
 papers/**/*.pdf
+thesis/**/*.aux
+thesis/**/*.bbl
+thesis/**/*.blg
+thesis/**/*.log
+thesis/**/*.out
+thesis/**/*.pdf
+thesis/**/*.toc
+thesis/**/*.lot
+thesis/**/*.lof
+thesis/*.aux
+thesis/*.bbl
+thesis/*.blg
+thesis/*.log
+thesis/*.out
+thesis/*.pdf
+thesis/*.toc
+thesis/*.lot
+thesis/*.lof
 
