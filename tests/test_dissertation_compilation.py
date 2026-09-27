@@ -95,7 +95,8 @@ class TestDissertationCompilation(unittest.TestCase):
         """Verify that aist2026/paper.tex exists and git diff against origin/main is empty."""
         aist_file = PROJECT_ROOT / "aist2026" / "paper.tex"
         self.assertTrue(aist_file.is_file(), "aist2026/paper.tex must exist")
-        try:
+        git_bin = shutil.which("git")
+        if git_bin:
             result = subprocess.run(
                 ["git", "diff", "origin/main..HEAD", "--", "aist2026/paper.tex"],
                 cwd=str(PROJECT_ROOT),
@@ -103,14 +104,12 @@ class TestDissertationCompilation(unittest.TestCase):
                 text=True,
                 check=False,
             )
-            if result.returncode == 0:
-                self.assertEqual(
-                    result.stdout.strip(),
-                    "",
-                    f"aist2026/paper.tex has unexpected git diff against origin/main: {result.stdout}",
-                )
-        except Exception:
-            pass
+            self.assertEqual(result.returncode, 0, f"git diff failed with error: {result.stderr}")
+            self.assertEqual(
+                result.stdout.strip(),
+                "",
+                f"aist2026/paper.tex has unexpected git diff against origin/main: {result.stdout}",
+            )
 
     def test_xelatex_compilation_and_pdf_integrity(self):
         """Assert XeLaTeX compilation succeeds with exit code 0, producing >= 60 page PDF."""
@@ -157,19 +156,33 @@ class TestDissertationCompilation(unittest.TestCase):
 
         self.assertTrue(main_pdf.is_file(), f"Expected compiled PDF at {main_pdf}")
 
-        # Check page count >= 60
+        # Multi-layer check for page count >= 60
+        num_pages = 0
         try:
             import pypdf
             reader = pypdf.PdfReader(str(main_pdf))
             num_pages = len(reader.pages)
         except ImportError:
-            # Fallback regex search on PDF trailer/catalog or log
-            num_pages = 0
-            if main_log.is_file():
-                log_text = main_log.read_text(encoding="utf-8", errors="ignore")
-                match = re.search(r"Output written on main\.pdf \((\d+) pages\)", log_text)
+            pass
+
+        if num_pages == 0:
+            pdfinfo_bin = shutil.which("pdfinfo")
+            if pdfinfo_bin:
+                info_res = subprocess.run(
+                    [pdfinfo_bin, str(main_pdf)],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                match = re.search(r"Pages:\s+(\d+)", info_res.stdout)
                 if match:
                     num_pages = int(match.group(1))
+
+        if num_pages == 0 and main_log.is_file():
+            log_text = main_log.read_text(encoding="utf-8", errors="ignore")
+            match = re.search(r"Output written on main\.pdf \((\d+) pages\)", log_text)
+            if match:
+                num_pages = int(match.group(1))
 
         self.assertGreaterEqual(
             num_pages,
