@@ -1,27 +1,13 @@
 \section{Linguistic Analysis and Case Studies}
 \label{sec:analysis}
 
-\subsection{Error Analysis across Kazakh Affixation Chains}
-To understand the linguistic failure modes of standard models, we analyze prediction errors across five canonical categories of Kazakh morphological constructions:
-
-\paragraph{1. Negation Suffix Interference}
-In Kazakh, verbal negation is expressed through the suffix allomorphs \textit{-ба/-бе/-па/-пе/-ма/-ме}, placed directly after the verbal root and preceding tense and person suffixes. For instance, the distinction between \textit{барған} (went) and \textit{бармаған} (did not go) is mediated by the single morpheme \textit{-ма-}. Because subword tokenizers frequently partition \textit{бармаған} into subwords that blur this boundary, pretrained encoders such as mBERT and XLM-RoBERTa frequently misclassify negative claims as \textsc{Supported} when all surrounding nominal arguments match the evidence text. Across 120 negated test instances, baseline XLM-RoBERTa exhibited an error rate of 38.3\%, whereas our morphology-aware verifier reduced this error rate to 12.5\%.
-
-\paragraph{2. Indirect Evidentiality and Epistemic Modality}
-Kazakh grammar explicitly distinguishes between directly witnessed past events (marked by \textit{-ды/-ді}) and indirect, reportative, or inferential events (marked by \textit{-ыпты/-іпті} or the particle \textit{екен}). In investigative journalism and encyclopedic texts, claims asserting direct factual certainty when the source passage expresses speculative or hearsay modality should be classified as \textsc{Not Enough Info}. Standard models universally fail to distinguish these nuances, treating evidential markers as stylistic synonyms rather than truth-conditional operators.
-
-\paragraph{3. Case-Agreement and Syntactic Role Inversion}
-Kazakh is an SOV (Subject-Object-Verb) language where grammatical relations are marked by accusative (\textit{-ны/-ні}), dative (\textit{-ға/-ге}), locative (\textit{-да/-де}), and ablative (\textit{-дан/-ден}) suffixes. When claims invert agent-patient roles while retaining the identical set of lexical stems, bag-of-words and naive dense encoders fail to identify the contradiction, whereas our model preserves case alignments through explicit morphological feature encoding.
-
-\subsection{Qualitative Case Studies}
-Table~\ref{tab:case_studies} illustrates representative examples from the Kazakh-FEVER 3K benchmark, contrasting the predictions of standard XLM-RoBERTa against our proposed system.
-
 \begin{table*}[t]
 \centering
 \small
 \caption{Qualitative case studies comparing baseline XLM-RoBERTa and our proposed system on Kazakh-FEVER 3K.}
 \label{tab:case_studies}
-\begin{tabular}{p{5.5cm}p{5.5cm}ccc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{p{5.8cm}p{5.8cm}ccc}
 \toprule
 \textbf{Evidence Passage} & \textbf{Claim} & \textbf{Gold} & \textbf{XLM-R} & \textbf{Ours} \\
 \midrule
@@ -34,47 +20,26 @@ Table~\ref{tab:case_studies} illustrates representative examples from the Kazakh
 \textit{Ахмет Байтұрсынұлы 1913 жылы «Қазақ» газетін шығаруды ұйымдастырды.} & \textit{Ахмет Байтұрсынұлы «Қазақ» газетінің барлық мақалаларын өзі ғана жазған болуы мүмкін.} & \textsc{NEI} & \textsc{Sup} & \textsc{NEI} \\
 (Akhmet Baitursynuly organized the publication of ``Qazaq'' newspaper in 1913.) & (Akhmet Baitursynuly might have written all articles of ``Qazaq'' newspaper solely by himself.) & & & \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table*}
 
-In Case 2, the claim inserts the negative suffix \textit{-ба-} and an emphatic adverb (\textit{мүлде}), inverting the polarity of the historical fact while maintaining 88\% lexical stem overlap. XLM-RoBERTa predicts \textsc{Supported} due to high attention over the named entities. Our system detects the negation affix and correctly classifies the claim as \textsc{Refuted}.
+\subsection{Error Analysis across Kazakh Affixation Chains}
+We examine linguistic failure modes across three canonical categories of Kazakh morphological constructions:
 
-In Case 3, representing the Hard NEI protocol, the claim introduces an ungrounded epistemic speculation (\textit{болуы мүмкін}) and an unverified universal quantifier (\textit{барлық ... өзі ғана}). While the baseline misjudges the heavy keyword overlap as entailment, our morphological NLI verifier identifies that the modal qualification is ungrounded in the evidence, yielding the correct \textsc{Not Enough Info} prediction.
+\noindent\textbf{1.~Negation Suffix Interference:} In Kazakh, verbal negation is mediated by unstressed allomorphs \textit{-ба/-бе/-па/-пе/-ма/-ме} directly adjacent to the verbal root (\textit{барған} [went] vs.\ \textit{бармаған} [did not go]). Subword tokenizers partition polymorphemic verbs into fragments that obscure this boundary, leading pretrained encoders to predict \textsc{Supported} when surrounding nominal arguments match evidence. Baseline XLM-RoBERTa exhibited a 38.3\% error rate across 120 negated test instances, whereas our morphology-aware verifier reduced errors to 12.5\%.
 
-\subsection{Interactive Explainability and Production Deployment}
+\noindent\textbf{2.~Indirect Evidentiality and Epistemic Modality:} Kazakh grammar marks direct witnessed past events (\textit{-ды/-ді}) distinct from indirect reportative or inferential events (\textit{-ыпты/-іпті}, particle \textit{екен}). Claims asserting direct certainty when evidence expresses speculative modality should be classified as \textsc{Not Enough Info}. Standard models treat evidential markers as stylistic variants rather than truth-conditional operators, whereas our model conditions on explicit evidential features ($m_5, m_6$).
+
+\noindent\textbf{3.~Case-Agreement and Syntactic Role Inversion:} As an SOV language, Kazakh marks grammatical relations via case suffixes: accusative (\textit{-ны/-ні}), dative (\textit{-ға/-ге}), locative (\textit{-да/-де}), and ablative (\textit{-дан/-ден}). When claims invert agent-patient roles while retaining identical stems, bag-of-words and naive dense encoders fail to detect contradiction, whereas our model preserves case alignments through explicit feature encoding ($m_{13}$).
+
+\subsection{Qualitative Case Studies}
+Table~\ref{tab:case_studies} illustrates representative examples from Kazakh-FEVER 3K. In Case 2, the claim inserts negative suffix \textit{-ба-} and emphatic adverb \textit{мүлде}, inverting polarity while maintaining 88\% lexical stem overlap. XLM-RoBERTa predicts \textsc{Supported} due to entity overlap; our system detects the negation affix and correctly predicts \textsc{Refuted}. In Case 3 (Hard NEI), the claim introduces ungrounded epistemic speculation (\textit{болуы мүмкін}) and universal quantification (\textit{барлық ... өзі ғана}). Our verifier recognizes that the modal qualification lacks evidential warrant, correctly predicting \textsc{Not Enough Info}.
+
+\subsection{Interactive Explainability and Deployment}
 \label{sec:explainability}
+To facilitate transparent auditing and human-in-the-loop verification, we deploy an interactive demonstration system on Hugging Face Spaces at \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}. Developed with Gradio, the interface provides sub-second verification with bilingual localization in Kazakh (\textit{қазақ тілі}) and English.
 
-To facilitate transparent auditing, operational deployment, and human-in-the-loop fact-checking for agglutinative low-resource languages, we implement and deploy an interactive demonstration system publicly available on Hugging Face Spaces at \url{https://huggingface.co/spaces/nKa1i/kazakh-ai-text-detector}. Developed with the Gradio web framework, the system provides sub-second document and claim-level verification accessible via modern web browsers, featuring comprehensive bilingual localization in both Kazakh (\textit{қазақ тілі}) and English across all interface components, telemetry panels, and diagnostic views.
+The interface maps submitted documents into the continuous 2D trust space $\mathcal{T} = [-1, 1] \times [0, 1]$ via a client-side procedural SVG Cartesian plane. The horizontal axis measures factual veracity $T_{\text{fact}} \in [-1, 1]$ (Equation~\ref{eq:trust_fact}) and the vertical axis measures generative authenticity $T_{\text{gen}} \in [0, 1]$ (Equation~\ref{eq:trust_gen}), partitioning predictions into four operational quadrants with real-time HUD telemetry for composite trust $\mathcal{T}(x)$ (Equation~\ref{eq:trust_score}). A runtime model toggle between \textit{Ours (Hybrid + Morpho)} and \textit{Baseline (Surface Only)} demonstrates how suffix manipulations confound models lacking morphological features.
 
-\paragraph{Continuous 2D Trust Matrix Cartesian Plane}
-Rather than reducing credibility to an isolated binary or ternary classification label, the web interface visually maps each submitted document into the continuous two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$ formalized in Section~\ref{sec:method}. The system generates a publication-grade, procedural SVG rendering of the Cartesian plane in real time directly within the client browser, completely eliminating external graphics rendering overhead.
-
-The horizontal axis evaluates factual veracity $T_{\text{fact}} \in [-1, 1]$ (Equation~\ref{eq:trust_fact}), spanning from completely refuted ($T_{\text{fact}} = -1.0$) through ungrounded neutral evidence ($T_{\text{fact}} = 0.0$) to fully supported ground truth ($T_{\text{fact}} = +1.0$). The vertical axis measures generative authenticity $T_{\text{gen}} \in [0, 1]$ (Equation~\ref{eq:trust_gen}), demarcating machine-synthesized text ($T_{\text{gen}} = 0.0$) from human-authored text ($T_{\text{gen}} = 1.0$). Orthogonal crosshairs centered at $(T_{\text{fact}} = 0.0, T_{\text{gen}} = 0.5)$ partition the Cartesian plane into four pastel-coded operational risk quadrants:
-\begin{itemize}
-    \item \textbf{Quadrant I ($T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$)}: \textit{Verified Human Ground Truth} (emerald green), denoting authentic, factually corroborated human discourse.
-    \item \textbf{Quadrant II ($T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$)}: \textit{Human Misinformation} (rose red), capturing erroneous, unsubstantiated, or misleading assertions produced by human authors.
-    \item \textbf{Quadrant III ($T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$)}: \textit{Malicious AI Hallucination} (amber gold), identifying deceptive, ungrounded synthetic text generated by large language models.
-    \item \textbf{Quadrant IV ($T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$)}: \textit{Factual AI Synthesis} (sky blue), representing factually accurate information synthesized by generative AI systems.
-\end{itemize}
-An active indicator rendered with an animated pulsing ring highlights the document's continuous coordinate $(c_x, c_y) = (200 + 160 \cdot T_{\text{fact}}, 260 - 200 \cdot T_{\text{gen}})$, bounded cleanly within the visual display canvas. Above the plane, an active Heads-Up Display (HUD) telemetry bar presents exact real-time metrics for $T_{\text{fact}}$, $T_{\text{gen}}$, the assigned quadrant designation, and the unified composite trust metric:
-\begin{equation}
-\mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
-\end{equation}
-providing journalists and fact-checkers with a single, calibrated scalar confidence metric bounded in $[0, 1]$.
-
-\paragraph{Dual-Model Comparison Toggle}
-To demonstrate the concrete utility of morphological feature grounding in real time, the interface incorporates a runtime model toggle between \textit{Ours (Hybrid + Morpho)} and \textit{Baseline (Surface Only)}. In baseline mode, the verification pipeline relies solely on standard subword cross-encoding without morphological feature fusion. In side-by-side evaluations, users can observe how subtle suffix manipulations (such as the insertion of the negation allomorph \textit{-ба-} or epistemic speculation \textit{мүмкін}) confound the baseline model due to high lexical entity overlap, whereas our proposed system correctly flags contradictory or ungrounded claims.
-
-\paragraph{16-Feature Morphological Diagnostic Drawers and Stem Highlighting}
-Underneath the document-level executive trust card, the system extracts and displays every atomic claim in a structured verification table detailing predicted verdicts (\textsc{Supported}, \textsc{Refuted}, or \textsc{Not Enough Info}), model confidence percentages, top-ranked evidence citations, and concise natural language explanations.
-
-To provide complete interpretability for each atomic verification decision, each table row integrates an expandable diagnostic drawer (implemented via collapsible HTML5 elements). When expanded by an analyst, this drawer exposes the complete 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ formalized in Section~\ref{sec:method}:
-\begin{enumerate}
-    \item \textbf{Directional Negation Mismatch ($\Delta_{\text{neg}}$)}: Displays a color-coded status badge indicating whether a verbal negation allomorph (\textit{-ба/-бе/-па/-пе/-ма/-ме}, past \textit{-маған/-меген}) or negative copula (\textit{емес, жоқ}) is present in the claim but absent in the evidence (or vice versa), triggering instant contradiction warnings.
-    \item \textbf{Temporal and Numerical Conflict Indicators}: Flags calendar year discrepancies ($\Delta_{\text{year}}$) and numerical quantity mismatches ($\Delta_{\text{num}}$) whenever quantitative assertions deviate from source documentation.
-    \item \textbf{Evidential and Epistemic Modality Badges}: Identifies indirect inferential markers (\textit{-ыпты/-іпті}, \textit{екен}) and epistemic modal operators (\textit{керек, тиіс, мүмкін, ықтимал}), alerting auditors to hypothetical speculation or non-witnessed claims indicative of Hard NEI instances.
-    \item \textbf{FST Root Jaccard vs.\ Surface Token Overlap}: Visualizes normalized mini-bar progress tracks comparing finite-state morphological root similarity ($J_{\text{root}}$) against raw surface token overlap ($J_{\text{surf}}$), quantifying inflectional divergence ($\Delta_{\text{div}}$) that causes standard subword tokenizers to fail.
-    \item \textbf{Case Suffix and Grammatical Alignment}: Reports percentage alignment across nominal case inflection chains (accusative, dative, locative, ablative) and verifies proper noun subject grounding.
-\end{enumerate}
-Crucially, within the top-retrieved evidence passage box embedded inside each diagnostic drawer, the interface applies real-time matched stem highlighting: all lexical roots shared between the claim and the retrieved evidence passage (as identified by our 83-rule FST analyzer) are rendered with distinctive visual highlighting. This provides immediate visual transparency, enabling human fact-checkers to inspect the exact morphemic alignments that justify the model's factual verdict and dramatically reducing verification latency during high-stakes information auditing.
-
+Underneath the executive trust card, each atomic claim is displayed in a structured table with expandable diagnostic drawers exposing the full 16-dimensional vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ (directional negation mismatch $\Delta_{\text{neg}}$, calendar/numerical conflicts $\Delta_{\text{year}}, \Delta_{\text{num}}$, evidentials, FST root Jaccard $J_{\text{root}}$ vs.\ surface overlap $J_{\text{surf}}$, and case alignment). Crucially, the top evidence passage incorporates real-time matched stem highlighting: all lexical roots shared with the claim (identified by our 83-rule FST analyzer) are visually rendered with distinctive highlighting, providing interpretable evidential grounding during high-stakes auditing.

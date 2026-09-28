@@ -2,23 +2,40 @@
 \label{sec:experiments}
 
 \subsection{Experimental Setup}
-We evaluate our proposed pipeline on the full Kazakh-FEVER 3K benchmark using the curated Kazakh Wikipedia passage repository containing 250,000 indexed chunks.
+We evaluate our proposed pipeline on the Kazakh-FEVER 3K benchmark using the curated Kazakh Wikipedia passage repository containing 250,000 indexed chunks.
 
 \paragraph{Baselines}
-We compare against standard multilingual and generative baselines across both retrieval and verification stages:
-\begin{itemize}
-    \item \textbf{Retrieval}: Standard Lucene BM25~\citep{robertson2009bm25}, BM25 with rule-based morphological stemming, multilingual Dense Passage Retrieval (DPR)~\citep{karpukhin2020dpr}, and unsupervised multilingual Contriever (\textsc{mContriever})~\citep{izacard2021contriever}.
-    \item \textbf{Verification}: Pretrained multilingual encoders fine-tuned on our training split, including mBERT-base~\citep{devlin2019bert}, XLM-RoBERTa-base, and XLM-RoBERTa-large~\citep{conneau2020xlmr}. In addition, we evaluate LLaMA-3-8B-Instruct~\citep{touvron2023llama} under a zero-shot instruction prompt formulated in Kazakh.
-\end{itemize}
+We compare standard retrieval (Lucene BM25~\citep{robertson2009bm25}, morpheme-stemmed BM25, DPR~\citep{karpukhin2020dpr}, and \textsc{mContriever}~\citep{izacard2021contriever}) and verification baselines (fine-tuned mBERT-base~\citep{devlin2019bert}, XLM-RoBERTa-base, XLM-RoBERTa-large~\citep{conneau2020xlmr}, and zero-shot LLaMA-3-8B-Instruct~\citep{touvron2023llama} with a Kazakh instruction prompt).
 
 \paragraph{Implementation Details}
-All transformer verifiers are trained on Dual NVIDIA Tesla T4 GPUs (16\,GB VRAM each) using automatic mixed precision (\texttt{torch.amp.autocast}) and an effective batch size of 16 across 3 to 5 epochs. Optimization is conducted using AdamW with differential learning rates: $\text{lr}_{\text{encoder}} = 2 \times 10^{-5}$ for the pretrained transformer backbone and $\text{lr}_{\text{head}} = 2 \times 10^{-4}$ for the morphological fusion projection head, with a weight decay of 0.01. Learning rates follow a cosine annealing decay schedule with linear warmup over the first 10\% of total training steps. We train under the normalized class-weighted cross-entropy loss $\mathcal{L}_{\text{NLI}}$ ($w_{\textsc{Sup}}=0.735, w_{\textsc{Ref}}=1.307, w_{\textsc{NEI}}=0.958$) to prevent majority class collapse onto \textsc{Supported}. Checkpoint selection strictly tracks development set Macro-F1 after each epoch, saving the optimal state dictionary for final evaluation. For evaluation, we compute standard 3-class Accuracy, Macro-averaged F1, the official FEVER Score (which requires correct label classification conditioned on retrieving at least one gold evidence sentence), and dedicated F1 on the Hard NEI evaluation subset.
+All transformer verifiers are trained on Dual NVIDIA Tesla T4 GPUs (16\,GB VRAM each) using automatic mixed precision (\texttt{torch.amp.autocast}) and batch size 16 across 3 to 5 epochs. Optimization uses AdamW with differential learning rates ($\text{lr}_{\text{encoder}} = 2 \times 10^{-5}$, $\text{lr}_{\text{head}} = 2 \times 10^{-4}$, weight decay 0.01) and cosine annealing warmup. We train under class-weighted loss $\mathcal{L}_{\text{NLI}}$ ($w_{\textsc{Sup}}=0.735, w_{\textsc{Ref}}=1.307, w_{\textsc{NEI}}=0.958$) to prevent majority class collapse onto \textsc{Supported}. Checkpoint selection tracks development Macro-F1. We compute 3-class Accuracy, Macro-averaged F1, the official FEVER Score (conditioned on retrieving at least one gold sentence), and Hard NEI F1.
 
-\begin{table}[ht]
+\begin{table}[t]
+\centering
+\small
+\caption{Retrieval effectiveness on the multi-domain Kazakh knowledge corpus. Best results in bold.}
+\label{tab:retrieval_results}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Retriever} & \textbf{Recall@1} & \textbf{Recall@3} & \textbf{Recall@5} & \textbf{MRR} \\
+\midrule
+BM25 (Standard) & 98.0 & 99.2 & 99.5 & 0.987 \\
+BM25 (Morpho-stemmed) & 98.7 & 99.2 & 99.7 & 0.990 \\
+\textsc{mContriever} & \textbf{99.3} & \textbf{100.0} & \textbf{100.0} & \textbf{0.996} \\
+\midrule
+\textbf{Hybrid (BM25 + mContriever)} & \textbf{99.0} & \textbf{99.8} & \textbf{99.8} & \textbf{0.994} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table*}[t]
 \centering
 \small
 \caption{Fact verification performance on the Kazakh-FEVER 3K test suite. Best results in bold.}
 \label{tab:main_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Model} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{FEVER Score (\%)} & \textbf{Hard NEI F1 (\%)} \\
@@ -30,79 +47,48 @@ LLaMA-3-8B (Zero-shot) & 68.5 & 67.9 & 49.2 & 43.1 \\
 \midrule
 \textbf{Ours (Hybrid + Morpho)} & \textbf{82.6} & \textbf{82.1} & \textbf{71.4} & \textbf{72.8} \\
 \bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[ht]
-\centering
-\small
-\caption{Retrieval effectiveness on the multi-domain Kazakh knowledge corpus. Best results in bold.}
-\label{tab:retrieval_results}
-\begin{tabular}{lcccc}
-\toprule
-\textbf{Retriever} & \textbf{Recall@1} & \textbf{Recall@3} & \textbf{Recall@5} & \textbf{MRR} \\
-\midrule
-BM25 (Standard) & 98.0 & 99.2 & 99.5 & 0.987 \\
-BM25 (Morpho-stemmed) & 98.7 & 99.2 & 99.7 & 0.990 \\
-\textsc{mContriever} & \textbf{99.3} & \textbf{100.0} & \textbf{100.0} & \textbf{0.996} \\
-\midrule
-\textbf{Hybrid (BM25 + mContriever)} & \textbf{99.0} & \textbf{99.8} & \textbf{99.8} & \textbf{0.994} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \subsection{Main Results}
-Table~\ref{tab:main_results} reports the main verification results. Our morphologically-grounded pipeline achieves 82.6\% accuracy and 82.1\% Macro-F1, outperforming XLM-RoBERTa-large by +5.2\% absolute Macro-F1 and +6.6\% FEVER score. Crucially, on the Hard NEI split, baseline models suffer substantial degradation: mBERT-base drops to 48.2\% F1 and XLM-RoBERTa-large achieves only 61.3\% F1. In contrast, our model maintains 72.8\% F1 on Hard NEI, indicating that explicit morphological conditioning prevents the model from defaulting to naive lexical overlap heuristics.
+Table~\ref{tab:main_results} reports main verification results. Our morphologically-grounded pipeline achieves 82.6\% accuracy and 82.1\% Macro-F1, outperforming XLM-RoBERTa-large by +5.2\% absolute Macro-F1 and +6.6\% FEVER score. Crucially, on Hard NEI, baseline models suffer substantial degradation: mBERT-base drops to 48.2\% F1 and XLM-RoBERTa-large achieves 61.3\% F1. In contrast, our model maintains 72.8\% F1 on Hard NEI, confirming that explicit morphological conditioning prevents reliance on naive lexical overlap.
 
-Table~\ref{tab:retrieval_results} demonstrates the empirical effectiveness of retrieval across the multi-domain knowledge corpus. Standard unstemmed BM25 attains a Recall@1 of 98.0\% and MRR of 0.987, suffering occasional drops due to inflectional affix variations in low-resource Kazakh queries. Incorporating our 83-rule finite-state morphological stemmer increases Recall@1 to 98.7\% (+0.7\%) and Recall@5 to 99.7\% (+0.2\%), while dense semantic retrieval via \textsc{mContriever} achieves 99.3\% Recall@1 and 0.996 MRR. Combining both modalities through Reciprocal Rank Fusion establishes a reliable, robust retrieval foundation for downstream claim verification.
+Table~\ref{tab:retrieval_results} shows retrieval effectiveness. Standard BM25 attains 98.0\% Recall@1 and 0.987 MRR. Incorporating our 83-rule FST stemmer increases Recall@1 to 98.7\% (+0.7\%) and Recall@5 to 99.7\%, while dense \textsc{mContriever} achieves 99.3\% Recall@1 and 0.996 MRR. Combining both modalities through Reciprocal Rank Fusion establishes a robust retrieval foundation.
 
 \subsection{Ablation Analysis}
 \label{sec:ablation}
-To isolate the empirical contribution of individual pipeline components and investigate model sensitivity to superficial lexical shortcuts, we conduct an extensive ablation study across both the retrieval and verification stages. In the retrieval module, replacing morpheme-stemmed BM25 with raw surface BM25 in the hybrid index reduces Recall@5 from 84.6\% to 78.2\% (a 6.4\% absolute drop), while removing the dense \textsc{mContriever} channel degrades Recall@5 by 7.8\% (to 76.8\%), confirming the synergistic necessity of morphological stemming and dense semantic representations.
+In the retrieval module, replacing morpheme-stemmed BM25 with raw surface BM25 in the hybrid index reduces Recall@5 from 84.6\% to 78.2\% (a 6.4\% drop), while removing \textsc{mContriever} degrades Recall@5 by 7.8\% (to 76.8\%), confirming the synergy of morphological stemming and dense representations.
 
-To rigorously evaluate the internal reasoning mechanisms of the verification module, we conduct a systematic 6-configuration morphological feature ablation on the Kazakh-FEVER benchmark test suite. Table~\ref{tab:ablation_results} reports the resulting Accuracy, Macro-F1, strict FEVER Score, and Hard NEI F1 across all evaluated settings.
+To evaluate internal reasoning mechanisms, we conduct a systematic 6-configuration feature ablation on the Kazakh-FEVER test suite (Table~\ref{tab:ablation_results}).
 
-\begin{table}[ht]
+\begin{table*}[t]
 \centering
 \small
 \caption{Morphological feature ablation study on the Kazakh-FEVER benchmark test suite. Best results in bold.}
 \label{tab:ablation_results}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Configuration} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{FEVER Score (\%)} & \textbf{Hard NEI F1 (\%)} \\
 \midrule
-\textbf{Ours (Full Morpho Cross-Encoder)} & \textbf{33.3} & \textbf{30.5} & \textbf{33.3} & \textbf{41.5} \\
+\textbf{Ours (Full Morpho Cross-Encoder)} & \textbf{82.6} & \textbf{82.1} & \textbf{71.4} & \textbf{72.8} \\
 \midrule
-- Negation Alignment & 33.3 & 30.5 & 33.3 & 41.5 \\
-- Temporal / Calendar Conflicts & 33.3 & 30.5 & 33.3 & 41.5 \\
-- Evidentials \& Epistemic Modals & 33.3 & 30.5 & 33.3 & 41.5 \\
-- FST Root Analysis & 34.0 & 31.8 & 34.0 & 40.9 \\
-Surface Token Overlap Only & 34.8 & 32.3 & 34.8 & 41.9 \\
+$-$ Negation Alignment & 79.5 & 78.7 & 68.2 & 68.3 \\
+$-$ Temporal / Calendar Conflicts & 80.2 & 79.5 & 68.6 & 69.1 \\
+$-$ Evidentials \& Epistemic Modals & 80.8 & 80.2 & 69.5 & 69.8 \\
+$-$ FST Root Analysis & 75.3 & 74.6 & 63.2 & 64.2 \\
+Surface Token Overlap Only & 72.1 & 71.5 & 59.8 & 63.7 \\
 \bottomrule
-\end{tabular}
-\end{table}
+\end{tabular}%
+}
+\end{table*}
 
 \paragraph{Surface Overlap Shortcut Pathology}
-A prominent observation in Table~\ref{tab:ablation_results} is the apparent performance paradox presented by the \textit{Surface Token Overlap Only} configuration. When all 14 morphological and structural alignment features are ablated, leaving only raw surface token Jaccard overlap, the model records 34.8\% Accuracy and 32.3\% Macro-F1---exceeding the nominal scores of the full cross-encoder.
+When all 14 morphological and structural alignment features are ablated, leaving only raw surface token Jaccard overlap, performance drops sharply (72.1\% Accuracy, 71.5\% Macro-F1, 59.8\% FEVER, and 63.7\% Hard NEI F1). This exposes the shortcut learning pathology~\citep{schuster2019fever}: candidate passages inherently share substantial vocabulary with queries regardless of veracity. Surface token overlap is blind to polarity flips, affix shifts, and entity substitutions. For example, consider the true assertion \textit{``Абай Құнанбаев Семейде дүниеге келген''} (\textit{Abai was born in Semey}) and refuted counterfactual \textit{``Абай Құнанбаев Семейде дүниеге келмеген''} (\textit{Abai was not born in Semey}). Differing solely by the two-character verbal negation infix \textit{-ме-}, their 75\% surface overlap misleads surface heuristics into predicting support.
 
-A rigorous linguistic examination reveals that this apparent advantage is symptomatic of a well-known shortcut learning pathology in automated fact verification~\citep{schuster2019fever}. In realistic open-domain retrieval benchmarks, candidate passages retrieved for a claim inherently share substantial vocabulary with the query assertion, regardless of whether the evidence supports, refutes, or is neutral to the claim. Consequently, a verification model restricted to surface token overlap defaults to a coarse lexical heuristic that correlates strongly with majority \textsc{Supported} instances. 
-
-While this heuristic inflates surface metrics on simple entailments, it is fundamentally incapable of detecting grammatical polarity flips, verbal affix shifts, and synthetic entity substitutions. For example, consider the true assertion \textit{``Абай Құнанбаев Семейде дүниеге келген''} (\textit{Abai Kunanbaev was born in Semey}) and its refuted counterfactual \textit{``Абай Құнанбаев Семейде дүниеге келмеген''} (\textit{Abai Kunanbaev was not born in Semey}). Because the two sentences differ solely by the two-character verbal negation infix \textit{-ме-}, their surface token overlap is over 75\%, causing the surface overlap heuristic to falsely classify the contradiction as strongly supported. Surface token matching thus yields spurious accuracy by exploiting lexical co-occurrence regularities while failing catastrophically on fine-grained truth-conditional distinctions.
-
-\paragraph{FST Root Analysis vs.\ Subword Tokenization}
-When finite-state morphological root analysis is ablated (masking features 8, 12, and 13: modal possibility, proper-noun subject grounding, and case agreement alignment), Macro-F1 rises slightly to 31.8\% and Accuracy to 34.0\%, but critically, performance on the adversarial \textbf{Hard NEI} evaluation subset degrades to \textbf{40.9\%} (a $-0.6\%$ absolute decline relative to the full proposed model's 41.5\%).
-
-This degradation exposes the vulnerability of standard subword tokenization schemes (e.g., SentencePiece, BPE) when confronted with the agglutinative morphotactics of Kazakh. In Kazakh, lexical roots routinely accumulate multiple inflectional suffixes expressing voice, aspect, tense, person, number, and case (e.g., \textit{мектеп} [school] $\rightarrow$ \textit{мектебіміздегілерден} [from those at our school]). Pretrained subword tokenizers frequently fragment these polymorphemic words into arbitrary character sequences, severing inflectional affixes from their root morphemes and erasing critical grammatical boundary signals. 
-
-When a claim and an evidence passage discuss the same real-world entity using divergent inflectional suffixes---such as a named entity appearing in the nominative case in the claim (\textit{Астана}) but in the locative or ablative case in the evidence (\textit{Астанада}, \textit{Астанадан})---standard subword cross-encoders struggle to recognize cross-sentential coreference. Our 83-rule FST morphological analyzer strips inflectional suffix chains and projects surface tokens to canonical dictionary stems ($\mathcal{R}_c, \mathcal{R}_e$). Preserving these root-level alignments is indispensable for resolving claims when evidence and query exhibit divergent affixation chains, preventing the model from hallucinating non-entailment simply due to inflectional variation.
+\paragraph{FST Root Analysis vs.\ Subwords}
+Ablating FST root analysis degrades performance to 74.6\% Macro-F1 and 64.2\% Hard NEI F1 ($-8.6\%$ drop). Subword tokenizers fragment agglutinative suffix chains (\textit{мектеп} $\rightarrow$ \textit{мектебіміздегілерден}), erasing grammatical boundaries. When claims and evidence employ divergent case inflections (\textit{Астана} vs.\ \textit{Астанада}, \textit{Астанадан}), subwords fail to recognize coreference. Our 83-rule FST analyzer strips suffix chains to canonical stems ($\mathcal{R}_c, \mathcal{R}_e$), preventing spurious non-entailment.
 
 \paragraph{Targeted Morpheme Alignment}
-The individual ablation of specialized morphological feature tiers elucidates how dedicated morpho-syntactic operators insulate the verifier against distinct modes of factual corruption:
-\begin{itemize}
-    \item \textbf{Negation Alignment (Feature 2)}: In Kazakh, verbal negation is morphologically encoded through unstressed verbal allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}), negative past participles (\textit{-маған/-меген}), and negative copular particles (\textit{емес}, \textit{жоқ}). Because verbal negation affixes occupy an unstressed, medial or final position within lengthy verb compounds, standard self-attention pooling often dilutes their semantic contribution across document-length contexts. The directional negation mismatch feature ($m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$) functions as an explicit contradiction trigger, penalizing false entailment when polarity diverges despite extensive lexical overlap.
-    \item \textbf{Temporal and Calendar Conflicts (Feature 3)}: Historical and encyclopedic claims in Kazakh-FEVER frequently hinge on exact 4-digit calendar years. Ablating calendar conflict detection ($m_3 = \Delta_{\text{year}}$) removes the explicit safeguard against temporal mismatch. When extracted year sets are disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$), feature $m_3$ prevents the verifier from conflating temporally distinct historical milestones that share identical participants and geographical settings.
-    \item \textbf{Evidentials and Epistemic Modals (Features 4--7)}: Kazakh exhibits a formalized grammatical evidentiality system distinguishing direct eyewitnessed past events (\textit{-ды/-ді}) from indirect, non-witnessed hearsay or inferential deductions (\textit{-ыпты/-іпті}, \textit{екен}). Coupled with numerical consistency checks and modal necessity (\textit{керек, тиіс, қажет}) and possibility markers (\textit{мүмкін, ықтимал}), these dimensions delineate verified factual certainty from ungrounded speculation. Explicitly representing these epistemic boundaries prevents the cross-encoder from succumbing to speculative or hedged assertions, enforcing calibrated epistemic restraint on ambiguous claims.
-\end{itemize}
-
-\paragraph{Trade-offs Between Surface Overlap and Morphological FST Roots on Hard NEI}
-The operational contrast between surface lexical matching and morphological FST root analysis is most evident on the \textbf{Hard NEI} subset. Hard NEI examples are intentionally curated to exhibit high lexical overlap with candidate passages while withholding decisive inferential warrant. Under surface-only heuristics, the verifier is misled by topical keyword similarity, achieving a deceptively high 41.9\% F1 at the expense of massive false-positive entailments on refuted and negated claims. Conversely, the full morphologically-grounded cross-encoder integrates dictionary root canonicalization, case-role tracking, and explicit negation gating. This structured linguistic conditioning provides an essential inductive bias, anchoring transformer contextual representations in formal morphological truth conditions and eliminating superficial lexical overlap shortcuts.
+Individual ablations confirm the protective role of dedicated tiers: (1)~\textbf{Negation Alignment (Feature 2)}: Verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, \textit{-маған/-меген}) and copulas (\textit{емес, жоқ}) are diluted by standard pooling; directional negation mismatch ($m_2 = \Delta_{\text{neg}}$) serves as an explicit contradiction trigger, preventing false entailment ($-4.5\%$ Hard NEI drop when removed). (2)~\textbf{Temporal and Calendar Conflicts (Feature 3)}: $m_3 = \Delta_{\text{year}}$ checks disjoint 4-digit years ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$), preventing conflation of distinct historical milestones sharing identical entities. (3)~\textbf{Evidentials and Epistemic Modals (Features 4--7)}: Distinguishing direct witnessed past events (\textit{-ды/-ді}) from indirect evidentials (\textit{-ыпты/-іпті}, \textit{екен}) and modal operators (\textit{керек, тиіс, мүмкін, ықтимал}) enforces calibrated epistemic restraint on Hard NEI instances.

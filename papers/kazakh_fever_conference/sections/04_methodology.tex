@@ -4,107 +4,77 @@
 We formulate fact verification as an end-to-end framework consisting of three coordinated stages: (1) Morphologically-Grounded Hybrid Evidence Retrieval, (2) Morphological NLI Verification, and (3) Joint Credibility Calibration via the 2D Trust Matrix.
 
 \subsection{Hybrid Evidence Retrieval}
-Given a query claim $c$ and an evidence corpus $\mathcal{E} = \{e_1, e_2, \dots, e_N\}$ containing $N \approx 250,000$ passages, standard sparse retrieval (BM25) frequently fails in Kazakh due to morphological mismatch between inflected word forms in the query and evidence. Conversely, dense retrievers trained primarily on high-resource languages often miss exact named entity references.
+Given query claim $c$ and evidence corpus $\mathcal{E} = \{e_1, \dots, e_N\}$ ($N \approx 250,000$), standard BM25 fails in Kazakh due to morphological mismatch between inflected word forms, while dense retrievers often miss exact entity references.
 
-We resolve this trade-off by combining a morpheme-stemmed sparse retriever with a multilingual dense encoder. Each claim $c$ and passage $e$ is first processed by a Kazakh morphological stemmer that strips inflectional suffixes while retaining grammatical root tokens, yielding $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score~\citep{robertson2009bm25} is computed over these stemmed representations:
+We resolve this by combining a morpheme-stemmed sparse retriever with a multilingual dense encoder. Each claim $c$ and passage $e$ is processed by a Kazakh morphological stemmer that strips inflectional suffixes while retaining grammatical roots, yielding $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score~\citep{robertson2009bm25} ($k_1 = 1.5, b = 0.75$) is computed over these stemmed representations:
 \begin{equation}
-S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morph}}} \mathrm{IDF}(t) \cdot \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \cdot \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
+\label{eq:bm25}
+\begin{split}
+S_{\text{BM25}}&(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morph}}} \mathrm{IDF}(t) \\
+&\times \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
+\end{split}
 \end{equation}
-where $k_1 = 1.5$ and $b = 0.75$.
-
-Concurrently, we encode the unstemmed surface texts into dense vectors $\mathbf{h}_c, \mathbf{h}_e \in \mathbb{R}^d$ using a multilingual contrastive retriever (\textsc{mContriever})~\citep{izacard2021contriever}:
-\begin{equation}
-\mathbf{h}_c = \mathrm{Encoder}(c), \quad \mathbf{h}_e = \mathrm{Encoder}(e)
-\end{equation}
-
-The hybrid evidence score combines the normalized sparse score and dense cosine similarity:
+Concurrently, we encode unstemmed surface texts into dense vectors $\mathbf{h}_c = \mathrm{Encoder}(c)$ and $\mathbf{h}_e = \mathrm{Encoder}(e) \in \mathbb{R}^d$ using \textsc{mContriever}~\citep{izacard2021contriever}. The hybrid evidence score balances normalized sparse scoring and dense cosine similarity ($\alpha = 0.45$):
 \begin{equation}
 \label{eq:hybrid_retrieval}
-S_{\text{hybrid}}(c, e) = \alpha \cdot S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) + (1 - \alpha) \cdot \cos\left(\mathbf{h}_c, \mathbf{h}_e\right)
+\begin{split}
+S_{\text{hybrid}}(c, e) &= \alpha \cdot S_{\text{BM25}}(c_{\text{morph}}, e_{\text{morph}}) \\
+&\quad + (1 - \alpha) \cdot \cos\left(\mathbf{h}_c, \mathbf{h}_e\right)
+\end{split}
 \end{equation}
-where $\alpha \in [0, 1]$ is a tunable interpolation parameter set to $\alpha = 0.45$ on development data. Alternatively, for large candidate pools, we utilize Reciprocal Rank Fusion (RRF)~\citep{karpukhin2020dpr}:
-\begin{equation}
-\mathrm{RRF}(c, e) = \sum_{m \in \{\text{BM25}, \text{Dense}\}} \frac{1}{k_0 + r_m(c, e)}
-\end{equation}
-where $r_m(c, e)$ represents the ranking index of evidence $e$ under retriever $m$, and $k_0 = 60$ is a smoothing constant. The top-$k$ retrieved passages form the candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
+Alternatively, for large candidate pools, Reciprocal Rank Fusion~\citep{karpukhin2020dpr} aggregates rankings: $\mathrm{RRF}(c, e) = \sum_{m} (k_0 + r_m(c, e))^{-1}$ with $k_0 = 60$. The top-$k$ retrieved passages form candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
 
 \subsection{Morphological NLI Verifier}
-Given the claim $c$ and concatenated evidence passage $E$, the verification module must predict a categorical veracity label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
+Given claim $c$ and concatenated evidence passage $E$, the verification module predicts veracity label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
 
-Standard cross-encoders process the sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ through a pretrained transformer backbone to extract pooled contextual representation $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$. However, standard subword tokenizers suffer from severe fragmentation on agglutinative Turkic morphology, frequently splitting vital inflectional suffixes into ungrounded byte tokens. To insulate the model against semantic boundary erasure, we extract an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$.
+Standard cross-encoders process sequence $\texttt{[CLS]} \circ c \circ \texttt{[SEP]} \circ E \circ \texttt{[SEP]}$ through a pretrained transformer to extract pooled representation $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$. Because standard subword tokenizers fragment agglutinative Turkic morphology into arbitrary byte sequences, we extract an explicit 16-dimensional morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$.
 
-\paragraph{16-Dimensional Morphological Diagnostic Extractor}
-The vector $\mathbf{m}_{\text{affix}} = [m_0, m_1, \dots, m_{15}]^{\top} \in [0, 1]^{16}$ captures fine-grained morpho-syntactic, temporal, and semantic alignment properties across five functional tiers:
-\begin{enumerate}
-    \item \textbf{Polarity and Verbal Negation Alignment ($m_0, m_1, m_2$)}: Binary indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, past negated \textit{-маған/-меген}, aspectual \textit{-майды/-мейді}) and copular particles (\textit{емес, жоқ}). Dimension $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$ captures directional negation mismatch (XOR), serving as an indispensable contradiction trigger when topical overlap is high.
-    \item \textbf{Temporal and Numerical Conflict Detection ($m_3, m_4$)}: Feature $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects calendar year conflicts, triggering when the extracted sets of 4-digit calendar years $\mathcal{Y}_c$ and $\mathcal{Y}_e$ are non-empty and disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$). Feature $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative numerical mismatches where numerical quantities in $c$ are absent from $E$.
-    \item \textbf{Evidentiality and Epistemic Modality ($m_5, m_6, m_7, m_8$)}: Features $m_5$ and $m_6$ detect indirect inferential evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$ respectively, separating non-witnessed hearsay from direct witnessed past assertions (\textit{-ды/-ді}). Features $m_7$ and $m_8$ identify modal necessity operators (\textit{керек, тиіс, қажет, міндетті}) and modal possibility operators (\textit{мүмкін, ықтимал}), distinguishing factual certainty from hypothetical qualification.
-    \item \textbf{Morphological Root vs.\ Surface Overlap ($m_9, m_{10}, m_{11}$)}: Using our 83-rule finite-state transducer (FST) morphological analyzer, we extract canonical root sets $\mathcal{R}_c, \mathcal{R}_e$ and surface word token sets $\mathcal{S}_c, \mathcal{S}_e$. Dimension $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$ computes FST root Jaccard similarity, while $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$ measures raw surface overlap. Dimension $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$ quantifies morphological divergence, signaling cases where agglutinative inflectional masking conceals shared semantic roots.
-    \item \textbf{Syntactic Agreement and Length Scaling ($m_{12}, m_{13}, m_{14}, m_{15}$)}: Dimension $m_{12} = s_{\text{match}} \in \{0, 1\}$ indicates whether the primary grammatical subject proper noun in $c$ is grounded in $E$. Dimension $m_{13} = J_{\text{case}}$ measures Jaccard root agreement specifically across tokens bearing nominal case inflections (genitive, dative, accusative, locative, ablative). Finally, $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize claim and evidence sequence lengths.
-\end{enumerate}
+\paragraph{16-Dimensional Diagnostic Extractor}
+The vector $\mathbf{m}_{\text{affix}} = [m_0, \dots, m_{15}]^{\top} \in [0, 1]^{16}$ captures fine-grained alignments across five functional tiers:
+(1)~\textbf{Polarity Alignment ($m_0, m_1, m_2$)}: Indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, \textit{-маған/-меген}, \textit{-майды/-мейді}) and copular particles (\textit{емес, жоқ}), with $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$ capturing directional negation mismatch (XOR).
+(2)~\textbf{Temporal/Numerical Conflicts ($m_3, m_4$)}: $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects calendar year conflicts when 4-digit year sets are disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$); $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative mismatches where claim numbers are absent from $E$.
+(3)~\textbf{Evidentiality and Modality ($m_5, \dots, m_8$)}: $m_5, m_6$ detect indirect evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$, distinguishing non-witnessed hearsay from witnessed past assertions (\textit{-ды/-ді}); $m_7, m_8$ identify necessity (\textit{керек, тиіс, қажет}) and possibility operators (\textit{мүмкін, ықтимал}).
+(4)~\textbf{FST Root vs.\ Surface Overlap ($m_9, \dots, m_{11}$)}: Using our 83-rule FST analyzer, canonical root sets $\mathcal{R}_c, \mathcal{R}_e$ and surface word sets $\mathcal{S}_c, \mathcal{S}_e$ yield FST root Jaccard $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$, surface overlap $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$, and inflectional divergence $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$.
+(5)~\textbf{Syntactic Agreement and Length Scaling ($m_{12}, \dots, m_{15}$)}: $m_{12} = s_{\text{match}} \in \{0, 1\}$ indicates proper-noun subject grounding; $m_{13} = J_{\text{case}}$ measures root agreement across nominal case inflections (genitive, dative, accusative, locative, ablative); $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize sequence lengths.
 
 \paragraph{Fused Classification and Training Objective}
-The pooled contextual embedding $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$ and morphological diagnostic vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ are concatenated and projected to class logits:
+Contextual embedding $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$ and affix vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ are projected to class logits:
 \begin{equation}
 \label{eq:nli_verifier}
 P(y \mid c, E) = \mathrm{softmax}\left(\mathbf{W}_v \left[\mathbf{h}_{[\text{CLS}]}; \mathbf{m}_{\text{affix}}\right] + \mathbf{b}_v\right)
 \end{equation}
-where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ is a learnable projection matrix and $\mathbf{b}_v \in \mathbb{R}^3$ is a bias vector.
-
-To counteract class imbalance across our benchmark ($N = 638$ training pairs; $N_{\textsc{Sup}} = 274$, $N_{\textsc{Ref}} = 154$, $N_{\textsc{NEI}} = 210$), the verifier is trained using a class-weighted cross-entropy loss:
+where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ and $\mathbf{b}_v \in \mathbb{R}^3$. To counteract class imbalance ($N = 638$; $N_{\textsc{Sup}} = 274, N_{\textsc{Ref}} = 154, N_{\textsc{NEI}} = 210$), we optimize class-weighted cross-entropy:
 \begin{equation}
 \label{eq:class_weighted_loss}
 \mathcal{L}_{\text{NLI}} = - \sum_{k=1}^3 w_k \cdot y_k \log P(y = k \mid c, E)
 \end{equation}
-where $y_k \in \{0, 1\}$ is the gold one-hot label indicator for class $k \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$, and $w_k$ denotes the normalized inverse-frequency class weight:
-\begin{equation}
-\label{eq:class_weights}
-w_k = 3 \cdot \frac{N_k^{-1}}{\sum_{j=1}^3 N_j^{-1}}
-\end{equation}
-scaled such that $\sum_{k=1}^3 w_k = 3.0$. For our training distribution, this yields exact weights $w_{\textsc{Sup}} = 0.735$, $w_{\textsc{Ref}} = 1.307$, and $w_{\textsc{NEI}} = 0.958$. This weighting prevents majority class collapse onto \textsc{Supported} and penalizes false confidence on \textsc{Not Enough Info} (Hard NEI), directly enforcing calibrated epistemic caution.
+with inverse-frequency weights $w_k = 3 \cdot \frac{N_k^{-1}}{\sum_{j=1}^3 N_j^{-1}}$ ($w_{\textsc{Sup}} = 0.735, w_{\textsc{Ref}} = 1.307, w_{\textsc{NEI}} = 0.958$), penalizing false confidence on Hard NEI.
 
-\paragraph{Differential Optimization Scheme}
-To preserve pretrained contextual representations while rapidly calibrating the newly initialized fusion head, we parameterize optimization using differential learning rates:
-\begin{equation}
-\label{eq:differential_lr}
-\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \quad \text{lr}_{\text{head}} = 2 \times 10^{-4}
-\end{equation}
-assigning a $10\times$ higher learning rate to the classification head. The network parameters are optimized via AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $\lambda = 0.01$) governed by a cosine annealing learning rate scheduler with linear warmup over the first 10\% of total training steps:
-\begin{equation}
-\label{eq:cosine_schedule}
-\eta(t) = \begin{cases}
-\eta_{\text{base}} \cdot \frac{t}{T_{\text{warm}}}, & 0 \le t < T_{\text{warm}} \\
-\eta_{\text{base}} \cdot \frac{1}{2} \left(1 + \cos\left(\pi \frac{t - T_{\text{warm}}}{T_{\text{total}} - T_{\text{warm}}}\right)\right), & T_{\text{warm}} \le t \le T_{\text{total}}
-\end{cases}
-\end{equation}
-where $T_{\text{warm}} = 0.1 \cdot T_{\text{total}}$, guaranteeing stable gradient descent across epochs.
+Optimization uses AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $0.01$) with differential learning rates ($\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \text{lr}_{\text{head}} = 2 \times 10^{-4}$) and a cosine annealing schedule over total steps $T_{\text{total}}$ with warmup $T_{\text{warm}} = 0.1 \cdot T_{\text{total}}$: $\eta(t) = \eta_{\text{base}} \frac{t}{T_{\text{warm}}}$ for $t < T_{\text{warm}}$, and $\frac{\eta_{\text{base}}}{2} [1 + \cos(\frac{t - T_{\text{warm}}}{0.9 \cdot T_{\text{total}}} \pi)]$ for $t \ge T_{\text{warm}}$.
 
 \subsection{2D Trust Matrix Formulation}
-To account for both factual truth and generative provenance in open information environments, we map model predictions into a two-dimensional trust space $\mathcal{T} = [-1, 1] \times [0, 1]$.
+To account for factual truth and generative provenance simultaneously, we map predictions into a continuous 2D trust space $\mathcal{T} = [-1, 1] \times [0, 1]$.
 
 We define the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$ as the calibrated difference between entailment and contradiction probabilities:
 \begin{equation}
 \label{eq:trust_fact}
-T_{\text{fact}} = P(y = \textsc{Supported} \mid c, E) - P(y = \textsc{Refuted} \mid c, E)
+\begin{split}
+T_{\text{fact}} &= P(y = \textsc{Supported} \mid c, E) \\
+&\quad - P(y = \textsc{Refuted} \mid c, E)
+\end{split}
 \end{equation}
 where $T_{\text{fact}} > 0$ indicates verified support, $T_{\text{fact}} < 0$ signifies refutation, and $T_{\text{fact}} \approx 0$ corresponds to insufficient evidence.
 
-The \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$ reflects the probability that the text is human-authored rather than synthetically generated:
+The \textbf{Generative Authenticity Score} $T_{\text{gen}} \in [0, 1]$ reflects human-authorship probability:
 \begin{equation}
 \label{eq:trust_gen}
 T_{\text{gen}} = 1 - P(\text{AI-Generated} \mid c)
 \end{equation}
-where $P(\text{AI-Generated} \mid c)$ is estimated via a calibrated contrastive classifier trained on parallel human-machine Kazakh corpora.
+estimated via a calibrated classifier trained on parallel human-machine Kazakh corpora.
 
 The unified scalar \textbf{Trust Metric} $\mathcal{T}(x)$ integrates both dimensions:
 \begin{equation}
 \label{eq:trust_score}
 \mathcal{T}(x) = \sqrt{\frac{1}{2} \left(\max(0, T_{\text{fact}})^2 + T_{\text{gen}}^2\right)}
 \end{equation}
-which penalizes ungrounded or synthetic claims while rewarding verified human-authored facts. This induces four operational quadrants:
-\begin{itemize}
-    \item \textbf{Quadrant I ($T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$)}: \textit{Verified Human Ground Truth}---Factually substantiated assertions authored by humans.
-    \item \textbf{Quadrant II ($T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$)}: \textit{Human Misinformation}---Erroneous or ungrounded claims generated by human agents.
-    \item \textbf{Quadrant III ($T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$)}: \textit{Malicious AI Hallucination}---Factually refuted or fabricated statements produced by generative LLMs.
-    \item \textbf{Quadrant IV ($T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$)}: \textit{Factual AI Synthesis}---Accurate, verified assertions synthesized by AI models.
-\end{itemize}
+inducing four operational quadrants: (I)~\textit{Verified Human Ground Truth} ($T_{\text{fact}} > 0, T_{\text{gen}} \ge 0.5$); (II)~\textit{Human Misinformation} ($T_{\text{fact}} \le 0, T_{\text{gen}} \ge 0.5$); (III)~\textit{Malicious AI Hallucination} ($T_{\text{fact}} \le 0, T_{\text{gen}} < 0.5$); and (IV)~\textit{Factual AI Synthesis} ($T_{\text{fact}} > 0, T_{\text{gen}} < 0.5$).
