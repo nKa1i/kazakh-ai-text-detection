@@ -1,8 +1,11 @@
 %!TEX program = xelatex
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt]{article}
+\usepackage[review]{acl}
+
+\usepackage{times}
+\usepackage{latexsym}
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
-\usepackage{latexsym}
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -10,12 +13,16 @@
 \usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{xurl}
-\usepackage{natbib}
 \usepackage{hyperref}
+
+% Ensure \bibliographystyle can be called in body without duplicate bibstyle in aux
+\makeatletter
+\renewcommand{\bibliographystyle}[1]{}
+\makeatother
 
 \title{Kazakh-FEVER 3K: A Morphologically-Grounded Fact Verification Benchmark and 2D Trust Matrix for Low-Resource Agglutinative Languages}
 
-\author{Anonymous Authors\\
+\author{Anonymous ARR Submission\\
   Affiliation scrubbed for double-blind review\\
   \texttt{anonymous@organization.org}}
 
