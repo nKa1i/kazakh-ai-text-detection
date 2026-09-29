@@ -49,13 +49,18 @@ pi_*
 
 # Local documents and artifacts
 *.docx
+*.pptx
 ~$*
 output/
 Detecting_AI_Generated_User_Reviews*
+*License*
+*Proposal*
+*Instructions*
+/*Progress*.pptx
+/*.pdf
 da_lei_content.txt
 full_diff*.txt
 ppt_images/
-*_scratch.pptx
 
 
 
