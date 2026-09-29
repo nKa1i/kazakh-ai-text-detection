@@ -176,7 +176,7 @@ To fulfill the mandatory ARR reviewing service quota for this submission:
 
 #### B. Anonymity Verification
 - **Question**: Does this submission conform to the ACL Double-Blind Review Policy?
-- **Answer**: `Yes`. All author identities, affiliations, and direct repository identifiers have been scrubbed. Demonstrations and code are linked via an anonymous platform (`https://anonymous.4open.science/r/kazakh-ai-text-detector`).
+- **Answer**: `Yes`. All author identities, affiliations, and direct repository identifiers have been scrubbed. Demonstrations and code are linked via an anonymous platform (`https://anonymous.4open.science/r/kazakh-ai-text-detection-57F8`).
 
 #### C. Human Participants and Subject Research
 - **Question**: Does this research involve human participants or subjects (e.g., native annotators)?
