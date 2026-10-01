@@ -1,14 +1,15 @@
 \section{Limitations and Ethical Considerations}
 \label{sec:limitations}
 
-\subsection{Linguistic and Typological Scope}
+\paragraph{Linguistic and Typological Scope}
 While our morphological modeling and Hard NEI curation protocols are designed to generalize across agglutinative language families, empirical validation is conducted on Kazakh. Although Kazakh shares core morphological structures with other Kipchak and Oghuz Turkic languages, orthographic variations (such as the ongoing Cyrillic-to-Latin script transition) and dialectal shifts require domain adaptation before extending our pipeline across broader Turkic contexts.
 
-\subsection{Evidence Corpus and Temporal Freshness}
+\paragraph{Evidence Corpus and Temporal Freshness}
 Our evidence repository compiles 250,000 static passages from Kazakh Wikipedia and journalistic archives. While providing comprehensive coverage for historical, cultural, and scientific claims, it does not dynamically index breaking news. Verifying rapidly evolving claims regarding emergent events requires live retrieval, posing additional challenges regarding source reliability and latency.
 
-\subsection{Computational and Environmental Resource Bounds}
+\paragraph{Computational and Environmental Resource Bounds}
 Fine-tuning large multilingual transformers and dense retrieval involves non-trivial compute ($\approx$120 NVIDIA A100 GPU hours in our experiments). While hybrid BM25 and quantized dense retriever inference operates with sub-second latency on consumer hardware, resource-constrained institutions may encounter computational bottlenecks when re-training encoders on larger corpora.
 
-\subsection{Ethical Considerations and Responsible Deployment}
+% Subsection: Ethical Considerations and Responsible Deployment
+\paragraph{Ethical Considerations and \mbox{Responsible Deployment}}
 Automated verification operates in sensitive domains where errors could suppress legitimate discourse or amplify misstatements. Kazakh-FEVER 3K models are designed strictly as decision-support instruments for human journalists and fact-checkers, rather than autonomous arbiters of truth. Deployed systems must surface transparent confidence scores and cited evidence to ensure human accountability and mitigate algorithmic bias.

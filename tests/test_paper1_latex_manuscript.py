@@ -27,13 +27,13 @@ REQUIRED_MANUSCRIPT_FILES = [
 
 REQUIRED_BIBTEX_KEYS = [
     "thorne2018fever",
-    "izacard2021contriever",
-    "robertson2009bm25",
-    "devlin2019bert",
+    "izacard2022mcontriever",
     "conneau2020xlmr",
-    "touvron2023llama",
-    "karpukhin2020dpr",
+    "dubey2024llama3",
     "guo2026kazakh",
+    "tang-etal-2024-minicheck",
+    "wang2024raid",
+    "chen-etal-2024-m3",
 ]
 
 BANNED_PLACEHOLDERS = ["TODO", "TBD", "PLACEHOLDER", "XXX", "FIXME"]
