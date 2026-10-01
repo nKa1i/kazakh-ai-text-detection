@@ -6,7 +6,7 @@ We formulate fact verification as an end-to-end framework consisting of three co
 \subsection{Hybrid Evidence Retrieval}
 Given query claim $c$ and evidence corpus $\mathcal{E} = \{e_1, \dots, e_N\}$ ($N \approx 250,000$), standard BM25 fails in Kazakh due to morphological mismatch between inflected word forms, while dense retrievers often miss exact entity references.
 
-We resolve this by combining a morpheme-stemmed sparse retriever with a multilingual dense encoder. Each claim $c$ and passage $e$ is processed by a Kazakh morphological stemmer that strips inflectional suffixes while retaining grammatical roots, yielding $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score~\citep{robertson2009bm25} ($k_1 = 1.5, b = 0.75$) is computed over these stemmed representations:
+We resolve this by combining a morpheme-stemmed sparse retriever with a multilingual dense encoder. Each claim $c$ and passage $e$ is processed by a Kazakh morphological stemmer that strips inflectional suffixes while retaining grammatical roots, yielding $c_{\text{morph}}$ and $e_{\text{morph}}$. The BM25 score ($k_1 = 1.5, b = 0.75$) is computed over these stemmed representations:
 \begin{equation}
 \label{eq:bm25}
 \begin{split}
@@ -14,7 +14,7 @@ S_{\text{BM25}}&(c_{\text{morph}}, e_{\text{morph}}) = \sum_{t \in c_{\text{morp
 &\times \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\mathrm{avgdl}}\right)}
 \end{split}
 \end{equation}
-Concurrently, we encode unstemmed surface texts into dense vectors $\mathbf{h}_c = \mathrm{Encoder}(c)$ and $\mathbf{h}_e = \mathrm{Encoder}(e) \in \mathbb{R}^d$ using \textsc{mContriever}~\citep{izacard2021contriever}. The hybrid evidence score balances normalized sparse scoring and dense cosine similarity ($\alpha = 0.45$):
+Concurrently, we encode unstemmed surface texts into dense vectors $\mathbf{h}_c = \mathrm{Encoder}(c)$ and $\mathbf{h}_e = \mathrm{Encoder}(e) \in \mathbb{R}^d$ using \textsc{mContriever}~\citep{izacard2022mcontriever}. The hybrid evidence score balances normalized sparse scoring and dense cosine similarity ($\alpha = 0.45$):
 \begin{equation}
 \label{eq:hybrid_retrieval}
 \begin{split}
@@ -22,7 +22,7 @@ S_{\text{hybrid}}(c, e) &= \alpha \cdot S_{\text{BM25}}(c_{\text{morph}}, e_{\te
 &\quad + (1 - \alpha) \cdot \cos\left(\mathbf{h}_c, \mathbf{h}_e\right)
 \end{split}
 \end{equation}
-Alternatively, for large candidate pools, Reciprocal Rank Fusion~\citep{karpukhin2020dpr} aggregates rankings: $\mathrm{RRF}(c, e) = \sum_{m} (k_0 + r_m(c, e))^{-1}$ with $k_0 = 60$. The top-$k$ retrieved passages form candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
+Alternatively, for large candidate pools, Reciprocal Rank Fusion~\citep{mudunuri-etal-2026-bounded} aggregates rankings: $\mathrm{RRF}(c, e) = \sum_{m} (k_0 + r_m(c, e))^{-1}$ with $k_0 = 60$. The top-$k$ retrieved passages form candidate evidence set $E = \{e_{(1)}, \dots, e_{(k)}\}$.
 
 \subsection{Morphological NLI Verifier}
 Given claim $c$ and concatenated evidence passage $E$, the verification module predicts veracity label $y \in \{\textsc{Supported}, \textsc{Refuted}, \textsc{Not Enough Info}\}$.
