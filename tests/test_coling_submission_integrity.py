@@ -316,7 +316,7 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
             )
 
         # Verify Section 8 appears in compiled main.pdf
-        if MAIN_PDF.is_file():
+        if HAS_PYPDF and MAIN_PDF.is_file():
             reader = pypdf.PdfReader(str(MAIN_PDF))
             full_text = " ".join(page.extract_text() or "" for page in reader.pages)
             clean_text = " ".join(re.sub(r"\d+", " ", full_text).split())
