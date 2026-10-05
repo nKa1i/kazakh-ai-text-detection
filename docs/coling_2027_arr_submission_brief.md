@@ -93,11 +93,13 @@ Select secondary focus areas:
 - **Affiliation**: Department of Computer Science, Al-Farabi Kazakh National University, Almaty, Kazakhstan
 - **ORCID**: 0000-0002-3925-118X
 
-#### Author 3: Zhijiang Guo (Senior Author & Principal Investigator)
-- **Role**: Senior Supervisor & Methodological Lead
-- **Primary OpenReview Account Email**: `guo@nwpu.edu.cn`
+#### Author 3: Bin Guo (Senior Author & Principal Investigator)
+- **Role**: Senior Supervisor & Principal Investigator
+- **OpenReview Account / ID**: `~Bin_Guo3`
+- **OpenReview Profile URL**: `https://openreview.net/profile?id=~Bin_Guo3`
+- **Primary Institutional Email**: `guob@nwpu.edu.cn`
 - **Affiliation**: School of Computer Science, Northwestern Polytechnical University, Xi'an, Shaanxi, China
-- **Semantic Scholar Profile ID**: Zhijiang Guo
+- **Semantic Scholar Profile**: Bin Guo
 
 ### 3.2 Institutional Domain Declarations
 The following domain suffixes must be registered under institutional conflict of interest settings to prevent reviewer assignment from affiliated entities:
@@ -121,13 +123,17 @@ The ACL Rolling Review enforces a mandatory Sustainable Reviewing Policy to ensu
 1. Every submitted long paper must be backed by a nominated qualified reviewer from the author team or an eligible proxy.
 2. Failure to nominate a qualified reviewer or refusal of assigned reviewing duties results in desk-rejection or review embargoes.
 3. Reviewer assignments are workload-capped to prevent reviewer fatigue (maximum 3 papers per active cycle).
+4. Nominated service contributors must confirm and complete OpenReview reviewer registration within 48 hours of the submission deadline (October 14, 2026, 23:59 AoE) to maintain guaranteed review status.
 
 ### 4.2 Nominated Service Contributor
 To fulfill the mandatory ARR reviewing service quota for this submission:
-- **Primary Nominated Reviewer**: Professor Zhijiang Guo
-  - **OpenReview ID / Email**: `guo@nwpu.edu.cn`
+- **Primary Nominated Reviewer**: Professor Bin Guo
+  - **OpenReview Account / ID**: `~Bin_Guo3`
+  - **OpenReview Profile URL**: `https://openreview.net/profile?id=~Bin_Guo3`
+  - **Primary Institutional Email**: `guob@nwpu.edu.cn`
   - **Reviewing Qualification**: Senior researcher with extensive publication record across ACL, EMNLP, NAACL, and COLING; experienced Area Chair and ARR Reviewer.
   - **Subject Competencies**: Fact Verification, Information Extraction, Natural Language Inference, Robustness, Multilingual NLP.
+  - **Service Registration Mandate**: Must confirm and complete OpenReview reviewer registration within 48 hours of the October 12 AoE submission deadline (no later than October 14, 2026, 23:59 AoE).
 - **Alternate / Supplementary Nominated Reviewer**: Daulet Anekesh
   - **OpenReview ID / Email**: `anekesh_daulet@live.kaznu.kz`
   - **Reviewing Qualification**: Senior PhD candidate (post-Year 2) with published empirical NLP contributions.
@@ -137,6 +143,7 @@ To fulfill the mandatory ARR reviewing service quota for this submission:
 - **Submission-to-Review Ratio**: 1 paper submission = commitment of up to 3 review assignments.
 - **Quota Verification**: The nominated contributor confirms zero active review over-commitments across overlapping ACL conferences during the November 2026 review period.
 - **Profile Completeness**: All authors must ensure their OpenReview profiles have updated DBLP links, Semantic Scholar profiles, and recent publication history prior to the October 12 deadline to enable automated COI matching.
+- **Reviewer Registration Window**: Designated service contributor Professor Bin Guo (`~Bin_Guo3`, `guob@nwpu.edu.cn`) must confirm/complete OpenReview reviewer registration within 48 hours of the October 12 AoE submission deadline.
 
 ---
 
@@ -227,14 +234,26 @@ Verify every item prior to hitting the final "Submit" button on OpenReview:
 | **UTF-8 Encoding** | Explicit Cyrillic support | Verified | Cyrillic glyphs render without missing glyph warnings |
 | **Author OpenReview IDs** | Registered active emails | Verified | All 3 co-authors mapped to verified accounts |
 | **COI Institutional List** | Domain suffixes logged | Verified | `kaznu.kz`, `nwpu.edu.cn` declared |
-| **Nominated Reviewer** | Qualified service contributor | Verified | Prof. Zhijiang Guo (`guo@nwpu.edu.cn`) nominated |
+| **Nominated Reviewer** | Qualified service contributor | Verified | Professor Bin Guo (`~Bin_Guo3`, `guob@nwpu.edu.cn`) nominated; 48h registration window noted |
 | **Regression Test Suite** | 513 unit tests pass | Verified | Zero failures across entire repository |
 | **Invariant File Guard** | `aist2026/paper.tex` 0 diff | Verified | `git diff origin/main..HEAD` outputs 0 lines |
 
 ---
 
-## 7. Submission Day Emergency Contacts and Roles
+## 7. Submission Day Emergency Contacts, Roles, and Action Checklist
 
-- **Lead Submitter**: Daulet Anekesh (`anekesh_daulet@live.kaznu.kz`) - Responsible for portal entry, file uploads, and final verification.
-- **Review Service Nominee**: Prof. Zhijiang Guo (`guo@nwpu.edu.cn`) - Responsible for OpenReview profile validation and service confirmation.
+### 7.1 Submission Day Contacts and Role Allocation
+- **Lead Submitter**: Daulet Anekesh (`anekesh_daulet@live.kaznu.kz`) - Responsible for portal entry, file uploads, and final submission verification.
+- **Review Service Nominee**: Professor Bin Guo (`~Bin_Guo3`, `guob@nwpu.edu.cn`) - Designated service contributor responsible for OpenReview profile validation and completing reviewer registration within 48 hours of the October 12 AoE submission deadline.
 - **Linguistic Advisor**: Irina M. Ualiyeva (`ualiyeva.irina@kaznu.kz`) - Responsible for annotation metadata sign-off.
+
+### 7.2 Action Checklist and Service Registration Timeline
+1. **Submission Phase (October 12, 2026, 23:59 AoE)**:
+   - Finalize and upload primary manuscript PDF (`papers/kazakh_fever_conference/main.pdf`) and supplementary archive (`supplementary_materials.zip`).
+   - Complete OpenReview submission metadata form, taxonomy subjects, keywords, and Responsible NLP questionnaire.
+   - Designate Professor Bin Guo (`~Bin_Guo3`, `guob@nwpu.edu.cn`) as the primary service contributor.
+2. **Reviewer Registration Phase (October 12–14, 2026 - Mandatory 48-Hour Window)**:
+   - Mandatory Requirement: Designated service contributor Professor Bin Guo (`~Bin_Guo3`, `guob@nwpu.edu.cn`) must confirm and complete OpenReview reviewer registration within 48 hours of the October 12 AoE submission deadline (deadline: October 14, 2026, 23:59 AoE).
+   - Profile & COI Completeness: Verify that Professor Bin Guo's OpenReview profile contains full institutional history (`nwpu.edu.cn`), DBLP, and Semantic Scholar publications to ensure automated conflict of interest (COI) matching and prevent desk rejection.
+3. **Emergency Contingency Protocol**:
+   - In case of unforeseen circumstances affecting the primary nominee, submit the official ARR emergency declaration form and activate alternate reviewer Daulet Anekesh (`anekesh_daulet@live.kaznu.kz`) before the 48-hour post-deadline window closes.
