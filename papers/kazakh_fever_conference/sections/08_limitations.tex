@@ -1,4 +1,4 @@
-\section{Limitations and Ethical Considerations}
+\section{Limitations}
 \label{sec:limitations}
 
 \paragraph{Linguistic and Typological Scope}
@@ -10,6 +10,8 @@ Our evidence repository compiles 250,000 static passages from Kazakh Wikipedia a
 \paragraph{Computational and Environmental Resource Bounds}
 Fine-tuning large multilingual transformers and dense retrieval involves non-trivial compute ($\approx$120 NVIDIA A100 GPU hours in our experiments). While hybrid BM25 and quantized dense retriever inference operates with sub-second latency on consumer hardware, resource-constrained institutions may encounter computational bottlenecks when re-training encoders on larger corpora.
 
-% Subsection: Ethical Considerations and Responsible Deployment
-\paragraph{Ethical Considerations and \mbox{Responsible Deployment}}
+\section{Ethical Considerations}
+\label{sec:ethics}
+
+\paragraph{Ethical Considerations and Responsible Deployment}
 Automated verification operates in sensitive domains where errors could suppress legitimate discourse or amplify misstatements. Kazakh-FEVER 3K models are designed strictly as decision-support instruments for human journalists and fact-checkers, rather than autonomous arbiters of truth. Deployed systems must surface transparent confidence scores and cited evidence to ensure human accountability and mitigate algorithmic bias.
