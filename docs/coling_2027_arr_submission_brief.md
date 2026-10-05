@@ -156,7 +156,7 @@ To fulfill the mandatory ARR reviewing service quota for this submission:
   - Line Numbering: Continuous line numbering active across both columns for review.
   - Total Page Count: Exactly 10 pages.
   - Main Body Budget: Sections 1 through 7 span Pages 1 to 8 (strictly compliant with the 8-page content limit).
-  - Uncounted Sections: Section 8 (Limitations and Ethical Considerations) and References begin on Page 9 and conclude on Page 10.
+  - Uncounted Sections: Sections 8 and 9 (Limitations and Ethical Considerations) and References begin on Page 9 and conclude on Page 10.
   - Visual Layout: Two full-width tables (`table*` for Table 3 and Table 4) positioned at top of pages; zero overfull `\hbox` horizontal clipping.
   - Anonymity Audit: 0 occurrences of author names, institutional emails, or affiliations; anonymous title header set to `Anonymous ARR Submission`.
 
