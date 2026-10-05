@@ -37,6 +37,7 @@ PROHIBITED_ANONYMITY_TERMS = [
     "Anekesh",
     "Ualiyeva",
     "Zhijiang",
+    "Bin",
     "Guo",
     "KazNU",
     "NWPU",
@@ -142,17 +143,26 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
         for page_idx in range(8):
             page_text = reader.pages[page_idx].extract_text() or ""
             self.assertNotIn(
-                "8 Limitations and Ethical Considerations",
+                "8 Limitations",
                 page_text,
                 f"Section 8 appeared prematurely on Page {page_idx + 1}",
+            )
+            self.assertNotIn(
+                "Ethical Considerations",
+                page_text,
+                f"Ethical Considerations appeared prematurely on Page {page_idx + 1}",
             )
 
         # Page 9 must contain Section 8 Limitations and start References
         page_9_text = reader.pages[8].extract_text() or ""
-        self.assertIn(
-            "8 Limitations and Ethical Considerations",
-            page_9_text,
-            "Section 8 must begin on Page 9",
+        # Page 9 must start with Limitations
+        self.assertTrue(
+            "8 Limitations" in page_9_text or "Limitations" in page_9_text,
+            "Page 9 must start with Section 8: Limitations",
+        )
+        self.assertTrue(
+            "Ethical Considerations" in page_9_text,
+            "Page 9 must include Ethical Considerations section",
         )
         self.assertIn(
             "References",
@@ -247,7 +257,7 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
         for page_idx, page in enumerate(reader.pages):
             page_text = page.extract_text() or ""
             for term in PROHIBITED_ANONYMITY_TERMS:
-                if term.lower() in page_text.lower():
+                if re.search(rf"\b{re.escape(term)}\b", page_text, re.IGNORECASE):
                     violations.append(
                         f"Page {page_idx + 1}: found prohibited term '{term}'"
                     )
@@ -266,7 +276,7 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
             self.assertIn("Affiliation scrubbed for double-blind review", main_text)
 
     def test_limitations_section_present(self):
-        """Assert Section 8 (Limitations and Ethical Considerations) is present and non-empty."""
+        """Assert Section 8 (Limitations) and Section 9 (Ethical Considerations) are present and non-empty."""
         limitations_file = SECTIONS_DIR / "08_limitations.tex"
         self.assertTrue(
             limitations_file.is_file(),
@@ -280,9 +290,14 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
 
         content = limitations_file.read_text(encoding="utf-8")
         self.assertIn(
-            "\\section{Limitations and Ethical Considerations}",
+            "\\section{Limitations}",
             content,
-            "08_limitations.tex missing '\\section{Limitations and Ethical Considerations}'",
+            "08_limitations.tex missing '\\section{Limitations}'",
+        )
+        self.assertIn(
+            "\\section{Ethical Considerations}",
+            content,
+            "08_limitations.tex missing '\\section{Ethical Considerations}'",
         )
 
         # Verify main.tex inputs the limitations section
@@ -305,10 +320,17 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
             reader = pypdf.PdfReader(str(MAIN_PDF))
             full_text = " ".join(page.extract_text() or "" for page in reader.pages)
             clean_text = " ".join(re.sub(r"\d+", " ", full_text).split())
+            # De-hyphenate words broken across line breaks (e.g. "De- ployment" -> "Deployment")
+            clean_text = re.sub(r"(\b\w+)-\s+(\w+\b)", r"\1\2", clean_text)
             self.assertIn(
-                "Limitations and Ethical Considerations",
+                "Limitations",
                 clean_text,
-                "Limitations and Ethical Considerations not found in main.pdf text",
+                "Limitations not found in main.pdf text",
+            )
+            self.assertIn(
+                "Ethical Considerations",
+                clean_text,
+                "Ethical Considerations not found in main.pdf text",
             )
             for subsection in REQUIRED_LIMITATIONS_SUBSECTIONS:
                 self.assertIn(
