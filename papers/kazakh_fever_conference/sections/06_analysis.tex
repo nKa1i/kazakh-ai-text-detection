@@ -7,18 +7,24 @@
 \caption{Qualitative case studies comparing baseline XLM-RoBERTa and our proposed system on Kazakh-FEVER 3K.}
 \label{tab:case_studies}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{p{5.8cm}p{5.8cm}ccc}
+\begin{tabular}{p{7.1cm}p{7.1cm}ccc}
 \toprule
 \textbf{Evidence Passage} & \textbf{Claim} & \textbf{Gold} & \textbf{XLM-R} & \textbf{Ours} \\
 \midrule
-\textit{Қаныш Сәтбаев 1934 жылы Жезқазған мыс кен орындарын зерттеуді аяқтады.} & \textit{Қаныш Сәтбаев Жезқазған мыс кен орындарын 1934 жылы зерттеген.} & \textsc{Sup} & \textsc{Sup} & \textsc{Sup} \\
-(Kanysh Satbayev completed the study of Zhezkazgan copper deposits in 1934.) & (Kanysh Satbayev studied Zhezkazgan copper deposits in 1934.) & & & \\
+\textit{Қаныш Сәтбаев 1934 жылы Жезқазған мыс кен орындарын зерттеуді аяқтады.}\newline
+{\footnotesize\color{black!75}(Kanysh Satbayev completed the study of Zhezkazgan copper deposits in 1934.)} &
+\textit{Қаныш Сәтбаев Жезқазған мыс кен орындарын 1934 жылы зерттеген.}\newline
+{\footnotesize\color{black!75}(Kanysh Satbayev studied Zhezkazgan copper deposits in 1934.)} & \textsc{Sup} & \textsc{Sup} & \textsc{Sup} \\
 \midrule
-\textit{Абай Құнанбаев «Қара сөздерін» 1890 мен 1898 жылдар аралығында жазған.} & \textit{Абай Құнанбаев «Қара сөздерін» 1890 жылдары мүлде жазбаған.} & \textsc{Ref} & \textsc{Sup} & \textsc{Ref} \\
-(Abai Qunanbaiuly wrote ``The Book of Words'' between 1890 and 1898.) & (Abai Qunanbaiuly did not write ``The Book of Words'' in the 1890s at all.) & & & \\
+\textit{Абай Құнанбаев «Қара сөздерін» 1890 мен 1898 жылдар аралығында жазған.}\newline
+{\footnotesize\color{black!75}(Abai Qunanbaiuly wrote ``The Book of Words'' between 1890 and 1898.)} &
+\textit{Абай Құнанбаев «Қара сөздерін» 1890 жылдары мүлде жазбаған.}\newline
+{\footnotesize\color{black!75}(Abai Qunanbaiuly did not write ``The Book of Words'' in the 1890s at all.)} & \textsc{Ref} & \textsc{Sup} & \textsc{Ref} \\
 \midrule
-\textit{Ахмет Байтұрсынұлы 1913 жылы «Қазақ» газетін шығаруды ұйымдастырды.} & \textit{Ахмет Байтұрсынұлы «Қазақ» газетінің барлық мақалаларын өзі ғана жазған болуы мүмкін.} & \textsc{NEI} & \textsc{Sup} & \textsc{NEI} \\
-(Akhmet Baitursynuly organized the publication of ``Qazaq'' newspaper in 1913.) & (Akhmet Baitursynuly might have written all articles of ``Qazaq'' newspaper solely by himself.) & & & \\
+\textit{Ахмет Байтұрсынұлы 1913 жылы «Қазақ» газетін шығаруды ұйымдастырды.}\newline
+{\footnotesize\color{black!75}(Akhmet Baitursynuly organized the publication of ``Qazaq'' newspaper in 1913.)} &
+\textit{Ахмет Байтұрсынұлы «Қазақ» газетінің барлық мақалаларын өзі ғана жазған болуы мүмкін.}\newline
+{\footnotesize\color{black!75}(Akhmet Baitursynuly might have written all articles of ``Qazaq'' newspaper solely by himself.)} & \textsc{NEI} & \textsc{Sup} & \textsc{NEI} \\
 \bottomrule
 \end{tabular}%
 }
@@ -38,14 +44,14 @@ Table~\ref{tab:case_studies} illustrates representative examples from Kazakh-FEV
 
 \subsection{Interactive Explainability and Deployment}
 \label{sec:explainability}
-To facilitate transparent auditing and human-in-the-loop verification, an interactive web demonstration and code repository are available for peer review,\footnote{Online demo and anonymized repository: \url{https://anonymous.4open.science/r/kazakh-ai-text-detection-57F8}} and the complete interactive environment and evaluation scripts are included in the supplementary materials archive. Developed with Gradio, the interface provides sub-second verification with bilingual localization in Kazakh (\textit{қазақ тілі}) and English.
+To facilitate transparent auditing and human-in-the-loop verification, an interactive web demonstration and code repository are available for peer review,\footnote{Online demo and anonymized repository: \url{https://anonymous.4open.science/r/kazakh-ai-text-detection-57F8}} with the complete interactive environment and scripts included in the supplementary materials archive. Developed with Gradio, the interface provides sub-second verification with bilingual localization in Kazakh (\textit{қазақ тілі}) and English.
 
 The interface maps submitted documents into the continuous 2D trust space $\mathcal{T} = [-1, 1] \times [0, 1]$ via a client-side procedural SVG Cartesian plane (Fig.~\ref{fig:trust_matrix}). The horizontal axis measures factual veracity $T_{\text{fact}} \in [-1, 1]$ (Equation~\ref{eq:trust_fact}) and the vertical axis measures generative authenticity $T_{\text{gen}} \in [0, 1]$ (Equation~\ref{eq:trust_gen}), partitioning predictions into four operational quadrants with real-time HUD telemetry for composite trust $\mathcal{T}(x)$ (Equation~\ref{eq:trust_score}). A runtime model toggle between \textit{Ours (Hybrid + Morpho)} and \textit{Baseline (Surface Only)} demonstrates how suffix manipulations confound models lacking morphological features.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig_trust_matrix_plane.pdf}
-\caption{Continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$ partitioning document evaluations into four operational risk quadrants: Verified Human Fact (Q1), Human Misinformation (Q2), AI Hallucinatory Disinformation (Q3), and Accurate AI Synthesis (Q4), with representative benchmark cases.}
+\includegraphics[width=0.80\columnwidth]{figures/fig_trust_matrix_plane.pdf}
+\caption{Continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$ partitioning evaluations into four risk quadrants: Verified Human Fact (Q1), Human Misinformation (Q2), AI Disinformation (Q3), and AI Synthesis (Q4).}
 \label{fig:trust_matrix}
 \end{figure}
 

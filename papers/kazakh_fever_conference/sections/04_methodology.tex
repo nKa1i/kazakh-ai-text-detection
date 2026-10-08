@@ -1,7 +1,14 @@
 \section{Methodology}
 \label{sec:method}
 
-We formulate fact verification as an end-to-end framework consisting of three coordinated stages: (1) Morphologically-Grounded Hybrid Evidence Retrieval, (2) Morphological NLI Verification, and (3) Joint Credibility Calibration via the 2D Trust Matrix.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig_framework_architecture.pdf}
+\caption{End-to-end framework architecture for morphologically-grounded fact verification. \textbf{Stage 1}: 83-rule FST stemmer and dense multilingual encoder (\textsc{mContriever}) fused via RRF ($k_0 = 60$) over 250K passages. \textbf{Stage 2}: Cross-encoder representation $\mathbf{h}_{[\text{CLS}]}$ fused with a 16-D morphological diagnostic vector $\mathbf{m}_{\text{affix}}$ via class-weighted softmax head ($w_k$). \textbf{Stage 3}: Continuous 2D Trust Matrix mapping factual veracity $T_{\text{fact}}$ and generative authenticity $T_{\text{gen}}$ into four operational quadrants.}
+\label{fig:framework_architecture}
+\end{figure*}
+
+We formulate fact verification as an end-to-end framework consisting of three coordinated stages (Figure~\ref{fig:framework_architecture}): (1) Morphologically-Grounded Hybrid Evidence Retrieval, (2) Morphological NLI Verification, and (3) Joint Credibility Calibration via the 2D Trust Matrix.
 
 \subsection{Hybrid Evidence Retrieval}
 Given query claim $c$ and evidence corpus $\mathcal{E} = \{e_1, \dots, e_N\}$ ($N \approx 250,000$), standard BM25 fails in Kazakh due to morphological mismatch between inflected word forms, while dense retrievers often miss exact entity references.
@@ -58,10 +65,7 @@ To account for factual truth and generative provenance simultaneously, we map pr
 We define the \textbf{Factual Veracity Score} $T_{\text{fact}} \in [-1, 1]$ as the calibrated difference between entailment and contradiction probabilities:
 \begin{equation}
 \label{eq:trust_fact}
-\begin{split}
-T_{\text{fact}} &= P(y = \textsc{Supported} \mid c, E) \\
-&\quad - P(y = \textsc{Refuted} \mid c, E)
-\end{split}
+T_{\text{fact}} = P(\textsc{Supported} \mid c, E) - P(\textsc{Refuted} \mid c, E)
 \end{equation}
 where $T_{\text{fact}} > 0$ indicates verified support, $T_{\text{fact}} < 0$ signifies refutation, and $T_{\text{fact}} \approx 0$ corresponds to insufficient evidence.
 

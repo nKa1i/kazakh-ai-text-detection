@@ -62,27 +62,27 @@ In the retrieval module, comparing component retrievers in Table~\ref{tab:retrie
 
 To evaluate internal reasoning mechanisms, we conduct a systematic 6-configuration feature ablation on the Kazakh-FEVER test suite (Table~\ref{tab:ablation_results}).
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
 \small
-\caption{Morphological feature ablation study on the Kazakh-FEVER benchmark test suite. Best results in bold.}
+\caption{Morphological feature ablation study on the Kazakh-FEVER test suite. Best results in bold.}
 \label{tab:ablation_results}
-\resizebox{\textwidth}{!}{%
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lcccc}
 \toprule
-\textbf{Configuration} & \textbf{Accuracy (\%)} & \textbf{Macro-F1 (\%)} & \textbf{FEVER Score (\%)} & \textbf{Hard NEI F1 (\%)} \\
+\textbf{Configuration} & \textbf{Acc} & \textbf{Macro-F1} & \textbf{FEVER} & \textbf{Hard NEI} \\
 \midrule
-\textbf{Ours (Full Morpho Cross-Encoder)} & \textbf{82.6} & \textbf{82.1} & \textbf{71.4} & \textbf{72.8} \\
+\textbf{Ours (Full Morpho)} & \textbf{82.6} & \textbf{82.1} & \textbf{71.4} & \textbf{72.8} \\
 \midrule
 $-$ Negation Alignment & 79.5 & 78.7 & 68.2 & 68.3 \\
-$-$ Temporal / Calendar Conflicts & 80.2 & 79.5 & 68.6 & 69.1 \\
-$-$ Evidentials \& Epistemic Modals & 80.8 & 80.2 & 69.5 & 69.8 \\
+$-$ Temporal Conflicts & 80.2 & 79.5 & 68.6 & 69.1 \\
+$-$ Evidentials \& Modals & 80.8 & 80.2 & 69.5 & 69.8 \\
 $-$ FST Root Analysis & 75.3 & 74.6 & 63.2 & 64.2 \\
-Surface Token Overlap Only & 72.1 & 71.5 & 59.8 & 63.7 \\
+Surface Overlap Only & 72.1 & 71.5 & 59.8 & 63.7 \\
 \bottomrule
 \end{tabular}%
 }
-\end{table*}
+\end{table}
 
 \paragraph{Surface Overlap Shortcut Pathology}
 When all 14 morphological and structural alignment features are ablated, leaving only raw surface token Jaccard overlap, performance drops sharply (72.1\% Accuracy, 71.5\% Macro-F1, 59.8\% FEVER, and 63.7\% Hard NEI F1). This exposes the shortcut learning pathology~\citep{wang-etal-2024-factcheck-bench}: candidate passages inherently share substantial vocabulary with queries regardless of veracity. Surface token overlap is blind to polarity flips, affix shifts, and entity substitutions. For example, consider the true assertion \textit{``Абай Құнанбаев Семейде дүниеге келген''} (\textit{Abai was born in Semey}) and refuted counterfactual \textit{``Абай Құнанбаев Семейде дүниеге келмеген''} (\textit{Abai was not born in Semey}). Differing solely by the two-character verbal negation infix \textit{-ме-}, their 75\% surface overlap misleads surface heuristics into predicting support.

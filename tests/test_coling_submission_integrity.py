@@ -432,6 +432,50 @@ class TestColingSubmissionIntegrity(unittest.TestCase):
                 f"Unexpected labels in sample_kazakh_fever_3k.jsonl: {observed_labels}",
             )
 
+    def test_method_architecture_diagram_present(self):
+        """Assert Figure 1 framework architecture diagram exists, compiles, and is integrated."""
+        fig_path = CONFERENCE_DIR / "figures" / "fig_framework_architecture.pdf"
+        self.assertTrue(
+            fig_path.is_file(),
+            f"Expected architecture figure at {fig_path}",
+        )
+        self.assertGreater(
+            fig_path.stat().st_size,
+            0,
+            f"Architecture figure {fig_path} is empty",
+        )
+
+        # Check methodology tex references figure
+        method_tex = SECTIONS_DIR / "04_methodology.tex"
+        self.assertTrue(method_tex.is_file(), f"Missing {method_tex}")
+        content = method_tex.read_text(encoding="utf-8")
+        self.assertIn("fig_framework_architecture.pdf", content)
+        self.assertIn("\\label{fig:framework_architecture}", content)
+
+        # Verify Figure 1 is recorded in main.aux
+        if MAIN_AUX.is_file():
+            aux_content = MAIN_AUX.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn(
+                "\\newlabel{fig:framework_architecture}",
+                aux_content,
+                "Figure 1 label fig:framework_architecture missing from main.aux",
+            )
+
+        # Verify Figure 1 is present in extracted PDF text
+        if HAS_PYPDF and MAIN_PDF.is_file():
+            reader = pypdf.PdfReader(str(MAIN_PDF))
+            full_text = "\n".join(p.extract_text() or "" for p in reader.pages)
+            self.assertIn(
+                "Figure 1:",
+                full_text,
+                "Figure 1 caption missing from compiled main.pdf",
+            )
+            self.assertIn(
+                "Figure 2:",
+                full_text,
+                "Figure 2 caption missing from compiled main.pdf",
+            )
+
     def test_aist_paper_invariance(self):
         """Verify that aist2026/paper.tex is strictly invariant with 0 git diff lines against origin/main."""
         self.assertTrue(
