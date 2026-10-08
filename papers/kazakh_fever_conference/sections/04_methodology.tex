@@ -1,11 +1,18 @@
 \section{Methodology}
 \label{sec:method}
+\setlength{\abovedisplayskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{3pt plus 1pt minus 1pt}
+\setlength{\abovedisplayshortskip}{1pt plus 1pt}
+\setlength{\belowdisplayshortskip}{1pt plus 1pt}
 
 \begin{figure*}[t]
 \centering
+\vspace{-2pt}
 \includegraphics[width=\textwidth]{figures/fig_framework_architecture.pdf}
+\vspace{-4pt}
 \caption{End-to-end framework architecture for morphologically-grounded fact verification. \textbf{Stage 1}: 83-rule FST stemmer and dense multilingual encoder (\textsc{mContriever}) fused via RRF ($k_0 = 60$) over 250K passages. \textbf{Stage 2}: Cross-encoder representation $\mathbf{h}_{[\text{CLS}]}$ fused with a 16-D morphological diagnostic vector $\mathbf{m}_{\text{affix}}$ via class-weighted softmax head ($w_k$). \textbf{Stage 3}: Continuous 2D Trust Matrix mapping factual veracity $T_{\text{fact}}$ and generative authenticity $T_{\text{gen}}$ into four operational quadrants.}
 \label{fig:framework_architecture}
+\vspace{-4pt}
 \end{figure*}
 
 We formulate fact verification as an end-to-end framework consisting of three coordinated stages (Figure~\ref{fig:framework_architecture}): (1) Morphologically-Grounded Hybrid Evidence Retrieval, (2) Morphological NLI Verification, and (3) Joint Credibility Calibration via the 2D Trust Matrix.
@@ -38,11 +45,11 @@ Standard cross-encoders process sequence $\texttt{[CLS]} \circ c \circ \texttt{[
 
 \paragraph{16-Dimensional Diagnostic Extractor}
 The vector $\mathbf{m}_{\text{affix}} = [m_0, \dots, m_{15}]^{\top} \in [0, 1]^{16}$ captures fine-grained alignments across five functional tiers:
-(1)~\textbf{Polarity Alignment ($m_0, m_1, m_2$)}: Indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, \textit{-маған/-меген}, \textit{-майды/-мейді}) and copular particles (\textit{емес, жоқ}), with $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$ capturing directional negation mismatch (XOR).
-(2)~\textbf{Temporal/Numerical Conflicts ($m_3, m_4$)}: $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects calendar year conflicts when 4-digit year sets are disjoint ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$); $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative mismatches where claim numbers are absent from $E$.
-(3)~\textbf{Evidentiality and Modality ($m_5, \dots, m_8$)}: $m_5, m_6$ detect indirect evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$, distinguishing non-witnessed hearsay from witnessed past assertions (\textit{-ды/-ді}); $m_7, m_8$ identify necessity (\textit{керек, тиіс, қажет}) and possibility operators (\textit{мүмкін, ықтимал}).
-(4)~\textbf{FST Root vs.\ Surface Overlap ($m_9, \dots, m_{11}$)}: Using our 83-rule FST analyzer, canonical root sets $\mathcal{R}_c, \mathcal{R}_e$ and surface word sets $\mathcal{S}_c, \mathcal{S}_e$ yield FST root Jaccard $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$, surface overlap $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$, and inflectional divergence $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$.
-(5)~\textbf{Syntactic Agreement and Length Scaling ($m_{12}, \dots, m_{15}$)}: $m_{12} = s_{\text{match}} \in \{0, 1\}$ indicates proper-noun subject grounding; $m_{13} = J_{\text{case}}$ measures root agreement across nominal case inflections (genitive, dative, accusative, locative, ablative); $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize sequence lengths.
+(1)~\textbf{Polarity Alignment ($m_0, m_1, m_2$)}: Indicators $m_0 = \mathbb{I}(c \text{ has neg})$ and $m_1 = \mathbb{I}(E \text{ has neg})$ detect verbal negation allomorphs (\textit{-ба/-бе/-па/-пе/-ма/-ме}, \textit{-маған/-меген}, \textit{-майды/-мейді}) and copular particles (\textit{емес, жоқ}), yielding directional mismatch $m_2 = \Delta_{\text{neg}} = |m_0 - m_1|$.
+(2)~\textbf{Temporal/Numerical ($m_3, m_4$)}: $m_3 = \Delta_{\text{year}} \in \{0, 1\}$ detects disjoint 4-digit calendar years ($\mathcal{Y}_c \cap \mathcal{Y}_e = \emptyset$); $m_4 = \Delta_{\text{num}} \in \{0, 1\}$ flags quantitative claim numbers absent from $E$.
+(3)~\textbf{Evidentiality and Modality ($m_5, \dots, m_8$)}: $m_5, m_6$ detect indirect evidential markers (\textit{-ыпты/-іпті}, \textit{екен}) in $c$ and $E$, distinguishing hearsay from witnessed past assertions (\textit{-ды/-ді}); $m_7, m_8$ identify necessity (\textit{керек, тиіс}) and possibility operators (\textit{мүмкін, ықтимал}).
+(4)~\textbf{FST Root vs.\ Surface Overlap ($m_9, \dots, m_{11}$)}: Canonical roots $\mathcal{R}_c, \mathcal{R}_e$ and surface words $\mathcal{S}_c, \mathcal{S}_e$ yield FST root Jaccard $m_9 = J_{\text{root}} = \frac{|\mathcal{R}_c \cap \mathcal{R}_e|}{|\mathcal{R}_c \cup \mathcal{R}_e|}$, surface overlap $m_{10} = J_{\text{surf}} = \frac{|\mathcal{S}_c \cap \mathcal{S}_e|}{|\mathcal{S}_c \cup \mathcal{S}_e|}$, and inflectional divergence $m_{11} = \Delta_{\text{div}} = |J_{\text{surf}} - J_{\text{root}}|$.
+(5)~\textbf{Syntactic Agreement and Length ($m_{12}, \dots, m_{15}$)}: $m_{12} = s_{\text{match}}$ indicates proper-noun grounding; $m_{13} = J_{\text{case}}$ measures case inflection root overlap; $m_{14} = \min(1.0, |c| / 30)$ and $m_{15} = \min(1.0, |E| / 100)$ normalize sequence lengths.
 
 \paragraph{Fused Classification and Training Objective}
 Contextual embedding $\mathbf{h}_{[\text{CLS}]} \in \mathbb{R}^d$ and affix vector $\mathbf{m}_{\text{affix}} \in \mathbb{R}^{16}$ are projected to class logits:
@@ -57,7 +64,7 @@ where $\mathbf{W}_v \in \mathbb{R}^{3 \times (d + 16)}$ and $\mathbf{b}_v \in \m
 \end{equation}
 with inverse-frequency weights $w_k = 3 \cdot \frac{N_k^{-1}}{\sum_{j=1}^3 N_j^{-1}}$ ($w_{\textsc{Sup}} = 0.735, w_{\textsc{Ref}} = 1.307, w_{\textsc{NEI}} = 0.958$), penalizing false confidence on Hard NEI.
 
-Optimization uses AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $0.01$) with differential learning rates ($\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \text{lr}_{\text{head}} = 2 \times 10^{-4}$) and a cosine annealing schedule over total steps $T_{\text{total}}$ with warmup $T_{\text{warm}} = 0.1 \cdot T_{\text{total}}$: $\eta(t) = \eta_{\text{base}} \frac{t}{T_{\text{warm}}}$ for $t < T_{\text{warm}}$, and $\frac{\eta_{\text{base}}}{2} [1 + \cos(\frac{t - T_{\text{warm}}}{0.9 \cdot T_{\text{total}}} \pi)]$ for $t \ge T_{\text{warm}}$.
+Optimization uses AdamW ($\beta_1 = 0.9, \beta_2 = 0.999$, weight decay $0.01$) with differential learning rates ($\text{lr}_{\text{encoder}} = 2 \times 10^{-5}, \text{lr}_{\text{head}} = 2 \times 10^{-4}$) and a cosine annealing schedule with $10\%$ warmup over $T_{\text{total}}$ steps: $\eta(t) = \eta_{\text{base}} \frac{t}{T_{\text{warm}}}$ for $t < T_{\text{warm}}$, and $\frac{\eta_{\text{base}}}{2} [1 + \cos(\frac{t - T_{\text{warm}}}{0.9 \cdot T_{\text{total}}} \pi)]$ for $t \ge T_{\text{warm}}$.
 
 \subsection{2D Trust Matrix Formulation}
 To account for factual truth and generative provenance simultaneously, we map predictions into a continuous 2D trust space $\mathcal{T} = [-1, 1] \times [0, 1]$.
