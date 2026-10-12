@@ -63,7 +63,7 @@ To guarantee high evidence recall despite inflectional variance, retrieval fuses
     \begin{equation}
         S_{\text{BM25}}(c, e) = \sum_{t \in c_{\text{morph}}} \text{IDF}(t) \cdot \frac{f(t, e_{\text{morph}}) \cdot (k_1 + 1)}{f(t, e_{\text{morph}}) + k_1 \left(1 - b + b \cdot \frac{|e_{\text{morph}}|}{\text{avgdl}}\right)}
     \end{equation}
-    \item \textit{Dense Neural Retrieval (\textsc{mContriever})}: Unsupervised multilingual dense representations compute bi-encoder cosine similarity:
+    \item \textit{Dense Neural Retrieval (\textsc{mContriever} and \textsc{M3-Embedding})}: Multilingual dense neural representations---leveraging unsupervised contrastive pre-trained encoders such as \textsc{mContriever} \cite{izacard2022mcontriever} alongside multi-granularity dense representations from \textsc{M3-Embedding} \cite{chen-etal-2024-m3}---compute bi-encoder cosine similarity:
     \begin{equation}
         S_{\text{dense}}(c, e) = \cos(\mathbf{h}_c, \mathbf{h}_e) = \frac{\text{Enc}(c) \cdot \text{Enc}(e)}{\|\text{Enc}(c)\| \|\text{Enc}(e)\|}
     \end{equation}
