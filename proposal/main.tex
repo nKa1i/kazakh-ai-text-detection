@@ -20,6 +20,10 @@
 \newfontfamily\zhfont{SimSun}[AutoFakeBold=true]
 \newfontfamily\zhheiti{SimHei}[AutoFakeBold=true]
 
+% Enable automatic Chinese character line wrapping
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+
 % Chinese Font Size Helpers (zihao)
 \newcommand{\zihao}[1]{%
   \ifcase#1\relax
