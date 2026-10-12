@@ -1,0 +1,29 @@
+\section{Feasibility, Working Conditions, and Collaborative Environment}
+\label{sec:feasibility}
+
+\subsection{Computational and Infrastructure Feasibility}
+The computational demands of this research are fully supported by the high-performance computing facilities available at Northwestern Polytechnical University (NPU) and collaborative partner institutions. Model training, dense passage indexing, and large-scale experimental evaluations leverage dedicated GPU clusters equipped with NVIDIA A100 (80\,GB VRAM) and Dual NVIDIA Tesla T4 (16\,GB VRAM each) accelerators.
+
+The project utilizes an open-source, highly reproducible software stack:
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Deep Learning Frameworks:} PyTorch 2.3+ with CUDA 12.1, Hugging Face Transformers, Datasets, and Accelerate libraries, incorporating automatic mixed precision (\texttt{torch.amp.autocast}) and gradient checkpointing.
+    \item \textbf{Information Retrieval Engines:} Apache Lucene-based Pyserini / Rank-BM25 for inverted index management, and FAISS for high-dimensional vector similarity indexing.
+    \item \textbf{Morphological Transducers:} Standalone, dependency-light Python implementations of the 83-rule FST finite-state automaton, with C++ OpenFST bindings for high-throughput batch preprocessing.
+    \item \textbf{Version Control and Reproducibility:} Git-managed codebases synchronized across private and double-blind anonymous academic repositories (e.g., Anonymous 4open science), with containerized deployment environments managed via Docker.
+\end{itemize}
+
+\subsection{Data Resources and Linguistic Annotations}
+The empirical foundation of this study is grounded in extensive, publicly accessible knowledge repositories:
+\begin{enumerate}[leftmargin=*, label=(\arabic*)]
+    \item \textbf{Kazakh Wikipedia Repository:} A filtered, orthographically standardized corpus of 250,000 text chunks extracted from official Wikimedia dumps (licensed under CC BY-SA 4.0), providing dense coverage across historical, scientific, geographic, and cultural domains.
+    \item \textbf{Verified Public Fact-Checking Archives:} Real-world disputed claims and investigative fact-checks gathered from Factcheck.kz and regional news repositories, accessed under fair-use academic benchmarking standards.
+    \item \textbf{Tri-Domain AI Detection Corpus:} 9,000 balanced articles across formal news, Wikipedia passages, and social media discussions, paired with synthetic generations from top-tier LLM families.
+\end{enumerate}
+
+\subsection{Academic Mentorship and Dual-Institutional Collaboration}
+This research operates at the intersection of deep learning and low-resource computational linguistics, benefiting from formal bilateral institutional collaboration:
+\begin{itemize}[leftmargin=*, label=$\diamond$]
+    \item \textbf{Northwestern Polytechnical University (NPU), School of Computer Science:} Under the primary academic supervision of \textbf{Professor Bin Guo}, the candidate receives comprehensive mentorship in deep representation learning, ubiquitous intelligence, model generalization, and robust neural architectures. NPU provides the primary computational servers, academic guidance, and research infrastructure necessary for high-level dissertation execution.
+    \item \textbf{Al-Farabi Kazakh National University (KazNU):} Under the co-advising and linguistic consultation of \textbf{Dr.\ Irina Ualiyeva}, the project coordinates with native Kazakh linguists and professional journalists. KazNU facilitates native speaker annotation campaigns, quality control cross-validation, and linguistic rule verification for the 83-rule FST analyzer.
+\end{itemize}
+This dual-institutional ecosystem provides an optimal balance between advanced machine learning methodologies and authoritative native linguistic grounding, ensuring the feasibility and rigorous completion of the proposed research.

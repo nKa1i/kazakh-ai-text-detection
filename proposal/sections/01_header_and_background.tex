@@ -1,0 +1,40 @@
+\newpage
+
+% Table Header Box matching Page -2- of NPU form
+\noindent
+\begin{tabular}{|p{0.20\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|p{0.18\textwidth}|}
+\hline
+\centering {\zhfont\bfseries 论文题目} \newline \textbf{Dissertation Title} & 
+\multicolumn{4}{p{0.75\textwidth}|}{\raggedright \textbf{Morphologically-Grounded AI-Generated Text Detection and Factual Verification for Low-Resource Agglutinative Languages: A Comprehensive Framework for Kazakh}} \\
+\hline
+\centering {\zhfont\bfseries 论文类型} \newline {\zhfont (在有关项目下作记号$\surd$)} \newline \textbf{Dissertation Type} \newline {\footnotesize (Put a tick $\surd$ under relevant item)} &
+\centering {\zhfont 基础研究} \newline {\footnotesize Fundamental Research} &
+\centering {\zhfont 应用研究} \newline {\footnotesize Application Research} \newline \textbf{\Large $\surd$} &
+\centering {\zhfont 工程技术} \newline {\footnotesize Engineering Technology} &
+\centering {\zhfont 跨学科研究} \newline {\footnotesize Research Cross Discipline} \tabularnewline
+\hline
+\multicolumn{5}{|p{0.96\textwidth}|}{
+{\zhfont 研究生在进行选题报告、听取意见后，整理成文（不少于 3500 字）。} \newline
+\textbf{After the report and comments, make the records up to an article. (no less than 3500 words)}
+} \\
+\hline
+\end{tabular}
+
+\vspace{0.6cm}
+
+\section{Research Background and Significance}
+\label{sec:background}
+
+The recent proliferation of autoregressive Large Language Models (LLMs)---such as OpenAI's GPT-4, Meta's LLaMA-3, and DeepSeek-R1---has precipitated a fundamental paradigm shift across artificial intelligence and digital communication \cite{vaswani2017attention, achiam2023gpt4, dubey2024llama3, guo2025deepseekr1}. While these models exhibit unprecedented proficiency in syntactic cohesion, creative writing, and automated reasoning, their widespread accessibility has simultaneously intensified severe risks surrounding information integrity \cite{bender2021stochasticparrots}. Modern digital ecosystems are increasingly inundated with synthetic media, including automated disinformation campaigns, AI-assisted academic plagiarism, and hallucinated factual claims that masquerade as authoritative knowledge. Addressing these existential challenges demands robust computational mechanisms for both (1) distinguishing machine-generated prose from human-authored text (AI text detection), and (2) verifying the empirical veracity of factual assertions against reputable reference knowledge (automated fact verification).
+
+Despite vigorous progress in mainstream languages such as English and Standard Mandarin, modern text safety and verification methodologies encounter critical operational bottlenecks when deployed in low-resource, morphologically complex agglutinative languages \cite{khurana2024subwords}. Languages belonging to the Turkic family---exemplified by Kazakh, Uzbek, Kyrgyz, and Turkish---exhibit structural typologies that fundamentally contradict the core architectural assumptions of prevailing transformer models. In agglutinative linguistic systems, lexical roots serve as anchors for extensive, sequential suffixation chains that systematically encode negation, evidentiality, syntactic case relations, tense, possessive markers, and pragmatic moods within single polymorphemic words. A solitary verbal stem can generate hundreds of distinct surface forms without introducing new lexical headwords.
+
+This structural reality produces three catastrophic vulnerabilities in standard natural language processing (NLP) pipelines:
+
+\begin{enumerate}[leftmargin=*, label=(\arabic*)]
+    \item \textbf{Extreme Lexical Sparsity and Token Fragmentation:} Standard Byte-Pair Encoding (BPE) and WordPiece tokenizers, trained predominantly on high-resource multilingual corpora, lack structural awareness of Turkic morphological boundaries. Subword tokenizers aggressively fragment agglutinative suffix chains into meaningless sub-character pieces (e.g., segmenting the Kazakh word \textit{мектебіміздегілерден} [``from those who are in our school''] into multiple disjoint byte tokens). This fragmentation artificially inflates sequence lengths, depletes effective context windows, and dilutes gradient flow during representation learning.
+    \item \textbf{The Failure of Surface Lexical Overlap Heuristics:} Conventional sparse information retrieval engines (e.g., BM25) and sentence similarity baselines operate on exact surface token matches \cite{robertson2009bm25}. Because Kazakh inflections drastically alter surface tokens while preserving core semantic lemmas, raw keyword matching suffers from severe recall degradation. Conversely, in natural language inference (NLI), minor morphological shifts can completely invert semantic truth. For example, altering a single unstressed two-character negative infix (\textit{келген} [``arrived''] vs.\ \textit{келмеген} [``did not arrive'']) reverses factual polarity while maintaining an 80\% surface lexical overlap, tricking standard classifiers into predicting factual entailment when the proposition is explicitly contradicted.
+    \item \textbf{Decoupled Veracity and Provenance Silos:} In existing industrial and academic auditing frameworks, AI text detection and factual verification are treated as disjoint, independent tasks. In real-world media environments, however, information risks manifest across both axes simultaneously: human-written texts may contain malicious falsehoods (human misinformation), AI models can synthesize completely fabricated assertions (AI disinformation), while AI systems may also summarize factual ground truths (AI synthesis). Decoupled systems fail to provide human fact-checkers with a unified, actionable assessment of content reliability.
+\end{enumerate}
+
+To bridge these critical gaps, this research establishes the first unified, morphologically-grounded research framework tailored specifically for low-resource agglutinative languages, taking Kazakh as the primary exemplar. By integrating formal computational morphology (an 83-rule Finite-State Transducer) into deep contrastive detection and hybrid retrieval-augmented verification, this dissertation bridges linguistic theory and modern deep learning. Furthermore, this research introduces the first human-validated benchmark for Kazakh fact verification (\textbf{Kazakh-FEVER 3K}) equipped with a specialized ``Hard Not-Enough-Info'' (Hard NEI) protocol, and formulates a continuous 2D Cartesian Trust Matrix $(T_{\text{fact}}, T_{\text{gen}})$ that unifies factual truth and generative provenance into an interpretable decision space. This study provides vital foundational infrastructure for linguistic equity, sovereign information verification, and trustworthy AI deployment across Central Asia and the broader Turkic-speaking world.

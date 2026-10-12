@@ -1,0 +1,26 @@
+\section{Existing Problems and Proposed Countermeasures}
+\label{sec:problems}
+
+In conducting this investigation, several technical challenges and methodological risks have been identified. Specific countermeasures have been designed to guarantee project success:
+
+\subsection{Challenge 1: Orthographic Divergence and the Ongoing Script Transition}
+\paragraph{Problem Description:} The Kazakh language is currently undergoing a phased national transition from the Cyrillic script to a Latin-based alphabet. Web-scraped texts, social media posts, and official communications frequently exhibit mixed orthographic conventions, non-standard diacritics, and informal transliteration schemes. Standard tokenizers treat identical words in divergent scripts as completely disjoint vocabulary items.
+\paragraph{Proposed Countermeasure:} We introduce a bidirectional orthographic normalization pre-processing layer prior to FST parsing. The transducer maps informal Latin variants, Cyrillic homoglyphs, and archaic digraphs into a unified canonical Cyrillic-Kazakh character representation, ensuring invariant morphological segmentation regardless of input script.
+
+\subsection{Challenge 2: Computational Latency of Dense Cross-Encoder Verification}
+\paragraph{Problem Description:} While cross-encoders achieve superior accuracy by modeling bidirectional cross-attention across concatenated sequences ($[c \,;\, E]$), computing attention over thousands of candidate passages during open-domain verification incurs prohibitive computational latency, rendering real-time deployment infeasible.
+\paragraph{Proposed Countermeasure:} We implement a strict multi-tier retrieval filter. Stage 1 utilizes hybrid BM25 and quantized dense embeddings (\textsc{mContriever}) to prune the 250,000-passage knowledge corpus down to the top-$k$ ($k=5$) most salient candidate sentences within sub-second latency ($<300$\,ms). Full cross-encoder attention and 16-D morphological diagnostic feature extraction are restricted exclusively to this filtered candidate pool.
+
+\subsection{Challenge 3: Class Imbalance and Annotator Subjectivity on Hard NEI}
+\paragraph{Problem Description:} In real-world news corpora, factual assertions naturally outnumber explicit refutations, causing severe class imbalance. Furthermore, classifying borderline \textsc{Not Enough Info} (NEI) instances involving subtle speculative or evidential markers introduces potential annotator subjectivity.
+\paragraph{Proposed Countermeasure:} To counteract class imbalance, cross-encoder fine-tuning optimizes a class-weighted cross-entropy loss function ($\mathcal{L}_{\text{NLI}}$) incorporating normalized inverse-frequency weights ($w_{\textsc{Sup}} = 0.735, w_{\textsc{Ref}} = 1.307, w_{\textsc{NEI}} = 0.958$). To ensure annotation fidelity, all benchmark samples undergo dual independent cross-validation with formal inter-annotator agreement tracking ($\kappa = 0.84$), with conflicting labels resolved through adjudicated expert consensus.
+
+\section{Evaluation and Validation Methodology}
+\label{sec:evaluation}
+The system will undergo rigorous quantitative and qualitative validation against recognized baseline architectures:
+\begin{itemize}[leftmargin=*, nosep]
+    \item \textbf{Retrieval Evaluation:} Evaluated across Recall@1, Recall@3, Recall@5, and Mean Reciprocal Rank (MRR) against standard BM25, morpheme-stemmed BM25, and dense \textsc{mContriever}.
+    \item \textbf{Verification Evaluation:} Evaluated across 3-class Accuracy, Macro-averaged F1, Hard NEI F1, and the official Strict FEVER score (which requires both accurate veracity prediction and gold evidence sentence retrieval) against fine-tuned mBERT-base, XLM-RoBERTa-base, XLM-RoBERTa-large, and zero-shot LLaMA-3-8B-Instruct.
+    \item \textbf{AI Text Detection Evaluation:} Evaluated across Accuracy, F1-score, and Area Under the Receiver Operating Characteristic (AUROC) under strict Leave-One-Generator-Out (LOGO) cross-validation across diverse LLM families.
+\end{itemize}
+

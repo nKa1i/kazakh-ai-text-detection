@@ -1,0 +1,97 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[top=2.54cm, bottom=2.54cm, left=2.54cm, right=2.54cm]{geometry}
+\usepackage{fontspec}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{cite}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[colorlinks=true, linkcolor=blue!80!black, citecolor=blue!80!black, urlcolor=blue!80!black]{hyperref}
+
+% Configure Fonts
+\setmainfont{Times New Roman}
+\newfontfamily\zhfont{SimSun}[AutoFakeBold=true]
+\newfontfamily\zhheiti{SimHei}[AutoFakeBold=true]
+
+% Chinese Font Size Helpers (zihao)
+\newcommand{\zihao}[1]{%
+  \ifcase#1\relax
+    \fontsize{42pt}{48pt}\selectfont % 0
+  \or
+    \fontsize{26pt}{30pt}\selectfont % 1
+  \or
+    \fontsize{22pt}{26pt}\selectfont % 2
+  \or
+    \fontsize{16pt}{20pt}\selectfont % 3
+  \or
+    \fontsize{14pt}{18pt}\selectfont % 4
+  \or
+    \fontsize{10.5pt}{13pt}\selectfont % 5
+  \else
+    \fontsize{10.5pt}{13pt}\selectfont
+  \fi
+}
+
+% Section title formatting
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection}{1em}{}
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
+\titlespacing*{\subsection}{0pt}{8pt plus 2pt minus 2pt}{3pt plus 1pt minus 1pt}
+
+% Headers and Footers matching NPU template (-1-, -2-, etc.)
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\cfoot{-\ \thepage\ -}
+
+% Line spacing
+\linespread{1.15}
+
+\begin{document}
+
+% Page 1: Cover
+\input{cover.tex}
+
+% Page -1-: Requirements
+\clearpage
+\setcounter{page}{1}
+\input{requirements.tex}
+
+% Page -2- onwards: Main Report
+\clearpage
+\input{sections/01_header_and_background.tex}
+\input{sections/02_literature_review.tex}
+\input{sections/03_objectives_and_questions.tex}
+\input{sections/04_methodology_and_architecture.tex}
+\input{sections/05_outcomes_and_innovations.tex}
+\input{sections/06_feasibility_and_conditions.tex}
+\input{sections/07_workload_and_timeline.tex}
+\input{sections/08_problems_and_countermeasures.tex}
+
+% References
+\vspace{0.4cm}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\vspace{0.8cm}
+
+% Concluding Reservation / Remarks box matching NPU template
+\noindent
+\begin{tabularx}{\textwidth}{|X|}
+\hline
+\textbf{\zhfont 备注} \newline
+\textbf{Reservation / Remarks:} \newline
+\small
+The research program detailed in this title selection report reflects original, independent investigation conducted by the candidate under the direction of academic supervisor Prof.\ Bin Guo at Northwestern Polytechnical University, in academic consultation with Dr.\ Irina Ualiyeva at Al-Farabi Kazakh National University. All experimental protocols comply with ethical standards for open-source scientific research. \\
+\hline
+\end{tabularx}
+
+\end{document}
