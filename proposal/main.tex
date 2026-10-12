@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{article}
 
-\usepackage[top=2.54cm, bottom=2.54cm, left=2.54cm, right=2.54cm]{geometry}
+\usepackage[top=2.54cm, bottom=2.85cm, left=2.57cm, right=2.57cm]{geometry}
 \usepackage{fontspec}
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
@@ -11,6 +11,8 @@
 \usepackage{caption}
 \usepackage{cite}
 \usepackage{xcolor}
+\usepackage{eso-pic}
+\usepackage{tikz}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage[colorlinks=true, linkcolor=blue!80!black, citecolor=blue!80!black, urlcolor=blue!80!black]{hyperref}
@@ -59,6 +61,21 @@
 % Line spacing
 \linespread{1.15}
 
+% Outer rectangular border on body pages matching NPU template
+\newif\ifdrawpageborder
+\drawpageborderfalse
+
+\AddToShipoutPictureBG{%
+  \ifdrawpageborder
+    \begin{tikzpicture}[remember picture, overlay]
+      \draw[line width=0.5pt] 
+        ([xshift=23.84mm, yshift=-22.18mm]current page.north west) 
+        rectangle 
+        ([xshift=-23.84mm, yshift=25.95mm]current page.south east);
+    \end{tikzpicture}%
+  \fi
+}
+
 \begin{document}
 
 % Page 1: Cover
@@ -71,6 +88,7 @@
 
 % Page -2- onwards: Main Report
 \clearpage
+\drawpagebordertrue
 \input{sections/01_header_and_background.tex}
 \input{sections/02_literature_review.tex}
 \input{sections/03_objectives_and_questions.tex}
