@@ -57,6 +57,18 @@ class TestProposalCJKAndCitations(unittest.TestCase):
         self.assertIn("硕士生的选题报告内容应包括文献综述", page2_text)
         self.assertIn("本表可以打印或用钢笔认真填写", page2_text)
 
+    def test_empty_reservation_box(self):
+        """Verify final page contains Reservation label but pre-filled candidate text is absent."""
+        reader = pypdf.PdfReader(self.pdf_path)
+        last_page_text = reader.pages[-1].extract_text()
+        self.assertIn("Reservation", last_page_text, "Reservation label missing on final page")
+        self.assertNotIn(
+            "The research program detailed in this title selection report reflects original",
+            last_page_text,
+            "Reservation box must not contain pre-filled text",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
+
