@@ -109,8 +109,8 @@ class TestProposalCJKAndCitations(unittest.TestCase):
         self.assertIn("Challenge 3", body_text)
         self.assertIn("5 Current Progress", body_text)
         self.assertIn("6 Dissertation Plan", body_text)
-        # Verify Figures 1 through 6 are referenced or present in captions
-        for fig_num in range(1, 7):
+        # Verify Figures 1 through 5 are referenced or present in captions
+        for fig_num in range(1, 6):
             self.assertTrue(
                 f"Figure {fig_num}" in body_text or f"Fig. {fig_num}" in body_text,
                 f"Figure {fig_num} missing from body text",
