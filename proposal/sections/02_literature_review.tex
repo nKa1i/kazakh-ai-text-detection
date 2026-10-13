@@ -48,7 +48,7 @@ However, verification models frequently succumb to \textit{shortcut learning} \c
 Building upon these literature insights, this dissertation formulates three interlocking research points that define our core methodological agenda (illustrated in Figure~\ref{fig:overall_framework}):
 
 \begin{itemize}[leftmargin=*, nosep]
-    \item \textbf{Point 1: Resolving Subword Tokenization Fragmentation via Dual-Stream Gated Fusion.} Standard tokenizers arbitrarily partition Kazakh words, destroying morphological affixes. We develop a dual-stream architecture combining an 83-rule symbolic FST morphological parser with a pretrained Kaz-RoBERTa transformer encoder, fused via dynamic cross-attention gating to ensure morphologically-grounded representation learning.
+    \item \textbf{Point 1: Resolving Subword Tokenization Fragmentation via Dual-Stream Gated Fusion.} Standard tokenizers arbitrarily partition Kazakh words, destroying morphological affixes. We develop a dual-stream architecture combining an 83-rule symbolic FST morphological parser with a pretrained Kaz-RoBERTa transformer encoder, fused via dynamic cross-attention gating to ensure morphologically grounded representation learning.
     
     \item \textbf{Point 2: Mitigating Cross-Generator Shift via Sentence-Preserving Chunk Pooling.} Existing detectors overfit to generator artifacts and fail under localized splicing. We introduce a sentence-preserving chunking mechanism with 10 abbreviation regex guards and dynamic top-$k$ extreme value pooling, ensuring length-agnostic forensic sensitivity and robust invariance across unseen LLM generators.
     
