@@ -26,10 +26,9 @@ where $\odot$ denotes the Hadamard product.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.65\textwidth, height=2.2cm, keepaspectratio]{figures/fig3_dual_stream_fusion.png}
+\includegraphics[width=0.88\textwidth]{figures/fig3_dual_stream_fusion.png}
 \caption{Dual-Stream Morphology-Aware Gated Fusion Architecture with SupCon Optimization.}
 \label{fig:dual_stream_fusion}
-\vspace{-0.2cm}
 \end{figure}
 
 The fused state is projected onto a normalized 128-dimensional hypersphere $\mathbf{z} = \frac{\text{MLP}(\mathbf{h}_{\text{fused}})}{\|\text{MLP}(\mathbf{h}_{\text{fused}})\|_2} \in \mathbb{R}^{128}$ and jointly optimized via Binary Cross-Entropy ($\mathcal{L}_{\text{BCE}}$) and Supervised Contrastive Loss ($\mathcal{L}_{\text{SupCon}}$) \cite{khurana2023contrastive}:
@@ -59,19 +58,18 @@ Distinguishing AI generation does not confirm factual truth. Research Point~3 de
 
 \begin{figure}[!htbp]
 \centering
-\begin{minipage}{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
-\includegraphics[width=\textwidth, height=1.75cm, keepaspectratio]{figures/fig4_chunk_pooling.png}
-\caption{Sentence-Preserving Chunking and Dynamic Top-K Worst-Chunk Pooling Pipeline.}
+\includegraphics[width=\linewidth]{figures/fig4_chunk_pooling.png}
+\caption{Sentence-Preserving Chunking and Dynamic Top-$K$ Worst-Chunk Pooling Pipeline.}
 \label{fig:chunk_pooling}
 \end{minipage}\hfill
-\begin{minipage}{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
-\includegraphics[width=\textwidth, height=1.75cm, keepaspectratio]{figures/fig5_fact_checking_trust_matrix.png}
+\includegraphics[width=\linewidth]{figures/fig5_fact_checking_trust_matrix.png}
 \caption{Kazakh-FEVER Automated Fact Verification Pipeline and Four-Quadrant Trust Matrix.}
 \label{fig:fact_checking_trust_matrix}
 \end{minipage}
-\vspace{-0.25cm}
 \end{figure}
 
 The pipeline integrates three core stages:
