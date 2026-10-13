@@ -83,6 +83,32 @@ class TestProposalCJKAndCitations(unittest.TestCase):
         self.assertIn("2.1 Design and Architecture", body_text)
         self.assertIn("2.4 Main Research Points", body_text)
 
+    def test_sections_3_to_6_structure_and_figures(self):
+        """Verify Sections 3 to 6 exist with approved headings, figures, and content."""
+        reader = pypdf.PdfReader(self.pdf_path)
+        body_text = ""
+        for page in reader.pages[2:]:
+            body_text += page.extract_text() + "\n"
+        self.assertIn("3 Research Content", body_text)
+        self.assertIn("3.1 Research Point 1", body_text)
+        self.assertIn("3.2 Research Point 2", body_text)
+        self.assertIn("3.3 Research Point 3", body_text)
+        self.assertIn("4 Research and Innovations", body_text)
+        self.assertIn("Innovation 1", body_text)
+        self.assertIn("Innovation 2", body_text)
+        self.assertIn("Innovation 3", body_text)
+        self.assertIn("Challenge 1", body_text)
+        self.assertIn("Challenge 2", body_text)
+        self.assertIn("Challenge 3", body_text)
+        self.assertIn("5 Current Progress", body_text)
+        self.assertIn("6 Dissertation Plan", body_text)
+        # Verify Figures 1 through 6 are referenced or present in captions
+        for fig_num in range(1, 7):
+            self.assertTrue(
+                f"Figure {fig_num}" in body_text or f"Fig. {fig_num}" in body_text,
+                f"Figure {fig_num} missing from body text",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

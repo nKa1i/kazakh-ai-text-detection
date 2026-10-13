@@ -1,0 +1,31 @@
+\section{Research and Innovations}
+\label{sec:innovations_and_challenges}
+
+This dissertation addresses foundational challenges in low-resource agglutinative NLP by combining symbolic linguistic transducers with deep representation learning.
+
+\subsection{Key Methodological Innovations}
+\label{sec:innovations}
+
+\paragraph{Innovation 1 -- Dual-Stream Morphological Gated Fusion:}
+Existing neural detectors rely on subword tokenizers that fragment Kazakh words \cite{khurana2024subwords}. We introduce a hybrid neural-symbolic architecture fusing an 83-rule Finite-State Transducer (FST) with \textsc{Kaz-RoBERTa} via dynamic gating and supervised contrastive loss ($\mathcal{L}_{\text{SupCon}}$). This inductive prior resolves morphological domain collapse, achieving a \textbf{+42.18 percentage point gain} on the out-of-domain Kaspi customer review benchmark.
+
+\paragraph{Innovation 2 -- Length-Agnostic Dynamic Top-K Pooling with Abbreviation Preservation:}
+Standard detectors truncate documents to 512 tokens or dilute localized attacks via uniform average pooling. Our engine integrates 10 Kazakh abbreviation regex guards (preventing false sentence breaks on \textit{т.б.}, \textit{ж.б.}, \textit{мыс.}, \textit{ғ.}) with dynamic Top-$K$ worst-chunk pooling ($K = \max(1, \lfloor 0.25 N \rfloor)$). This scales to 25,000 words under $1.4\text{ GB}$ VRAM while achieving \textbf{100.0\% tamper localization precision}.
+
+\paragraph{Innovation 3 -- Decoupled Four-Quadrant Dual-Risk Trust Matrix:}
+Conventional detectors conflate authorship with veracity. We formulate a decoupled continuous 2D decision plane $(T_{\text{fact}}, T_{\text{gen}})$ defining four risk quadrants (Q1: Verified Human Ground Truth, Q2: Human Misinformation, Q3: AI Factual Summary, Q4: Malicious AI Disinformation), resolving low-resource hallucination blindness and providing transparent risk telemetry.
+
+\subsection{Technical Challenges and Countermeasures}
+\label{sec:challenges}
+
+\paragraph{Challenge 1 -- Agglutinative Morphological Sparsity and High OOV Rates:}
+Kazakh's productive suffixation creates extreme surface inflectional diversity and bloated OOV rates \cite{tyers2012free}.
+\textit{Countermeasure:} We deploy a deterministic 83-rule FST rule engine modeling vowel harmony and four inflectional tiers, extracting canonical root lemmas and tag sequences that anchor both retrieval indexing and dense representation learning.
+
+\paragraph{Challenge 2 -- Cross-Generator and Cross-Domain Generalization Discrepancies:}
+Supervised neural detectors overfit to generator-specific stylistic artifacts, suffering severe drops across unseen LLMs \cite{wang2024raid}.
+\textit{Countermeasure:} We curate a Tri-Domain corpus spanning news, Wikipedia, and social discussions across four LLM families, regularized by supervised contrastive clustering on a 128-dimensional hypersphere and validated under Leave-One-Generator-Out (LOGO) evaluation.
+
+\paragraph{Challenge 3 -- Low-Resource Ground-Truth Evidence Scarcity and Negation Sensitivity:}
+Reference evidence is scarce in Kazakh, and subtle two-character negation infixes (\textit{-ба/-бе}, \textit{-па/-пе}) reverse truth value while preserving $\ge 85\%$ lexical overlap, triggering NLI shortcut learning.
+\textit{Countermeasure:} We construct the \textsc{Kazakh-FEVER 3K} benchmark with a dedicated \textit{Hard NEI} counterfactual protocol and condition cross-encoders on 16-D morphological diagnostic vectors penalizing polarity mismatches.
