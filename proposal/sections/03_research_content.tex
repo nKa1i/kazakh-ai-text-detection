@@ -40,7 +40,7 @@ where $\lambda = 0.1$. This pulls human Kazakh prose into a compact cluster whil
 \subsection{Research Point 2: Sentence-Preserving Chunking and Dynamic Top-K Pooling Engine}
 \label{sec:research_point_2}
 
-Auditing long documents (up to 25,000 words) under quadratic attention constraints requires non-destruc\-tive segmentation, as standard truncation discards content beyond 512 tokens. Research Point~2 implements Sentence-Preserving Chunking and Dynamic Top-$K$ Pooling (Figure~\ref{fig:chunk_pooling}) in three stages:
+Auditing long documents (up to 25,000 words) under quadratic attention constraints requires non-destruc\-tive segmentation, as standard truncation discards content beyond 512 tokens. Research Point~2 implements Sentence-Preserving Chunking and Dynamic Top-$K$ Pooling in three stages:
 \begin{enumerate}[leftmargin=*, label=(\alph*), nosep]
     \item \textbf{Kazakh Abbreviation Regex Guards:} To prevent erroneous sentence splits, our tokenizer incorporates 10 compiled regex guards: \textit{т.б.} (etc.), \textit{ж.б.} (and others), \textit{мыс.} (e.g.), \textit{ғ.} (century), \textit{ж.} (year), \textit{қ.} (city), \textit{а.} (village), \textit{обл.} (region), \textit{ауд.} (district), and \textit{проф.} (prof.).
     \item \textbf{Bounded Sliding Window:} Sentences are accumulated into 256-token windows with 1-sentence overlap, bounding peak GPU memory below $1.4\text{ GB}$ VRAM.
@@ -58,18 +58,9 @@ Distinguishing AI generation does not confirm factual truth. Research Point~3 de
 
 \begin{figure}[!htbp]
 \centering
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{figures/fig4_chunk_pooling.png}
-\caption{Sentence-Preserving Chunking and Dynamic Top-$K$ Worst-Chunk Pooling Pipeline.}
-\label{fig:chunk_pooling}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{figures/fig5_fact_checking_trust_matrix.png}
+\includegraphics[width=0.96\textwidth]{figures/fig5_fact_checking_trust_matrix.png}
 \caption{Kazakh-FEVER Automated Fact Verification Pipeline and Four-Quadrant Trust Matrix.}
 \label{fig:fact_checking_trust_matrix}
-\end{minipage}
 \end{figure}
 
 The pipeline integrates three core stages:
