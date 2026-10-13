@@ -69,6 +69,21 @@ class TestProposalCJKAndCitations(unittest.TestCase):
         )
 
 
+    def test_section1_and_section2_structure(self):
+        """Verify Sections 1 and 2 follow the approved student proposal headings."""
+        reader = pypdf.PdfReader(self.pdf_path)
+        body_text = ""
+        for page in reader.pages[2:]:
+            body_text += page.extract_text() + "\n"
+        self.assertIn("1 Research Background", body_text)
+        self.assertIn("1.1 Relevance and Context", body_text)
+        self.assertIn("1.2 Challenges of Existing", body_text)
+        self.assertIn("1.3 Potential of", body_text)
+        self.assertIn("2 Related Work", body_text)
+        self.assertIn("2.1 Design and Architecture", body_text)
+        self.assertIn("2.4 Main Research Points", body_text)
+
+
 if __name__ == "__main__":
     unittest.main()
 
