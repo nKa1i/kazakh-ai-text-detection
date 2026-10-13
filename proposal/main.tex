@@ -46,11 +46,23 @@
 }
 
 % Section title formatting
-\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection}{1em}{}
-\titlespacing*{\section}{0pt}{10pt plus 2pt minus 2pt}{4pt plus 1pt minus 1pt}
-\titlespacing*{\subsection}{0pt}{8pt plus 2pt minus 2pt}{3pt plus 1pt minus 1pt}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{5pt plus 1pt minus 1pt}{2pt plus 1pt minus 1pt}
+\titlespacing*{\subsection}{0pt}{4pt plus 1pt minus 1pt}{1pt plus 1pt minus 1pt}
+\titlespacing*{\subsubsection}{0pt}{3pt plus 1pt minus 1pt}{1pt plus 1pt minus 1pt}
+
+% Float and caption spacing
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.80}
+\setlength{\floatsep}{4pt plus 1pt minus 1pt}
+\setlength{\textfloatsep}{6pt plus 1pt minus 1pt}
+\setlength{\intextsep}{4pt plus 1pt minus 1pt}
+\setlength{\abovecaptionskip}{2pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{1pt plus 1pt minus 1pt}
 
 % Headers and Footers matching NPU template (-1-, -2-, etc.)
 \pagestyle{fancy}
@@ -59,7 +71,7 @@
 \cfoot{-\ \thepage\ -}
 
 % Line spacing
-\linespread{1.15}
+\linespread{1.06}
 
 % Outer rectangular border on body pages matching NPU template
 \newif\ifdrawpageborder
@@ -96,19 +108,32 @@
 \input{sections/05_current_progress.tex}
 \input{sections/06_dissertation_plan.tex}
 
+\clearpage
 % References
-\vspace{0.4cm}
+\begingroup
+\footnotesize
+\renewcommand{\baselinestretch}{0.92}\selectfont
+\let\oldthebibliography\thebibliography
+\let\endoldthebibliography\endthebibliography
+\renewenvironment{thebibliography}[1]{%
+  \begin{oldthebibliography}{#1}%
+  \setlength{\itemsep}{0pt plus 0.2pt}%
+  \setlength{\parsep}{0pt}%
+}{%
+  \end{oldthebibliography}%
+}
 \bibliographystyle{IEEEtran}
 \bibliography{references}
+\endgroup
 
-\vspace{0.8cm}
+\vspace{0.15cm}
 
 % Concluding Reservation / Remarks box matching NPU template
 \noindent
 \begin{tabularx}{\textwidth}{|p{2.8cm}|X|}
 \hline
 \centering \textbf{\zhfont 备注} \newline \textbf{Reservation} & 
-\vspace{2.5cm} % Empty blank area matching official template
+\vspace{1.2cm} % Empty blank area matching official template
 \\
 \hline
 \end{tabularx}

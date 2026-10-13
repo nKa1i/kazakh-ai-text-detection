@@ -49,6 +49,13 @@ class TestProposalCJKAndCitations(unittest.TestCase):
         words = len(total_text.split())
         self.assertGreaterEqual(words, 3500, f"Main body word count {words} is less than 3500")
 
+    def test_page_budget_condensed(self):
+        """Verify total PDF pages is condensed between 8 and 11 pages (target: ~8-10 pages)."""
+        reader = pypdf.PdfReader(self.pdf_path)
+        total_pages = len(reader.pages)
+        self.assertGreaterEqual(total_pages, 8, f"Total pages {total_pages} is less than 8")
+        self.assertLessEqual(total_pages, 11, f"Total pages {total_pages} exceeds 11 (was {total_pages})")
+
     def test_cjk_page_wrapping(self):
         """Verify Page 2 extracted text contains all Chinese requirements text."""
         reader = pypdf.PdfReader(self.pdf_path)
