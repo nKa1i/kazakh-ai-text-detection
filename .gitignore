@@ -92,3 +92,11 @@ thesis/*.toc
 thesis/*.lot
 thesis/*.lof
 
+# LaTeX build artifacts in presentation/
+presentation/*.aux
+presentation/*.nav
+presentation/*.out
+presentation/*.snm
+presentation/*.toc
+presentation/*.log
+
