@@ -36,99 +36,112 @@
 \setbeamertemplate{navigation symbols}{}
 \setbeamercolor{background canvas}{bg=white}
 \setbeamercolor{normal text}{fg=DarkNavy}
-\setbeamercolor{frametitle}{fg=white, bg=DarkNavy}
+\setbeamercolor{frametitle}{fg=DarkNavy, bg=white}
 \setbeamercolor{title}{fg=DarkNavy}
 \setbeamercolor{author}{fg=SlateText}
 \setbeamercolor{institute}{fg=SlateText}
 \setbeamercolor{date}{fg=TechCyan}
+\setbeamercolor{footline}{fg=SlateText, bg=white}
 
-\makeatletter
-% Custom Sleek Frametitle with Accent Bottom Bar
-\setbeamertemplate{frametitle}{
-    \nointerlineskip
-    \begin{beamercolorbox}[wd=\paperwidth, ht=1.10cm, dp=0.20cm, leftskip=0.8cm, rightskip=0.8cm]{frametitle}
-        \usebeamerfont{frametitle}\textbf{\large \insertframetitle}
-        \ifx\insertframesubtitle\@empty\else
-            \vskip1pt{\usebeamerfont{framesubtitle}\small\color{TechCyan!40}\insertframesubtitle}
-        \fi
-    \end{beamercolorbox}
-    \vspace{-1pt}
-    \begin{tikzpicture}[overlay, remember picture]
-        \fill[TechCyan] (current page.north west) ++(0, -1.30cm) rectangle ++(\paperwidth, -1.5pt);
-    \end{tikzpicture}
+% Frametitle: Clean white header with DarkNavy title and thin divider rule
+\setbeamertemplate{frametitle}{%
+    \vspace{0.35cm}%
+    \noindent{\Large\bfseries\color{DarkNavy}\insertframetitle}\par
+    \vspace{0.15cm}%
+    {\color{BorderGray}\hrule height 0.6pt}%
 }
 
-% Custom Modern Footline with Progress Bar
-\setbeamertemplate{footline}{
+% Footline: Understated minimalist academic footer
+\setbeamertemplate{footline}{%
+    \vspace{0.1cm}%
     \leavevmode%
-    \begin{tikzpicture}[overlay, remember picture]
-        \fill[BorderGray] (current page.south west) rectangle ($ (current page.south west) + (\paperwidth, 2pt) $);
-        \fill[TechCyan] (current page.south west) rectangle ($ (current page.south west) + ({\paperwidth * \insertframenumber / \inserttotalframenumber}, 2pt) $);
-    \end{tikzpicture}
-    \begin{beamercolorbox}[wd=\paperwidth, ht=0.45cm, dp=0.2cm, leftskip=0.8cm, rightskip=0.8cm]{normal text}
-        \footnotesize
-        \color{SlateText!80}
-        \textbf{AIST 2026} \textbar\ NLP Track \hfill 
-        Daulet Anekesh \& Irina Ualiyeva \textbar\ Al-Farabi KazNU \hfill 
-        \textbf{\insertframenumber} / \inserttotalframenumber
-    \end{beamercolorbox}
+    \hbox{%
+        \begin{beamercolorbox}[wd=\paperwidth, ht=2.5ex, dp=1.1ex, leftskip=0.8cm, rightskip=0.8cm]{footline}%
+            {\scriptsize\color{SlateText}AIST 2026 \textbar\ NLP Track}%
+            \hfill%
+            {\scriptsize\color{SlateText}Daulet Anekesh \& Irina Ualiyeva \textbar\ Al-Farabi KazNU}%
+            \hfill%
+            {\scriptsize\color{SlateText}\insertframenumber{} / \inserttotalframenumber}%
+        \end{beamercolorbox}%
+    }%
+    \vspace{0.15cm}%
+}
+
+% Clean Academic Typography & Metric Helpers
+\newcommand{\subhead}[1]{{\normalsize\textbf{\color{DarkNavy}#1}\par\vspace{3pt}}}
+\newcommand{\accenttext}[1]{{\color{TechCyan}\textbf{#1}}}
+
+\makeatletter
+\newcommand{\metricblock}[3]{%
+    \@ifundefinedcolor{#1}{%
+        \@ifundefinedcolor{#3}{%
+            \par\vspace{2pt}%
+            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
+            {\large\textbf{\color{DarkNavy}#2}}%
+            \par\vspace{2pt}%
+        }{%
+            \par\vspace{2pt}%
+            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
+            {\large\textbf{\color{#3}#2}}%
+            \par\vspace{2pt}%
+        }%
+    }{%
+        \par\vspace{2pt}%
+        {\footnotesize\color{SlateText}#2}\par\vspace{1pt}%
+        {\large\textbf{\color{#1}#3}}%
+        \par\vspace{2pt}%
+    }%
+}
+
+\newcommand{\heronumber}[3]{%
+    \@ifundefinedcolor{#1}{%
+        \@ifundefinedcolor{#3}{%
+            \par\vspace{2pt}%
+            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
+            {\LARGE\textbf{\color{DarkNavy}#2}}%
+            \par\vspace{2pt}%
+        }{%
+            \par\vspace{2pt}%
+            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
+            {\LARGE\textbf{\color{#3}#2}}%
+            \par\vspace{2pt}%
+        }%
+    }{%
+        \par\vspace{2pt}%
+        {\footnotesize\color{SlateText}#2}\par\vspace{1pt}%
+        {\LARGE\textbf{\color{#1}#3}}%
+        \par\vspace{2pt}%
+    }%
 }
 \makeatother
 
-% Modern Linear/Tailwind Card Environments with Colored Left Accent Border
-% Razor-sharp vector rendering, zero dithering, zero double lines
+% Stat Highlight Box (delegates to metricblock)
+\newcommand{\statpill}[3]{\metricblock{#1}{#2}{#3}}
+
+% Temporary lightweight pass-through card environments for backward compatibility
+% during incremental slide refactoring (Tasks 2-5).
+% Strips heavy borders, solid backgrounds, and colored side stripes.
 \newtcolorbox{accentcard}[2][]{
-    enhanced,
-    sharp corners,
-    boxrule=0.6pt,
-    colback=SoftBg,
-    colframe=BorderGray,
-    borderline west={3.5pt}{0pt}{TechCyan},
-    left=3mm, right=3mm, top=2mm, bottom=2mm,
+    blanker,
     #1,
-    before upper={{\raggedright\normalsize\textbf{\color{DarkNavy}#2}\par\vspace{3pt}}\raggedright}
+    before upper={\subhead{#2}}
 }
 
 \newtcolorbox{alertcard}[2][]{
-    enhanced,
-    sharp corners,
-    boxrule=0.6pt,
-    colback=red!2!white,
-    colframe=BorderGray,
-    borderline west={3.5pt}{0pt}{AlertRed},
-    left=3mm, right=3mm, top=2mm, bottom=2mm,
+    blanker,
     #1,
-    before upper={{\raggedright\normalsize\textbf{\color{AlertRed}#2}\par\vspace{3pt}}\raggedright}
+    before upper={{\normalsize\textbf{\color{AlertRed}#2}\par\vspace{3pt}}}
 }
 
 \newtcolorbox{greencard}[2][]{
-    enhanced,
-    sharp corners,
-    boxrule=0.6pt,
-    colback=green!2!white,
-    colframe=BorderGray,
-    borderline west={3.5pt}{0pt}{AccentGreen},
-    left=3mm, right=3mm, top=2mm, bottom=2mm,
+    blanker,
     #1,
-    before upper={{\raggedright\normalsize\textbf{\color{AccentGreen}#2}\par\vspace{3pt}}\raggedright}
+    before upper={{\normalsize\textbf{\color{AccentGreen}#2}\par\vspace{3pt}}}
 }
 
 \newtcolorbox{mycard}[1][]{
-    enhanced,
-    sharp corners,
-    boxrule=0.6pt,
-    colback=SoftBg,
-    colframe=BorderGray,
-    left=3mm, right=3mm, top=2mm, bottom=2mm,
+    blanker,
     #1
-}
-
-% Stat Highlight Box
-\newcommand{\statpill}[3]{
-    \begin{tcolorbox}[enhanced, sharp corners, colback=white, colframe=BorderGray, borderline west={3.5pt}{0pt}{#1}, boxrule=0.6pt, halign=center, left=2mm, right=2mm, top=1.5mm, bottom=1.5mm]
-        {\footnotesize \color{SlateText} #2} \\[2pt]
-        {\normalsize \textbf{\color{#1} #3}}
-    \end{tcolorbox}
 }
 
 % Document Metadata
