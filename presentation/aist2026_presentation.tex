@@ -626,107 +626,99 @@
 \end{frame}
 
 % ==========================================
-% SLIDE 15: DEPLOYMENT STRATEGY
+% SLIDE 15: PRACTICAL DEPLOYMENT
 % ==========================================
-\begin{frame}{Practical Deployment Strategy}
+\begin{frame}{Practical Deployment: High-Throughput Screening vs. High-Precision Auditing}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Pipeline A: High-Throughput Screening}
-                \textbf{\color{DarkNavy}Model: KazRoBERTa (Pure)} \\[3pt]
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Target Applications}: High-throughput web indexing, preliminary spam filtering, social bot auditing.
-                    \item \textbf{Key Advantages}:
-                    \begin{itemize}\setlength{\itemsep}{1pt}\scriptsize
-                        \item Eliminates FST parsing latency ($< 15$\,ms raw inference).
-                        \item Maximizes global recall across long texts.
-                        \item Standard PyTorch/ONNX runtime without dependencies.
-                    \end{itemize}
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Pipeline A: High-Throughput Screening}
+            \vspace{4pt}
+            \begin{itemize}\setlength{\itemsep}{5pt}\small
+                \item \textbf{Model Engine}: Pure KazRoBERTa (monolingual transformer).
+                \item \textbf{Inference Latency}: $< 15$\,ms per document on a single consumer GPU.
+                \item \textbf{Target Applications}: Bulk content moderation, intake stream triage, first-pass heuristic filtering.
+                \item \textbf{Trade-off Profile}: Optimal throughput; acceptable for broad filtering where occasional short-text false alarms carry minimal legal or punitive consequences.
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{greencard}[height=5.4cm]{Pipeline B: High-Precision Auditing}
-                \textbf{\color{DarkNavy}Model: KazRoBERTa (Hybrid FST)} \\[3pt]
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Target Applications}: Academic integrity, university thesis defense, merchant suspension review.
-                    \item \textbf{Key Advantages}:
-                    \begin{itemize}\setlength{\itemsep}{1pt}\scriptsize
-                        \item \textbf{-43.2\% False Positive Protection} on short reviews.
-                        \item Explainable morphemic token attribution for human auditors.
-                        \item Robust across cross-genre shifts (News \& Wikipedia).
-                    \end{itemize}
-                \end{itemize}
-            \end{greencard}
+            \subhead{Pipeline B: High-Precision Auditing}
+            \vspace{4pt}
+            \begin{itemize}\setlength{\itemsep}{5pt}\small
+                \item \textbf{Model Engine}: Hybrid FST KazRoBERTa (morphologically grounded).
+                \item \textbf{Hazard Defense}: Cuts short-text false alarms by \textbf{-43.2\%} (53 $\to$ 30 FPs).
+                \item \textbf{Target Applications}: High-stakes academic integrity checks, formal dispute resolution, e-commerce merchant penalty appeals.
+                \item \textbf{Interpretability}: Token attribution maps roots vs.\ affixes, providing verifiable human justification for flagged decisions.
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
 
 % ==========================================
-% SLIDE 16: CONCLUSIONS & FUTURE WORK
+% SLIDE 16: CONCLUSIONS & ROADMAP
 % ==========================================
-\begin{frame}{Conclusions \& Future Directions}
+\begin{frame}{Core Contributions and Research Roadmap Towards Fact Verification}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Summary of Core Contributions}
-                \begin{enumerate}\setlength{\itemsep}{2pt}\scriptsize
-                    \item \textbf{First Benchmark}: Released KazAI-Detect ($N=12,848$), pairing authentic KazSAndRA reviews with matched Sherkala-7B generations.
-                    \item \textbf{Monolingual Advantage}: KazRoBERTa dominates multilingual models (96.32\% Acc, 96.32\% F1).
-                    \item \textbf{Morphemic Limit}: FST universally bounds token inflation to 2.202 tokens/word.
-                    \item \textbf{FP Breakthrough}: Cuts short false positives by \textbf{43.21\%} ($p < 10^{-5}$).
-                \end{enumerate}
-            \end{accentcard}
+            \subhead{Core Empirical Contributions}
+            \vspace{2pt}
+            \begin{itemize}\setlength{\itemsep}{3pt}\small
+                \item \textbf{1. Standardized Benchmark}: \\
+                {\footnotesize\textbf{KazAI-Detect} establishes the first 12,848-sample corpus for Kazakh AI detection with domain-matched human-synthetic controls.}
+                \item \textbf{2. Monolingual Pretraining SOTA}: \\
+                {\footnotesize\textbf{KazRoBERTa} delivers 96.32\% F1 (+4.87\% over multilingual foundations).}
+                \item \textbf{3. Universal Morphemic Bound}: \\
+                {\footnotesize Hybrid FST caps token explosion at \textbf{2.202 subwords/word} ($p < 10^{-6}$).}
+                \item \textbf{4. Deterministic Hazard Mitigation}: \\
+                {\footnotesize Cuts short false positives by \textbf{-43.2\%} with non-overlapping bootstrap intervals.}
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Ongoing \& Future Research Roadmap}
-                \begin{itemize}\setlength{\itemsep}{3pt}\footnotesize
-                    \item \textbf{Beyond Binary Detection}:
-                    Moving from generative origin to \textbf{factual veracity} (distinguishing hallucination from verified truth).
-                    \item \textbf{Kazakh-FEVER 3K Benchmark}:
-                    Developing the first native fact-checking dataset with Hard NEI counterfactuals.
-                    \item \textbf{Continuous 2D Trust Matrix}:
-                    Joint plane tracking $(T_{\text{fact}}, T_{\text{gen}})$ for low-resource information integrity.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Future Roadmap: Continuous Trust Matrix}
+            \vspace{2pt}
+            \begin{itemize}\setlength{\itemsep}{3pt}\small
+                \item \textbf{Kazakh-FEVER 3K Benchmark}: \\
+                {\footnotesize Extending detection into 3-class fact verification (\textit{Supported}, \textit{Refuted}, \textit{NotEnoughInfo}) for low-resource agglutinative languages.}
+                \item \textbf{Continuous Trust Matrix}: \\
+                {\footnotesize 2D joint scoring combining synthetic probability and factual veracity.}
+                \item \textbf{Turkic Language Generalization}: \\
+                {\footnotesize Adapting the Hybrid FST architecture to Kyrgyz, Uzbek, and Uyghur corpora.}
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
 
 % ==========================================
-% SLIDE 17: Q&A & OPEN SCIENCE
+% SLIDE 17: OPEN SCIENCE & DISCUSSION
 % ==========================================
-\begin{frame}{Open Science \& Questions}
+\begin{frame}{Open-Source Reproducibility and Discussion}
     \begin{columns}[T]
-        \begin{column}{0.54\textwidth}
-            \begin{accentcard}[height=5.4cm]{Open-Source Artifacts Available}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{3pt}
-                    \item \textbf{Hugging Face Benchmark Dataset}: \\
-                    \scriptsize\url{https://huggingface.co/datasets/nKa1i/kazakh-ai-detect}
-                    \item \textbf{Reproducible Research Codebase}: \\
-                    \scriptsize\url{https://github.com/nKa1i/kazakh-ai-text-detection}
-                    \item \textbf{Trained Model Checkpoint}: \\
-                    \scriptsize\texttt{kz-transformers/}\\
-                    \scriptsize\texttt{kaz-roberta-conversational}
-                \end{itemize}
-                \vspace{3pt}
-                \begin{tcolorbox}[colback=white, colframe=BorderGray, sharp corners, boxrule=0.4pt, top=1mm, bottom=1mm, halign=center]
-                    \textbf{\small\color{DarkNavy}Thank You for Your Attention!} \\[1pt]
-                    \scriptsize\color{SlateText}Questions and Discussion are Welcome
-                \end{tcolorbox}
-            \end{accentcard}
+        \begin{column}{0.58\textwidth}
+            \subhead{Open Science Artifacts}
+            \vspace{2pt}
+            \begin{itemize}\setlength{\itemsep}{5pt}\small
+                \item \textbf{Benchmark Dataset}: \\
+                {\footnotesize\texttt{huggingface.co/datasets/daulet/KazAI-Detect}}
+                \item \textbf{Codebase \& Replication Suite}: \\
+                {\footnotesize\texttt{github.com/daulet/kazakh-ai-text-detection}}
+                \item \textbf{Pretrained Models \& FST Rules}: \\
+                {\small Checkpoints and finite-state grammar released under open licenses.}
+            \end{itemize}
+            \vspace{0.25cm}
+            {\small\color{DarkNavy}\textbf{AIST 2026 Presentation}: October 16, 2026 \textbar\ 12:45--13:10 Astana Time}
         \end{column}
-        \begin{column}{0.42\textwidth}
-            \begin{mycard}[borderline west={3.5pt}{0pt}{TechCyan}, height=5.4cm, halign=center]
-                \centering
-                \includegraphics[width=2.85cm, height=2.85cm, keepaspectratio]{../data/qrcode.png} \par
-                \vspace{4pt}
-                {\normalsize\textbf{\color{DarkNavy}Scan for Code \& Data}} \par\vspace{1pt}
-                {\footnotesize\color{SlateText} GitHub \textbar\ Hugging Face}
-            \end{mycard}
+        \begin{column}{0.38\textwidth}
+            \begin{center}
+                \includegraphics[width=3.6cm, height=3.6cm, keepaspectratio]{../data/presentation_qr_code.png}
+                \par\vspace{4pt}
+                {\footnotesize\color{SlateText}\textbf{Scan for Code \& Datasets}}
+            \end{center}
         \end{column}
     \end{columns}
+    \vspace{0.15cm}
+    \begin{center}
+        {\Large\bfseries\color{DarkNavy}Thank You!}\par\vspace{2pt}
+        {\small\color{SlateText}Questions, Comments \& Discussion}
+    \end{center}
 \end{frame}
 
 \end{document}
