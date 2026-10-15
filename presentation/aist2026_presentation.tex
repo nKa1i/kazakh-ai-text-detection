@@ -290,39 +290,34 @@
 % ==========================================
 % SLIDE 6: DATASET CONSTRUCTION
 % ==========================================
-\begin{frame}{KazAI-Detect: Benchmark Dataset Construction}
+\begin{frame}{KazAI-Detect: Benchmark Dataset Composition}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{KazAI-Detect Corpus Composition}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{3pt}
-                    \item \textbf{Authentic Human Reviews} ($N=6,424$): \\
-                    \scriptsize Sourced from KazSAnDRA across Appstore, Bookstore, Mapping, and Market.
-                    \item \textbf{Matched Synthetic Corpus} ($N=6,424$): \\
-                    \scriptsize Generated via Sherkala-7B (Kazakh LLaMA) with matched domain and length controls.
-                    \item \textbf{Total Primary Benchmark}: \\
-                    \scriptsize\textbf{\color{DarkNavy}12,848 Samples} (50\% human / 50\% AI-generated).
-                \end{itemize}
-            \end{accentcard}
+            \subhead{KazAI-Detect Corpus Composition}
+            \begin{itemize}\setlength{\itemsep}{6pt}
+                \item \textbf{Authentic Human Reviews} ($N=6,424$): \\
+                {\small Sourced from KazSAnDRA across Appstore, Bookstore, Mapping, and Market domains.}
+                \item \textbf{Matched Synthetic Corpus} ($N=6,424$): \\
+                {\small Generated via Sherkala-7B (Kazakh LLaMA) with matched domain and length controls.}
+                \item \textbf{Total Primary Benchmark}: \\
+                {\small\textbf{\color{DarkNavy}12,848 Samples} balanced 50\% human / 50\% AI-generated.}
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Evaluation Splits \& OOD Corpus}
-                \centering\footnotesize
-                \textbf{Stratified Evaluation Splits} \\[2pt]
-                \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr}
-                    \toprule
-                    \textbf{Split Subset} & \textbf{Samples} & \textbf{Ratio} \\
-                    \midrule
-                    Training Set & 8,848 & 68.9\% \\
-                    Held-Out Test Set & \textbf{4,000} & 31.1\% \\
-                    \quad \textit{Short ($\le 60$ ch)} & \textit{1,842} & \textit{46.1\%} \\
-                    \quad \textit{Long ($> 60$ ch)} & \textit{2,158} & \textit{53.9\%} \\
-                    \bottomrule
-                \end{tabular*}
-                \vspace{4pt}
-                \raggedright\scriptsize
-                \textbf{Out-of-Distribution (OOD) Set}: 1,317 Samples spanning formal journalism (\textit{Informburo}) and encyclopedic prose (\textit{Kazakh Wikipedia}).
-            \end{accentcard}
+            \subhead{Stratified Evaluation Splits \& OOD Corpus}
+            \vspace{2pt}
+            \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr}
+                \toprule
+                \textbf{Split Subset} & \textbf{Samples} & \textbf{Ratio} \\
+                \midrule
+                Training Set & 8,848 & 68.9\% \\
+                Held-Out Test Set & \textbf{4,000} & 31.1\% \\
+                \quad \textit{Short ($\le 60$ ch)} & \textit{1,842} & \textit{46.1\%} \\
+                \quad \textit{Long ($> 60$ ch)} & \textit{2,158} & \textit{53.9\%} \\
+                \bottomrule
+            \end{tabular*}
+            \vspace{6pt}
+            {\small\textbf{Out-of-Distribution (OOD) Set}: 1,317 Samples spanning formal journalism (\textit{Informburo}) and encyclopedic prose (\textit{Kazakh Wikipedia}).}
         \end{column}
     \end{columns}
 \end{frame}
@@ -330,47 +325,39 @@
 % ==========================================
 % SLIDE 7: LINGUISTIC REALITY IN REVIEWS
 % ==========================================
-\begin{frame}{Linguistic Reality: Real-World Consumer Reviews}
-    \begin{mycard}[borderline west={3.5pt}{0pt}{TechCyan}, top=1.2mm, bottom=1.2mm]
-        {\normalsize\textbf{\color{DarkNavy}Authentic Review Case Study (from KazSAnDRA)}}\\[2pt]
-        \scriptsize
-        \textit{«Каспи редті клиентке үлкен суммаға \textbf{ашқызғандарың} адамгершілікке жатпайды (\textbf{недобросовестно}). Кішкентай соманы менюдің бір жеріне \textbf{тығып қойыпсыңдар}. Білетін адам болмаса қораға кіргізіп тұрсыңдар ғой... \textbf{Плюсі}, жылдам істейді.»} \\[2pt]
-        \tiny\color{SlateText}
-        \textbf{Translation}: \textit{«Opening Kaspi Red for such a large amount is dishonest. You hid the smaller sum... Unless someone digs into it, you're trapping them... On the plus side, it works fast.»}
-    \end{mycard}
-    
-    \vspace{0.10cm}
+\begin{frame}{Linguistic Reality: Informal Consumer Review Morphology}
+    \vspace*{0.2cm}
+    {\small\textbf{\color{DarkNavy}Authentic Review Case Study (from KazSAnDRA)}}\par\vspace{2pt}
+    {\footnotesize\textit{«Каспи редті клиентке үлкен суммаға \textbf{ашқызғандарың} адамгершілікке жатпайды (\textbf{недобросовестно}). Кішкентай соманы менюдің бір жеріне \textbf{тығып қойыпсыңдар}. Білетін адам болмаса қораға кіргізіп тұрсыңдар ғой... \textbf{Плюсі}, жылдам істейді.»}}\par\vspace{3pt}
+    {\scriptsize\color{SlateText}\textbf{Translation}: \textit{«Opening Kaspi Red for such a large amount is dishonest. You hid the smaller sum... Unless someone digs into it, you're trapping them... On the plus side, it works fast.»}}\par
+    \vspace{0.25cm}
+    {\color{BorderGray}\hrule height 0.4pt}\par
+    \vspace{0.25cm}
     \begin{columns}[T]
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=3.15cm]{1. Code-Switching}
-                \scriptsize
-                Russian loanwords with Kazakh suffixes:
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item \textit{недобросовестно}
-                    \item \textit{плюс-і} (plus side)
-                    \item \textit{доставка-сы}, \textit{каспи-ден}
-                \end{itemize}
-            \end{accentcard}
+            \subhead{1. Code-Switching}
+            {\footnotesize Russian loanwords with Kazakh inflectional affixes:\par\vspace{2pt}}
+            \begin{itemize}\setlength{\itemsep}{1pt}\footnotesize
+                \item \textit{недобросовестно}
+                \item \textit{плюс-і} (plus side)
+                \item \textit{доставка-сы}, \textit{каспи-ден}
+            \end{itemize}
         \end{column}
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=3.15cm]{2. Affix Stacking}
-                \scriptsize
-                Deep agglutinative stacking:
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item \textbf{\textit{аш-қыз-ған-дар-ың}}: \\
-                    Root (open) + Causative + Past Part. + Plural + Possessive.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{2. Affix Stacking}
+            {\footnotesize Deep agglutinative morpheme chains:\par\vspace{2pt}}
+            \begin{itemize}\setlength{\itemsep}{1pt}\footnotesize
+                \item \textbf{\textit{аш-қыз-ған-дар-ың}}:\par\vspace{1pt}
+                {\scriptsize Root (open) + Causative + Past Part. + Plural + Possessive.}
+            \end{itemize}
         \end{column}
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=3.15cm]{3. Colloquial Idioms}
-                \scriptsize
-                Informal phrasing \& idioms:
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item \textit{тығып қойыпсыңдар}
-                    \item \textit{қораға кіргізіп} (trapping someone)
-                \end{itemize}
-            \end{accentcard}
+            \subhead{3. Colloquial Idioms}
+            {\footnotesize Informal spoken syntax and idioms:\par\vspace{2pt}}
+            \begin{itemize}\setlength{\itemsep}{1pt}\footnotesize
+                \item \textit{тығып қойыпсыңдар}
+                \item \textit{қораға кіргізіп} (trapping)
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
@@ -378,50 +365,32 @@
 % ==========================================
 % SLIDE 8: HYBRID FST ANALYZER
 % ==========================================
-\begin{frame}{Proposed Method: Hybrid FST Morphological Analyzer}
+\begin{frame}{Hybrid FST Morphological Analyzer: Decoupling Stems from Affixes}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Three-Tier Linguistic Engine}
-                \scriptsize
-                \textbf{1. Tier 1: Nominal Inflectional Chains}
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item Plurals (\textit{-лар, -лер, -дар, -дер, -тар, -тер})
-                    \item Possessive markers (\textit{-ымыз, -іңіз, -сы, -сі})
-                    \item 7 Case endings (\textit{-ның, -ге, -ны, -дан, -мен})
-                \end{itemize}
-                \vspace{2pt}
-                \textbf{2. Tier 2: Verbal Inflections \& Participles}
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item Participles: \textit{-ғандықтан, -ген, -атын, -йді}
-                    \item Person / agreement: \textit{-мын, -сің, -мыз}
-                \end{itemize}
-                \vspace{2pt}
-                \textbf{3. Tier 3: Code-Switched Loanword Handling}
-                \begin{itemize}\setlength{\itemsep}{0pt}
-                    \item Strips suffixes from Russian stems: \\
-                    \textit{доставка-сы}, \textit{каспи-ден}, \textit{оплата-сын}.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Three-Tier Linguistic Engine}
+            \begin{itemize}\setlength{\itemsep}{4pt}\small
+                \item \textbf{Tier 1: Nominal Inflectional Chains} \\
+                {\footnotesize Plurals (\textit{-лар, -дар, -тар}), possessive markers (\textit{-ымыз, -сы, -сі}), 7 case endings (\textit{-ның, -ге, -дан, -мен}).}
+                \item \textbf{Tier 2: Verbal Inflections \& Participles} \\
+                {\footnotesize Participles (\textit{-ғандықтан, -атын, -йді}), person/agreement markers (\textit{-мын, -сің, -мыз}).}
+                \item \textbf{Tier 3: Code-Switched Loanwords} \\
+                {\footnotesize Decouples Kazakh suffixes from Russian root stems: \textit{доставка-сы}, \textit{каспи-ден}, \textit{оплата-сын}.}
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{greencard}[height=5.4cm]{Morphological Pre-Segmentation}
-                \scriptsize
-                \textbf{Standard Native Review}: \\
-                {\scriptsize \textit{«Бұл жазбаларыңыздан жасалғандықтан...»}} \\[1pt]
-                \centering\color{SlateText} $\downarrow$ \textbf{Hybrid FST Decomposition} $\downarrow$ \\[1pt]
-                {\scriptsize\color{DarkNavy}\textbf{«Бұл жазба {\color{TechCyan}-лар -ыңыз -дан} жаса {\color{TechCyan}-л -ғандықтан}...»}} \par
-                \vspace{4pt}
-                \raggedright\textbf{Code-Switched Review}: \\
-                {\scriptsize \textit{«Каспиден доставкасы өте тез болды...»}} \\[1pt]
-                \centering\color{SlateText} $\downarrow$ \textbf{Hybrid FST Decomposition} $\downarrow$ \\[1pt]
-                {\scriptsize\color{DarkNavy}\textbf{«Каспи {\color{TechCyan}-ден} доставка {\color{TechCyan}-сы} өте тез бол {\color{TechCyan}-ды}...»}} \par
-                \vspace{3pt}
-                \raggedright
-                \begin{tcolorbox}[colback=white, colframe=BorderGray, sharp corners, boxrule=0.4pt, top=0.8mm, bottom=0.8mm, left=2mm, right=2mm]
-                    \tiny\color{DarkNavy}
-                    \textbf{Impact}: Isolates semantic stems while exposing grammatical morphemes to subword tokenizers.
-                \end{tcolorbox}
-            \end{greencard}
+            \subhead{Morphological Pre-Segmentation Flow}
+            {\small\textbf{Standard Native Review}:}\\[1pt]
+            {\footnotesize\textit{«Бұл жазбаларыңыздан жасалғандықтан...»}}\\[2pt]
+            {\centering\footnotesize\color{SlateText}$\downarrow$ \textbf{Hybrid FST Decomposition} $\downarrow$\par}\vspace{2pt}
+            {\footnotesize\color{DarkNavy}\textbf{«Бұл жазба {\color{TechCyan}-лар -ыңыз -дан} жаса {\color{TechCyan}-л -ғандықтан}...»}}\par
+            \vspace{6pt}
+            {\small\textbf{Code-Switched Review}:}\\[1pt]
+            {\footnotesize\textit{«Каспиден доставкасы өте тез болды...»}}\\[2pt]
+            {\centering\footnotesize\color{SlateText}$\downarrow$ \textbf{Hybrid FST Decomposition} $\downarrow$\par}\vspace{2pt}
+            {\footnotesize\color{DarkNavy}\textbf{«Каспи {\color{TechCyan}-ден} доставка {\color{TechCyan}-сы} өте тез бол {\color{TechCyan}-ды}...»}}\par
+            \vspace{8pt}
+            {\footnotesize\textbf{\color{DarkNavy}Core Mechanism}: Isolates invariant semantic stems while exposing regular grammatical affixes to subword tokenizers.}
         \end{column}
     \end{columns}
 \end{frame}
@@ -429,34 +398,30 @@
 % ==========================================
 % SLIDE 9: EXPERIMENTAL FRAMEWORK
 % ==========================================
-\begin{frame}{Experimental Framework \& Evaluated Models}
+\begin{frame}{Experimental Regimen: Evaluated Models and Training Configuration}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Evaluated Transformer Models}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{3pt}
-                    \item \textbf{mBERT-base}: Multilingual WordPiece (119.5K vocabulary, 104 languages).
-                    \item \textbf{XLM-RoBERTa-base}: SentencePiece BPE (250K vocabulary, 100 languages).
-                    \item \textbf{KazBERT}: Monolingual BERT pretrained on Kazakh Wikipedia \& news.
-                    \item \textbf{KazRoBERTa}: Monolingual RoBERTa pretrained on \textbf{24.8M texts} (multi-domain + customer support dialogues), 52K BPE vocabulary.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Evaluated Transformer Models}
+            \begin{itemize}\setlength{\itemsep}{4pt}\small
+                \item \textbf{mBERT-base}: Multilingual WordPiece (119.5K vocabulary, 104 languages, 178M params).
+                \item \textbf{XLM-RoBERTa-base}: SentencePiece BPE (250K vocabulary, 100 languages, 278M params).
+                \item \textbf{KazBERT}: Monolingual BERT pretrained on Kazakh Wikipedia \& news (110M params).
+                \item \textbf{KazRoBERTa}: Monolingual RoBERTa pretrained on \textbf{24.8M texts} (multi-domain + customer dialogues, 52K BPE, 125M params).
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Experimental Regimen}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Pure Mode}: Trained and evaluated on raw, unsegmented Kazakh text.
-                    \item \textbf{Hybrid FST Mode}: Pre-segmented via FST prior to tokenization and fine-tuning.
-                \end{itemize}
-                \vspace{4pt}
-                \textbf{Training Hyperparameters}:
-                \begin{itemize}\setlength{\itemsep}{2pt}\scriptsize
-                    \item Optimizer: AdamW ($lr = 2 \times 10^{-5}$)
-                    \item Epochs: 3 \textbar\ Batch Size: 16
-                    \item Weight Decay: 0.01 \textbar\ Linear Decay
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Experimental Regimen}
+            \begin{itemize}\setlength{\itemsep}{3pt}\small
+                \item \textbf{Pure Mode}: Trained and evaluated on raw unsegmented Kazakh text.
+                \item \textbf{Hybrid FST Mode}: Pre-segmented via FST prior to subword tokenization.
+            \end{itemize}
+            \vspace{6pt}
+            \subhead{Training Hyperparameters}
+            \begin{itemize}\setlength{\itemsep}{2pt}\small
+                \item Optimizer: AdamW ($lr = 2 \times 10^{-5}$, linear warmup)
+                \item Epochs: 3 \textbar\ Batch Size: 16
+                \item Weight Decay: 0.01 \textbar\ Loss: Cross-Entropy
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
