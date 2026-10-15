@@ -97,20 +97,17 @@
     \@ifundefinedcolor{#1}{%
         \@ifundefinedcolor{#3}{%
             \par\vspace{2pt}%
-            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
-            {\LARGE\textbf{\color{DarkNavy}#2}}%
-            \par\vspace{2pt}%
+            {\centering{\LARGE\textbf{\color{DarkNavy}#2}}\par\vspace{2pt}{\footnotesize\color{SlateText}#1}\par}%
+            \vspace{2pt}%
         }{%
             \par\vspace{2pt}%
-            {\footnotesize\color{SlateText}#1}\par\vspace{1pt}%
-            {\LARGE\textbf{\color{#3}#2}}%
-            \par\vspace{2pt}%
+            {\centering{\LARGE\textbf{\color{#3}#2}}\par\vspace{2pt}{\footnotesize\color{SlateText}#1}\par}%
+            \vspace{2pt}%
         }%
     }{%
         \par\vspace{2pt}%
-        {\footnotesize\color{SlateText}#2}\par\vspace{1pt}%
-        {\LARGE\textbf{\color{#1}#3}}%
-        \par\vspace{2pt}%
+        {\centering{\LARGE\textbf{\color{#1}#2}}\par\vspace{2pt}{\footnotesize\color{SlateText}#3}\par}%
+        \vspace{2pt}%
     }%
 }
 \makeatother
@@ -156,47 +153,26 @@
 % SLIDE 1: TITLE SLIDE
 % ==========================================
 \begin{frame}[plain]
-    \begin{tikzpicture}[remember picture, overlay]
-        % Background header banner
-        \fill[DarkNavy] (current page.north west) rectangle ($(current page.north east) + (0, -3.60cm)$);
-        \fill[TechCyan] ($(current page.north west) + (0, -3.60cm)$) rectangle ($(current page.north east) + (0, -3.72cm)$);
-        
-        % Springer LNCS pill
-        \node[anchor=north east] at ($(current page.north east) + (-0.8cm, -0.6cm)$) {
-            \colorbox{TechCyan}{\strut~\textbf{\footnotesize\color{white} AIST 2026 \textbar\ Springer LNCS}~}
-        };
-        % Track badge
-        \node[anchor=north west] at ($(current page.north west) + (0.8cm, -0.65cm)$) {
-            \textbf{\footnotesize\color{TechCyan!40} Oral Presentation \textbar\ Natural Language Processing Track}
-        };
-        
-        % Conference Title
-        \node[anchor=west, text width=14.4cm] at ($(current page.north west) + (0.8cm, -2.15cm)$) {
-            {\LARGE\textbf{\color{white} Detecting AI-Generated User Reviews in Kazakh:}} \\[4pt]
-            {\large\color{TechCyan!25} A Study on BERT Model Performance and False Positive Reduction}
-        };
-    \end{tikzpicture}
-    
-    \vspace{3.55cm}
-    \begin{columns}[c]
+    \vspace*{0.25cm}
+    {\footnotesize\color{SlateText}14th International Conference on Analysis of Images, Social Networks and Texts (AIST 2026) \hfill Springer LNCS}\par
+    \vspace{0.6cm}
+    {\LARGE\bfseries\color{DarkNavy}Detecting AI-Generated User Reviews in Kazakh:}\\[6pt]
+    {\Large\color{TechCyan}A Study on BERT Model Performance and False Positive Reduction}\par
+    \vspace{0.4cm}
+    {\color{BorderGray}\hrule height 0.6pt}\par
+    \vspace{0.6cm}
+    \begin{columns}[T]
         \begin{column}{0.58\textwidth}
-            \begin{mycard}[top=3mm, bottom=3mm]
-                \raggedright
-                {\large\textbf{\color{DarkNavy} Daulet Anekesh}}$^1$ \qquad {\large\textbf{\color{DarkNavy} Irina Ualiyeva}}$^1$ \\[5pt]
-                \small\color{SlateText}
-                $^1$Department of Computer Science, \\
-                Al-Farabi Kazakh National University, Almaty, Kazakhstan \\[4pt]
-                \texttt{\small anekeshd@gmail.com \textbar\ i.ualiyeva@gmail.com}
-            \end{mycard}
+            {\large\textbf{\color{DarkNavy}Daulet Anekesh}} \quad {\large\textbf{\color{DarkNavy}Irina Ualiyeva}}\\[4pt]
+            {\small\color{SlateText}Department of Computer Science, Al-Farabi Kazakh National University, Almaty, Kazakhstan}\\[2pt]
+            {\footnotesize\texttt{\{anekeshd, i.ualiyeva\}@gmail.com}}
         \end{column}
         \begin{column}{0.38\textwidth}
-            \begin{accentcard}[top=3mm, bottom=3mm]{Conference Session}
-                \centering\small
-                \textbf{\color{DarkNavy}Block C3, Red Hall} \\[3pt]
-                \color{TechCyan}\textbf{\large 12:45--13:10 Astana} \\[2pt]
-                \color{SlateText}\small (15:45--16:10 China Time / CST) \\[3pt]
-                \footnotesize\color{SlateText!80} October 16, 2026
-            \end{accentcard}
+            \subhead{Conference Presentation}
+            {\small\textbf{\color{DarkNavy}Natural Language Processing Track}}\\[2pt]
+            {\normalsize\textbf{\color{TechCyan}12:45--13:10 Astana Time}}\\[2pt]
+            {\footnotesize\color{SlateText}(15:45--16:10 China Time / CST)}\\[2pt]
+            {\footnotesize\color{SlateText}October 16, 2026}
         \end{column}
     \end{columns}
 \end{frame}
@@ -204,35 +180,28 @@
 % ==========================================
 % SLIDE 2: MOTIVATION & SOCIETAL RISKS
 % ==========================================
-\begin{frame}{Motivation: Generative AI in Low-Resource Spaces}
+\begin{frame}{The Rise of Generative AI and the Low-Resource Detection Gap}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=4.15cm]{The Rapid Rise of Generative LLMs}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Proliferation of LLMs}: High-utility text synthesis via models like LLaMA, Qwen, and Sherkala-7B.
-                    \item \textbf{Commercial \& Social Impact}: Rapid adoption across e-commerce (Kaspi), digital banking, and reviews.
-                    \item \textbf{Emerging Vulnerabilities}: Automated astroturfing, fake merchant reviews, and academic fraud.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{The LLM Explosion in Central Asia}
+            \begin{itemize}\setlength{\itemsep}{5pt}
+                \item High-utility text synthesis rapidly democratized via LLaMA, Qwen, and Sherkala-7B.
+                \item Deep commercial integration into e-commerce (Kaspi.kz), fintech, and customer feedback.
+                \item Emergence of synthetic reputation fraud: coordinated astroturfing and fake reviews.
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{alertcard}[height=4.15cm]{The Low-Resource Detection Gap}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{English-Centric Benchmarks}: 95\%+ of forensic detectors (DetectGPT, Binoculars, RAID) target English.
-                    \item \textbf{Morphological Neglect}: Statistical likelihood tests break down on agglutinative languages.
-                    \item \textbf{Catastrophic False Accusations}: Real users writing short informal comments get misclassified as AI.
-                \end{itemize}
-            \end{alertcard}
+            \subhead{The Low-Resource Detection Gap}
+            \begin{itemize}\setlength{\itemsep}{5pt}
+                \item 95\%+ of contemporary forensic detectors (DetectGPT, Binoculars, RAID) target English.
+                \item Statistical likelihood and perplexity thresholds collapse on agglutinative languages.
+                \item Catastrophic operational hazard: authentic human authors misclassified as synthetic AI.
+            \end{itemize}
         \end{column}
     \end{columns}
     
-    \vspace{0.15cm}
-    \begin{mycard}[borderline west={3.5pt}{0pt}{TechCyan}, halign=center, top=1.6mm, bottom=1.6mm]
-        \centering\footnotesize
-        \textbf{\color{DarkNavy}Core Objective}: Establish the first comprehensive empirical detection benchmark and false-positive defense for the Kazakh language.
-    \end{mycard}
+    \vspace{0.35cm}
+    \noindent\textbf{\color{DarkNavy}Core Objective}: Establish the first comprehensive empirical detection benchmark and false-positive mitigation defense for the Kazakh language.
 \end{frame}
 
 % ==========================================
@@ -241,39 +210,25 @@
 \begin{frame}{The Linguistic Bottleneck: Agglutinative Morphology}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Kazakh Morphological Typology}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{2pt}
-                    \item \textbf{Agglutinative Morphology}: Words are built by attaching inflectional suffixes to root stems.
-                    \item \textbf{Suffix Hierarchy}: \\
-                    \centerline{\scriptsize $\text{Root} \to \text{Deriv.} \to \text{Plural} \to \text{Poss.} \to \text{Case}$}
-                    \item \textbf{Clausal Compounding}: Single inflected words convey complex phrases:
-                    \begin{center}\scriptsize
-                        \textit{жаз-ба-лар-ыңыз-дан} \\
-                        (write - [nom] - [plural] - [your] - [from/abl])
-                    \end{center}
-                    \item Produces an exponential lexical surface space.
-                \end{itemize}
-            \end{accentcard}
+            \subhead{Kazakh Morphological Typology}
+            \begin{itemize}\setlength{\itemsep}{4pt}
+                \item \textbf{Agglutinative structure}: Extensive inflectional suffixes attach to invariant root stems.
+                \item \textbf{Canonical suffix order}: \\
+                \centerline{\small $\text{Stem} \to \text{Derivation} \to \text{Plural} \to \text{Possessive} \to \text{Case}$}
+                \item \textbf{Clausal compounding}: Single inflected words convey complete clauses (e.g., \textit{жаз-ба-лар-ыңыз-дан} = write - [nom] - [plural] - [your] - [from/abl]), expanding lexical surface space exponentially.
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{alertcard}[height=5.4cm]{Subword Tokenizer Inflation}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{1pt}
-                    \item \textbf{Statistical Slicing}: Subword tokenizers (BPE, WordPiece) slice strings by frequency, destroying stems.
+            \subhead{Subword Tokenizer Inflation}
+            \begin{itemize}\setlength{\itemsep}{3pt}
+                \item Frequency-based tokenizers (WordPiece, BPE) slice without grammatical awareness.
+                \item Diagnostic example: \textit{«Қазақстандықтардың»} \color{SlateText}\footnotesize(of the people of Kazakhstan):
+                \begin{itemize}\setlength{\itemsep}{2pt}
+                    \item \color{AlertRed}\textbf{Standard WordPiece}: \texttt{\footnotesize[Қа, за, қс, тан, дық, тар, дың]} (7 subword fragments)
+                    \item \color{AccentGreen}\textbf{Hybrid FST decomposition}: \texttt{\footnotesize[Қазақ, -стан, -дық, -тар, -дың]} (stem + morphemes)
                 \end{itemize}
-                \vspace{1pt}
-                \begin{mycard}[colback=white, borderline west={2pt}{0pt}{AlertRed}, top=0.6mm, bottom=0.6mm]
-                    \raggedright\scriptsize
-                    Target: \textbf{«Қазақстандықтардың»} \\
-                    \color{AlertRed}\textbf{WordPiece}: \texttt{\tiny[Қа, за, қс, тан, дық, тар, дың]} \\
-                    \color{AccentGreen}\textbf{Hybrid FST}: \texttt{\tiny[Қазақ, -стан, -дық, -тар, -дың]}
-                \end{mycard}
-                \vspace{2pt}
-                \begin{itemize}\setlength{\itemsep}{1pt}\footnotesize
-                    \item \textbf{Attention Dilution}: Inflates token counts by up to \textbf{+57\%}, diluting transformer representations.
-                \end{itemize}
-            \end{alertcard}
+                \item Uncontrolled subword fragmentation inflates token counts by up to \textbf{+57\%}, diluting semantic representations.
+            \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
@@ -281,37 +236,30 @@
 % ==========================================
 % SLIDE 4: THE OPERATIONAL HAZARD
 % ==========================================
-\begin{frame}{The Operational Hazard: Short-Text False Positives}
+\begin{frame}{The Operational Hazard: Short Reviews Trigger False Accusations}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
-            \begin{alertcard}[height=5.4cm]{Asymmetric Penalty of False Alarms}
-                \footnotesize
-                \begin{itemize}\setlength{\itemsep}{3pt}
-                    \item \textbf{Asymmetric Real-World Harm}: Falsely accusing human authors triggers merchant bans and student integrity penalties.
-                    \item \textbf{Short-Text Trap ($\le 60$ ch)}: Over 45\% of mobile app reviews are $<10$ words, exhibiting extreme vulnerability to noise.
-                    \item \textbf{Trust Erosion}: High false positive rates destroy institutional trust in automated AI safety systems.
-                \end{itemize}
-            \end{alertcard}
+            \subhead{Asymmetric Penalty of False Alarms}
+            \begin{itemize}\setlength{\itemsep}{5pt}
+                \item In e-commerce auditing and education, false accusations inflict irreversible reputation and commercial damage.
+                \item Consumer feedback in mobile applications is naturally brief: over 45\% of reviews contain $\le 10$ words ($N=1,842$ short reviews).
+                \item Extreme context scarcity starves self-attention, skewing standard likelihood heuristics toward false alarms.
+            \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
-            \begin{accentcard}[height=5.4cm]{Baseline False Accusations}
-                \footnotesize
-                Authentic Human Reviews Misclassified as AI ($N=1,842$ Short, $\le 60$ ch): \\[4pt]
-                \begin{columns}[c]
-                    \begin{column}{0.48\linewidth}
-                        \statpill{AlertRed}{mBERT Short}{58 FPs}
-                    \end{column}
-                    \begin{column}{0.48\linewidth}
-                        \statpill{AlertRed}{XLM-R Short}{67 FPs}
-                    \end{column}
-                \end{columns}
-                \vspace{5pt}
-                \begin{tcolorbox}[colback=white, borderline west={3pt}{0pt}{DarkNavy}, sharp corners, boxrule=0.5pt, top=1.5mm, bottom=1.5mm]
-                    \raggedright\scriptsize
-                    \textbf{\color{DarkNavy}Core Research Mission}: \\
-                    Eliminate short-text false positive accusations while preserving state-of-the-art detection accuracy across multiple domains.
-                \end{tcolorbox}
-            \end{accentcard}
+            \subhead{Baseline False Accusations ($N=1,842$ Short Reviews)}
+            \par\vspace{2pt}
+            {\small\color{SlateText}Authentic human reviews misclassified as AI under standard length baseline:}\par\vspace{4pt}
+            \begin{columns}[c]
+                \begin{column}{0.48\linewidth}
+                    \heronumber{AlertRed}{58 FPs}{mBERT Short}
+                \end{column}
+                \begin{column}{0.48\linewidth}
+                    \heronumber{AlertRed}{67 FPs}{XLM-R Short}
+                \end{column}
+            \end{columns}
+            \vspace{0.25cm}
+            \noindent\textbf{\color{DarkNavy}Core Research Mission}: Eliminate short-text false positive accusations while preserving state-of-the-art detection accuracy across all length regimes.
         \end{column}
     \end{columns}
 \end{frame}
@@ -319,28 +267,22 @@
 % ==========================================
 % SLIDE 5: RESEARCH QUESTIONS
 % ==========================================
-\begin{frame}{Research Questions \& Scope}
+\begin{frame}{Research Scope: Three Core Empirical Questions}
     \begin{columns}[T]
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=5.4cm]{RQ1: Pretraining Scope}
-                \textbf{\color{DarkNavy}Domain vs.\ Multilingual} \\[4pt]
-                \footnotesize\color{SlateText}
-                Does domain-specific pretraining on conversational Kazakh data provide superior representation over massively multilingual transformers (mBERT, XLM-R) in capturing informal review syntax?
-            \end{accentcard}
+            \subhead{RQ1: Pretraining Scope}
+            \textbf{\color{DarkNavy}Domain vs.\ Multilingual}\\[4pt]
+            {\small\color{SlateText}Does dedicated pretraining on conversational Kazakh (\textbf{KazBERT}, \textbf{KazRoBERTa}) provide superior inductive bias over multilingual foundations (\textbf{mBERT}, \textbf{XLM-R}) for noisy consumer reviews?}
         \end{column}
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=5.4cm]{RQ2: Normalization}
-                \textbf{\color{DarkNavy}Inflation \& Convergence} \\[4pt]
-                \footnotesize\color{SlateText}
-                Can rule-based Finite-State Transducer (FST) pre-segmentation universally normalize subword token inflation and establish a stable morphemic convergence limit across diverse tokenizers?
-            \end{accentcard}
+            \subhead{RQ2: Normalization}
+            \textbf{\color{DarkNavy}Inflation \& Convergence}\\[4pt]
+            {\small\color{SlateText}Can a rule-based Finite-State Transducer (\textbf{FST}) pre-segmentation universally bound token inflation and establish a stable morphemic convergence limit across tokenizers?}
         \end{column}
         \begin{column}{0.31\textwidth}
-            \begin{accentcard}[height=5.4cm]{RQ3: Mitigation}
-                \textbf{\color{DarkNavy}False Positive Reduction} \\[4pt]
-                \footnotesize\color{SlateText}
-                Does morphological grounding systematically resolve short-text false positive hallucinations, and does this defense hold under out-of-distribution (OOD) domain shift?
-            \end{accentcard}
+            \subhead{RQ3: Mitigation}
+            \textbf{\color{DarkNavy}False Positive Defense}\\[4pt]
+            {\small\color{SlateText}Does morphological grounding eliminate short-text false accusations, and does this robustness generalize to out-of-distribution (\textbf{OOD}) genres?}
         \end{column}
     \end{columns}
 \end{frame}
