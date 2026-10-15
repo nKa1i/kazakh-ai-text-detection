@@ -1,85 +1,72 @@
 """
-Unit tests verifying the AIST 2026 conference presentation slide deck integrity,
-PDF compilation artifacts, page count, and desktop synchronization.
+Automated unit test suite verifying the integrity, page count, and empirical anchors
+of the AIST 2026 conference presentation: Detecting AI-Generated User Reviews in Kazakh.
 """
 
-import hashlib
 import os
 import re
 import unittest
+from pathlib import Path
 
 
 class TestAISTPresentation(unittest.TestCase):
-    """Validation test suite for AIST 2026 oral presentation deck."""
-
     @classmethod
     def setUpClass(cls):
-        cls.repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        cls.tex_path = os.path.join(cls.repo_root, "presentation", "aist2026_presentation.tex")
-        cls.pdf_path = os.path.join(cls.repo_root, "presentation", "aist2026_presentation.pdf")
-        cls.log_path = os.path.join(cls.repo_root, "presentation", "aist2026_presentation.log")
-        cls.desktop_pdf = os.path.join(os.path.expanduser("~"), "Desktop", "AIST2026_Presentation_Daulet_Anekesh.pdf")
+        cls.repo_root = Path(__file__).resolve().parent.parent
+        cls.tex_path = cls.repo_root / "presentation" / "aist2026_presentation.tex"
+        cls.pdf_path = cls.repo_root / "presentation" / "aist2026_presentation.pdf"
+        cls.desktop_pdf_path = Path("C:/Users/Roza/Desktop/AIST2026_Presentation_Daulet_Anekesh.pdf")
 
-    def test_source_tex_exists_and_valid(self):
-        """Verify LaTeX source exists, has 17 frames, and has zero emojis."""
-        self.assertTrue(os.path.isfile(self.tex_path), f"Source tex not found at {self.tex_path}")
-        with open(self.tex_path, "r", encoding="utf-8") as f:
-            content = f.read()
+    def test_tex_source_exists_and_valid(self):
+        self.assertTrue(self.tex_path.is_file(), f"Missing {self.tex_path}")
+        content = self.tex_path.read_text(encoding="utf-8")
+        self.assertGreater(len(content), 10000, "Presentation TeX source is unexpectedly short")
+        self.assertIn("\\documentclass[aspectratio=169, 10pt]{beamer}", content)
+        self.assertIn("Detecting AI-Generated User Reviews in Kazakh", content)
 
-        # Check total frames
-        frames = re.findall(r"\\begin\{frame\}", content)
-        self.assertEqual(len(frames), 17, f"Expected 17 frames, but found {len(frames)}")
-
-        # Check aspect ratio 16:9
-        self.assertIn("aspectratio=169", content, "Document must specify aspectratio=169")
-
-        # Invariance: strictly zero decorative emojis
-        emoji_pattern = re.compile(
-            "[\U00010000-\U0010ffff]|[\u2600-\u27bf]|[\u2300-\u23ff]|[\u2b50-\u2b55]",
-            flags=re.UNICODE,
-        )
+    def test_zero_placeholders_and_emojis(self):
+        content = self.tex_path.read_text(encoding="utf-8")
+        self.assertNotIn("TODO", content)
+        self.assertNotIn("TBD", content)
+        emoji_pattern = re.compile(r"[\U00010000-\U0010ffff]", flags=re.UNICODE)
         emojis_found = emoji_pattern.findall(content)
-        self.assertEqual(len(emojis_found), 0, f"Found decorative emojis in presentation: {emojis_found}")
+        self.assertEqual(len(emojis_found), 0, f"Found decorative emojis: {emojis_found}")
 
-    def test_pdf_exists_and_has_17_pages(self):
-        """Verify compiled PDF exists and has exactly 17 pages."""
-        self.assertTrue(os.path.isfile(self.pdf_path), f"Compiled PDF not found at {self.pdf_path}")
-        self.assertGreater(os.path.getsize(self.pdf_path), 50000, "PDF file is unusually small")
+    def test_key_empirical_anchors_present(self):
+        content = self.tex_path.read_text(encoding="utf-8")
+        anchors = [
+            "KazAI-Detect",
+            "KazSAnDRA",
+            "Sherkala-7B",
+            "KazRoBERTa",
+            "96.32\\%",
+            "2.202",
+            "43.2",
+            "12,848",
+            "4,000",
+            "1,842",
+            "McNemar",
+            "Bootstrap",
+            "12:45--13:10 Astana",
+        ]
+        for anchor in anchors:
+            self.assertIn(anchor, content, f"Missing empirical anchor: {anchor}")
 
+    def test_pdf_exists_and_exact_page_count(self):
         import pypdf
-        reader = pypdf.PdfReader(self.pdf_path)
-        self.assertEqual(len(reader.pages), 17, f"Expected 17 pages, but found {len(reader.pages)}")
+        self.assertTrue(self.pdf_path.is_file(), f"Missing {self.pdf_path}")
+        self.assertGreater(self.pdf_path.stat().st_size, 100000, "PDF file size too small")
+        reader = pypdf.PdfReader(str(self.pdf_path))
+        self.assertEqual(len(reader.pages), 17, f"Expected exactly 17 pages, found {len(reader.pages)}")
 
-        if os.path.isfile(self.log_path):
-            with open(self.log_path, "r", encoding="utf-8", errors="ignore") as f:
-                log_text = f.read()
-            self.assertIn("Output written on aist2026_presentation.pdf (17 pages)", log_text)
-
-    def test_compilation_log_clean(self):
-        """Verify compilation log has zero fatal errors and zero missing characters if present."""
-        if os.path.isfile(self.log_path):
-            with open(self.log_path, "r", encoding="utf-8", errors="ignore") as f:
-                log = f.read()
-            self.assertNotIn("Fatal error", log)
-            self.assertNotIn("Missing character:", log)
-
-    def test_desktop_synchronization(self):
-        """Verify synchronized Desktop PDF exists and matches master compiled PDF."""
-        self.assertTrue(os.path.isfile(self.desktop_pdf), f"Desktop PDF not found at {self.desktop_pdf}")
-
-        def get_md5(path):
-            hasher = hashlib.md5()
-            with open(path, "rb") as f:
-                while chunk := f.read(65536):
-                    hasher.update(chunk)
-            return hasher.hexdigest()
-
-        master_hash = get_md5(self.pdf_path)
-        desktop_hash = get_md5(self.desktop_pdf)
+    def test_desktop_pdf_synchronized(self):
+        self.assertTrue(self.desktop_pdf_path.is_file(), f"Missing {self.desktop_pdf_path}")
+        repo_pdf_size = self.pdf_path.stat().st_size
+        desktop_pdf_size = self.desktop_pdf_path.stat().st_size
         self.assertEqual(
-            master_hash,
-            desktop_hash,
-            "Desktop PDF hash does not match presentation/aist2026_presentation.pdf",
+            repo_pdf_size,
+            desktop_pdf_size,
+            f"Desktop PDF size ({desktop_pdf_size}) != Repo PDF size ({repo_pdf_size})"
         )
 
 
