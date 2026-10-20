@@ -434,6 +434,44 @@ textarea:focus,
     margin-bottom: 16px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
+/* Unified Two-Column Workspace Styles */
+.workspace-row {
+    gap: 20px !important;
+    align-items: flex-start !important;
+}
+.workspace-left-col {
+    position: sticky !important;
+    top: 20px !important;
+}
+.workspace-right-col {
+    min-width: 0 !important;
+}
+.workspace-tabs {
+    margin-top: 16px !important;
+}
+.btn-primary-charcoal {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+    border: 1px solid #18181b !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+.btn-primary-charcoal:hover {
+    background-color: #27272a !important;
+    border-color: #27272a !important;
+}
+.btn-secondary-outline {
+    background-color: #ffffff !important;
+    color: #52525b !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+.btn-secondary-outline:hover {
+    background-color: #f4f4f5 !important;
+    color: #18181b !important;
+    border-color: #d4d4d8 !important;
+}
 """
 
 # Quick Samples Definition (6 curated benchmarks)
@@ -496,6 +534,18 @@ I18N = {
         "pill_4": "Sherkala-7B жаңалықтары - ЖИ",
         "pill_5": "Qwen-2.5 еркін ЖИ",
         "pill_6": "Аралас / Гибрид құжат",
+        "methodology_accordion": "Бенчмарк әдістемесі мен теориялық негіздер (Methodology)",
+        "subtab_overview_title": "Overview & Heatmap / Шолу",
+        "subtab_morphology_title": "Morphology & Slang Lab / Морфология",
+        "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
+        "autofst_toggle_label": "Auto-FST: Сленг және пернетақта қателерін түзету",
+        "verifier_toggle_label": "Kazakh-FEVER: Фактілер мен сенімділікті тексеру",
+        "methodology_accordion": "Benchmark Methodology & Theoretical Foundations / Әдістеме мен теориялық негіздер",
+        "subtab_overview_title": "Overview & Heatmap / Шолу",
+        "subtab_morphology_title": "Morphology & Slang Lab / Морфология",
+        "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
+        "autofst_toggle_label": "Auto-FST Slang & Russian-Layout Normalization",
+        "verifier_toggle_label": "Kazakh-FEVER Factual Trust Verification",
         "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
         "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
         "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
@@ -587,6 +637,12 @@ I18N = {
         "pill_4": "Sherkala-7B AI News",
         "pill_5": "Qwen-2.5 Wild AI",
         "pill_6": "Hybrid Document",
+        "methodology_accordion": "Benchmark Methodology & Theoretical Foundations / Әдістеме мен теориялық негіздер",
+        "subtab_overview_title": "Overview & Heatmap / Шолу",
+        "subtab_morphology_title": "Morphology & Slang Lab / Морфология",
+        "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
+        "autofst_toggle_label": "Auto-FST Slang & Russian-Layout Normalization",
+        "verifier_toggle_label": "Kazakh-FEVER Factual Trust Verification",
         "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
         "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
         "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
@@ -1441,13 +1497,12 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
 
 def create_app(detector: Any = None, verifier: Any = None, load_model: bool = False) -> gr.Blocks:
     """
-    Constructs and returns the full Gradio Blocks application with 4 distinct academic tabs
-    and bilingual localization (zero emojis).
+    Constructs and returns the full Gradio Blocks application with a publication-grade
+    Unified Two-Column Workspace layout and bilingual localization (zero emojis).
     """
     app_detector = detector or get_detector(load_model=load_model)
     app_verifier = verifier or TrustworthyDocumentVerifier(ai_detector=app_detector)
     d = I18N["en"]
-
 
     with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI", theme=get_apple_notion_theme(), css=APP_CSS) as demo:
         demo.theme = get_apple_notion_theme()
@@ -1458,27 +1513,38 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         gr.HTML(f"<style>{APP_CSS}</style>", visible=False)
 
         # -------------------------------------------------------------------
-        # 3 Main Academic Tabs (Start directly at the top)
+        # Top Utility Navigation Bar
         # -------------------------------------------------------------------
-        with gr.Tabs() as tabs:
+        with gr.Row(elem_classes=["quick-samples-header-row"]):
+            with gr.Column(scale=9):
+                gr.Markdown(f"### {d['hero_title']}")
+                gr.Markdown(d["hero_subtitle"])
+            with gr.Column(scale=3):
+                lang_radio = gr.Radio(
+                    choices=["English", "Қазақша"],
+                    value="English",
+                    show_label=False,
+                    container=False,
+                    interactive=True,
+                    elem_classes=["lang-switch-inline"]
+                )
+
+        # Collapsible Methodology & Benchmarks Drawer (Top Utility)
+        with gr.Accordion(d["methodology_accordion"], open=False) as methodology_accordion:
+            methodology_md = gr.Markdown(render_methodology_markdown("en"))
+
+        # -------------------------------------------------------------------
+        # Main Two-Column Workspace
+        # -------------------------------------------------------------------
+        with gr.Row(elem_classes=["workspace-row"]):
 
             # ===============================================================
-            # TAB 1: Detection & Explainability
+            # LEFT COLUMN: Sticky Control Panel & Document Input (scale=4)
             # ===============================================================
-            with gr.Tab(d["tab_1_title"], id="tab_detection") as tab_detect:
-
-                # Header row: Quick Samples title on left, inline language switcher immediately adjacent on left
+            with gr.Column(scale=4, elem_classes=["workspace-left-col"]):
+                # Quick Benchmark Samples Row
                 with gr.Column(elem_classes=["quick-samples-wrapper"]):
-                    with gr.Row(elem_classes=["quick-samples-header-row"]):
-                        quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
-                        lang_radio = gr.Radio(
-                            choices=["English", "Қазақша"],
-                            value="English",
-                            show_label=False,
-                            container=False,
-                            interactive=True,
-                            elem_classes=["lang-switch-inline"]
-                        )
+                    quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
                     with gr.Row(elem_classes=["quick-samples-row"]):
                         pill_btn1 = gr.Button(d["pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
                         pill_btn2 = gr.Button(d["pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
@@ -1487,192 +1553,151 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         pill_btn5 = gr.Button(d["pill_5"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
                         pill_btn6 = gr.Button(d["pill_6"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
 
-                # Main Input & KPI Section
+                # Single Unified Document Textarea
+                text_input = gr.Textbox(
+                    lines=10,
+                    max_lines=18,
+                    interactive=True,
+                    placeholder=d["input_placeholder"],
+                    label=d["input_label"]
+                )
+
+                # File Upload Accordion (.txt, .docx, .pdf)
+                with gr.Accordion(d["file_accordion"], open=False) as file_accordion:
+                    file_uploader = gr.File(
+                        label=d["upload_label"],
+                        file_types=[".txt", ".docx", ".pdf"],
+                    )
+                    file_status = gr.Markdown("")
+
+                # Feature Toggles
                 with gr.Row():
-                    # Left Column: Document Input & Controls
-                    with gr.Column(scale=5):
-                        text_input = gr.Textbox(
-                            lines=8,
-                            max_lines=22,
-                            placeholder=d["input_placeholder"],
-                            label=d["input_label"]
-                        )
+                    autofst_toggle = gr.Checkbox(
+                        label=d["autofst_toggle_label"],
+                        value=True,
+                        interactive=True
+                    )
+                with gr.Row():
+                    verifier_toggle = gr.Checkbox(
+                        label=d["verifier_toggle_label"],
+                        value=True,
+                        interactive=True
+                    )
 
-                        with gr.Row():
-                            analyze_btn = gr.Button(d["analyze_btn"], variant="primary", scale=3)
-                            clear_btn = gr.Button(d["clear_btn"], variant="secondary", scale=1)
+                # Primary Action Buttons
+                with gr.Row():
+                    analyze_btn = gr.Button(
+                        d["analyze_btn"],
+                        variant="primary",
+                        elem_classes=["btn-primary-charcoal"],
+                        scale=3
+                    )
+                    clear_btn = gr.Button(
+                        d["clear_btn"],
+                        variant="secondary",
+                        elem_classes=["btn-secondary-outline"],
+                        scale=1
+                    )
 
-                        # File Upload Accordion (.txt, .docx, .pdf)
-                        with gr.Accordion(d["file_accordion"], open=False) as file_accordion:
-                            file_uploader = gr.File(
-                                label=d["upload_label"],
-                                file_types=[".txt", ".docx", ".pdf"],
-                            )
-                            file_status = gr.Markdown("")
+            # ===============================================================
+            # RIGHT COLUMN: Interactive Multi-View Dashboard (scale=6)
+            # ===============================================================
+            with gr.Column(scale=6, elem_classes=["workspace-right-col"]):
+                # Top Persistent HUD
+                kpi_header = gr.Markdown(d["kpi_header"])
+                executive_card_display = gr.HTML(
+                    render_executive_summary_card(
+                        probability=0.0,
+                        verdict=d["awaiting_input"],
+                        lang="en",
+                        total_words=0,
+                        total_sents=0,
+                        total_windows=0,
+                        ai_ratio=0.0
+                    )
+                )
+                confidence_meter_display = gr.HTML(render_confidence_meter(0.0, lang="en"))
 
-                    # Right Column: Document Results & Explainability
-                    with gr.Column(scale=5):
-                        kpi_header = gr.Markdown(d["kpi_header"])
-                        executive_card_display = gr.HTML(
-                            render_executive_summary_card(
-                                probability=0.0,
-                                verdict=d["awaiting_input"],
-                                lang="en",
-                                total_words=0,
-                                total_sents=0,
-                                total_windows=0,
-                                ai_ratio=0.0
-                            )
-                        )
+                # 3 Consolidated Sub-Tabs
+                with gr.Tabs(elem_classes=["workspace-tabs"]) as result_tabs:
 
-                        # Dynamic Linguistic Reasoning Bullets
+                    # Sub-Tab 1: Overview & Heatmap
+                    with gr.Tab(d["subtab_overview_title"], id="tab_overview") as tab_overview:
+                        heatmap_header = gr.Markdown(d["heatmap_header"])
+                        legend_display = gr.HTML(render_legend_html("en"))
+                        heatmap_display = gr.HTML(f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>')
                         linguistic_header = gr.Markdown(d["linguistic_header"])
                         linguistic_bullets_display = gr.Markdown("")
 
-                # Visual Sentence Heatmap Section
-                gr.Markdown("---")
-                heatmap_header = gr.Markdown(d["heatmap_header"])
-                legend_display = gr.HTML(render_legend_html("en"))
-                heatmap_display = gr.HTML(f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>')
+                    # Sub-Tab 2: Morphology & Slang Lab
+                    with gr.Tab(d["subtab_morphology_title"], id="tab_morphology") as tab_morphology:
+                        autofst_hero_header = gr.Markdown(d["autofst_hero_header"])
+                        autofst_comparison_card = gr.HTML(render_autofst_comparison_card("", "", 0.0, lang="en"))
+                        autofst_inductions_header = gr.Markdown(d["autofst_inductions_header"])
+                        autofst_inductions_table = gr.HTML(render_autofst_inductions_table([], lang="en"))
 
-                # Sentence Deep Diagnostic & FST Breakdown Section
-                gr.Markdown("---")
-                diagnostic_header = gr.Markdown(d["diagnostic_header"])
-
-                with gr.Row():
-                    sentence_selector = gr.Dropdown(
-                        choices=[],
-                        value=None,
-                        label=d["sentence_select_label"],
-                        scale=3
-                    )
-
-                with gr.Row():
-                    with gr.Column(scale=5):
-                        selected_sentence_box = gr.Textbox(
-                            label=d["inspected_sentence_label"],
-                            value=d["select_sentence_prompt"],
-                            lines=3,
-                            interactive=False
-                        )
-                        gate_header = gr.Markdown(d["gate_header"])
-                        gate_bar_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="en"))
-
-                    with gr.Column(scale=6):
-                        morpheme_header = gr.Markdown(d["morpheme_header"])
-                        morpheme_table_display = gr.HTML(f'<p class="text-muted">{d["select_sentence_prompt"]}</p>')
-
-            # ===============================================================
-            # TAB 2: Morphological FST Lab
-            # ===============================================================
-            with gr.Tab(d["tab_2_title"], id="tab_fst") as tab_fst:
-                fst_lab_header = gr.Markdown(d["fst_lab_header"])
-                fst_lab_desc = gr.Markdown(d["fst_lab_desc"])
-
-                with gr.Row():
-                    fst_input = gr.Textbox(
-                        lines=3,
-                        max_lines=6,
-                        placeholder=d["fst_input_placeholder"],
-                        label=d["fst_input_label"],
-                        scale=4
-                    )
-                    fst_parse_btn = gr.Button(d["fst_parse_btn"], variant="primary", scale=1)
-
-                fst_gate_header = gr.Markdown(d["fst_gate_header"])
-                fst_gate_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="en"))
-
-                fst_table_header = gr.Markdown(d["fst_table_header"])
-                fst_table_display = gr.HTML(render_fst_decomposition_table([], lang="en"))
-
-            # ===============================================================
-            # TAB 3: Benchmark & Academic Methodology
-            # ===============================================================
-            with gr.Tab(d["tab_3_title"], id="tab_methodology") as tab_methodology:
-                methodology_md = gr.Markdown(render_methodology_markdown("en"))
-
-            # ===============================================================
-            # TAB 4: Factual Verification & Trust Matrix
-            # ===============================================================
-            with gr.Tab(d["tab_4_title"], id="tab_verification") as tab_verify:
-                            verify_hero_header = gr.Markdown(d["verify_hero_header"])
-                            verify_hero_desc = gr.Markdown(d["verify_hero_desc"])
-            
-                            # 4-Quadrant Quick Presets
-                            with gr.Column(elem_classes=["quick-samples-wrapper"]):
-                                verify_quick_samples_label = gr.Markdown(
-                                    f"**{d['verify_quick_samples_title']}**",
-                                    elem_classes=["quick-samples-title"]
-                                )
-                                with gr.Row(elem_classes=["quick-samples-row"]):
-                                    v_pill_btn1 = gr.Button(d["verify_pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                                    v_pill_btn2 = gr.Button(d["verify_pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                                    v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                                    v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-            
-                            verify_model_radio = gr.Radio(
-                                choices=[d["verify_model_ours"], d["verify_model_base"]],
-                                value=d["verify_model_ours"],
-                                label=d["verify_model_label"]
-                            )
-            
-                            with gr.Row():
-                                with gr.Column(scale=6):
-                                    verify_input = gr.Textbox(
-                                        lines=6,
-                                        max_lines=18,
-                                        placeholder=d["verify_input_placeholder"],
-                                        label=d["verify_input_label"]
-                                    )
-                                    with gr.Row():
-                                        verify_btn = gr.Button(d["verify_btn"], variant="primary", scale=3)
-                                        verify_clear_btn = gr.Button(d["verify_clear_btn"], variant="secondary", scale=1)
-            
-                                with gr.Column(scale=6):
-                                    verify_card_display = gr.HTML(render_trust_summary_card(None, lang="en"))
-            
-                            gr.Markdown("---")
-                            verify_claims_header = gr.Markdown(d["verify_claims_header"])
-                            verify_table_display = gr.HTML(render_claims_verification_table([], lang="en"))
-            
-                        # ===============================================================
-                        # TAB 5: Auto-FST & Slang Normalizer
-                        # ===============================================================
-            with gr.Tab(d["tab_5_title"], id="tab_autofst") as tab_autofst:
-                autofst_hero_header = gr.Markdown(d["autofst_hero_header"])
-                autofst_hero_desc = gr.Markdown(d["autofst_hero_desc"])
-
-                with gr.Column(elem_classes=["quick-samples-wrapper"]):
-                    autofst_quick_samples_label = gr.Markdown(
-                        f"**{d['autofst_quick_samples_title']}**",
-                        elem_classes=["quick-samples-title"]
-                    )
-                    with gr.Row(elem_classes=["quick-samples-row"]):
-                        af_pill_btn1 = gr.Button(d["autofst_pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                        af_pill_btn2 = gr.Button(d["autofst_pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                        af_pill_btn3 = gr.Button(d["autofst_pill_3"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                        af_pill_btn4 = gr.Button(d["autofst_pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-                        af_pill_btn5 = gr.Button(d["autofst_pill_5"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
-
-                with gr.Row():
-                    with gr.Column(scale=6):
-                        autofst_input = gr.Textbox(
-                            lines=4,
-                            max_lines=10,
-                            placeholder=d["autofst_input_placeholder"],
-                            label=d["autofst_input_label"]
+                        gr.Markdown("---")
+                        diagnostic_header = gr.Markdown(d["diagnostic_header"])
+                        sentence_selector = gr.Dropdown(
+                            choices=[],
+                            value=None,
+                            label=d["sentence_select_label"]
                         )
                         with gr.Row():
-                            autofst_btn = gr.Button(d["autofst_btn"], variant="primary", scale=3)
-                            autofst_clear_btn = gr.Button(d["autofst_clear_btn"], variant="secondary", scale=1)
+                            with gr.Column(scale=5):
+                                selected_sentence_box = gr.Textbox(
+                                    label=d["inspected_sentence_label"],
+                                    value=d["select_sentence_prompt"],
+                                    lines=3,
+                                    interactive=False
+                                )
+                                gate_header = gr.Markdown(d["gate_header"])
+                                gate_bar_display = gr.HTML(render_dynamic_gate_bar(0.5, lang="en"))
+                            with gr.Column(scale=6):
+                                morpheme_header = gr.Markdown(d["morpheme_header"])
+                                morpheme_table_display = gr.HTML(f'<p class="text-muted">{d["select_sentence_prompt"]}</p>')
 
-                    with gr.Column(scale=6):
-                        autofst_comparison_card = gr.HTML(render_autofst_comparison_card("", "", 0.0, lang="en"))
+                    # Sub-Tab 3: Fact Verification & Trust Matrix
+                    with gr.Tab(d["subtab_verification_title"], id="tab_verification") as tab_verification:
+                        verify_hero_header = gr.Markdown(d["verify_hero_header"])
+                        verify_model_radio = gr.Radio(
+                            choices=[d["verify_model_ours"], d["verify_model_base"]],
+                            value=d["verify_model_ours"],
+                            label=d["verify_model_label"]
+                        )
+                        verify_card_display = gr.HTML(render_trust_summary_card(None, lang="en"))
+                        verify_claims_header = gr.Markdown(d["verify_claims_header"])
+                        verify_table_display = gr.HTML(render_claims_verification_table([], lang="en"))
 
-                gr.Markdown("---")
-                autofst_inductions_header = gr.Markdown(d["autofst_inductions_header"])
-                autofst_inductions_table = gr.HTML(render_autofst_inductions_table([], lang="en"))
-
+        # Hidden legacy components to retain exact 63-element backward compatibility with switch_ui_language
+        with gr.Row(visible=False):
+            fst_lab_header = gr.Markdown(d["fst_lab_header"], visible=False)
+            fst_lab_desc = gr.Markdown(d["fst_lab_desc"], visible=False)
+            fst_input = gr.Textbox(lines=1, interactive=False, visible=False)
+            fst_parse_btn = gr.Button(d["fst_parse_btn"], visible=False)
+            fst_gate_header = gr.Markdown(d["fst_gate_header"], visible=False)
+            fst_gate_display = gr.HTML("", visible=False)
+            fst_table_header = gr.Markdown(d["fst_table_header"], visible=False)
+            fst_table_display = gr.HTML("", visible=False)
+            verify_hero_desc = gr.Markdown(d["verify_hero_desc"], visible=False)
+            verify_quick_samples_label = gr.Markdown(d["verify_quick_samples_title"], visible=False)
+            v_pill_btn1 = gr.Button(d["verify_pill_1"], visible=False)
+            v_pill_btn2 = gr.Button(d["verify_pill_2"], visible=False)
+            v_pill_btn3 = gr.Button(d["verify_pill_3"], visible=False)
+            v_pill_btn4 = gr.Button(d["verify_pill_4"], visible=False)
+            verify_input = gr.Textbox(lines=1, interactive=False, visible=False)
+            verify_btn = gr.Button(d["verify_btn"], visible=False)
+            verify_clear_btn = gr.Button(d["verify_clear_btn"], visible=False)
+            autofst_hero_desc = gr.Markdown(d["autofst_hero_desc"], visible=False)
+            autofst_quick_samples_label = gr.Markdown(d["autofst_quick_samples_title"], visible=False)
+            af_pill_btn1 = gr.Button(d["autofst_pill_1"], visible=False)
+            af_pill_btn2 = gr.Button(d["autofst_pill_2"], visible=False)
+            af_pill_btn3 = gr.Button(d["autofst_pill_3"], visible=False)
+            af_pill_btn4 = gr.Button(d["autofst_pill_4"], visible=False)
+            af_pill_btn5 = gr.Button(d["autofst_pill_5"], visible=False)
+            autofst_input = gr.Textbox(lines=1, interactive=False, visible=False)
+            autofst_btn = gr.Button(d["autofst_btn"], visible=False)
+            autofst_clear_btn = gr.Button(d["autofst_clear_btn"], visible=False)
 
         # -------------------------------------------------------------------
         # Event Handlers & Wirings
@@ -1830,7 +1855,6 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
             fn=lambda: get_verification_preset_text("Quadrant 4: Hallucinatory AI Disinformation"),
             outputs=[verify_input]
         )
-
 
         # Tab 5: Auto-FST Handlers
         global_autofst_overlay = DynamicFSTOverlay(normalizer=RussianLayoutNormalizer())
