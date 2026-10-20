@@ -7,9 +7,12 @@ from typing import Dict, List, Optional
 from fst_analyzer import AdvancedKazakhFSTAnalyzer, COMMON_LOANWORD_ROOTS
 
 try:
-    from auto_fst.normalizer import RussianLayoutNormalizer
-except ImportError:
-    from src.auto_fst.normalizer import RussianLayoutNormalizer
+    from .normalizer import RussianLayoutNormalizer
+except (ImportError, ValueError):
+    try:
+        from auto_fst.normalizer import RussianLayoutNormalizer
+    except ImportError:
+        from src.auto_fst.normalizer import RussianLayoutNormalizer
 
 EMPHATIC_PARTICLES = ['ғой', 'қой', 'гой', 'кой', 'мыс', 'міс', 'ау']
 

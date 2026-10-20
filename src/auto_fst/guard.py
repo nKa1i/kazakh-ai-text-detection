@@ -3,9 +3,12 @@
 from typing import List, Tuple
 
 try:
-    from auto_fst.overlay import DynamicFSTOverlay
-except ImportError:
-    from src.auto_fst.overlay import DynamicFSTOverlay
+    from .overlay import DynamicFSTOverlay
+except (ImportError, ValueError):
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        from src.auto_fst.overlay import DynamicFSTOverlay
 
 GOLDEN_SENTENCES: List[str] = [
     "Кеше кешке орталыққа келгенмін және жұмыстарды көргендіктен қайтарды.",
