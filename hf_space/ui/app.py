@@ -120,6 +120,61 @@ def get_apple_notion_theme() -> gr.Theme:
 
 # Extended CSS styling for minimalist Apple / Notion publication-grade dashboard aesthetics
 APP_CSS = HEATMAP_CSS + """
+/* Force Pure Light Apple / Notion Canvas across all elements and dark-mode overrides */
+:root, html, body, .gradio-container, .dark, .dark body {
+    color-scheme: light !important;
+    background-color: #fbfbfa !important;
+    color: #18181b !important;
+}
+
+.dark .gradio-container,
+.dark .hero-card,
+.dark .panel-box,
+.dark .workspace-left-col,
+.dark .workspace-right-col,
+.dark .tabitem,
+.dark .tabs,
+.dark textarea,
+.dark input,
+.dark .gr-box,
+.dark .gr-panel {
+    background-color: #fbfbfa !important;
+    color: #18181b !important;
+    border-color: #e4e4e7 !important;
+}
+
+/* Live typing statistics ribbon */
+.live-stats-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #71717a;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    padding: 4px 6px 8px 6px;
+    letter-spacing: 0.02em;
+}
+
+/* Visual diff styling */
+.diff-norm {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    font-weight: 600 !important;
+    border-bottom: 1.5px solid #38bdf8 !important;
+}
+
+.diff-induce {
+    background-color: #f3e8ff !important;
+    color: #7e22ce !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    font-weight: 600 !important;
+    border-bottom: 1.5px solid #c084fc !important;
+}
+
 body, .gradio-container {
     background-color: #fbfbfa !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
