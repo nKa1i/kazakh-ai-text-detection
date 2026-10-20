@@ -83,7 +83,7 @@ Select secondary focus areas:
 - **Secondary OpenReview Account Email**: `anekeshd@mail.nwpu.edu.cn`
 - **Affiliation 1**: School of Computer Science, Northwestern Polytechnical University, Xi'an, Shaanxi, China
 - **Affiliation 2**: Department of Computer Science, Al-Farabi Kazakh National University, Almaty, Kazakhstan
-- **ORCID**: 0009-0008-4127-6582
+- **ORCID**: 0009-0006-1351-7481
 - **Semantic Scholar Profile ID**: Daulet Anekesh
 
 #### Author 2: Irina M. Ualiyeva (Co-Author)
