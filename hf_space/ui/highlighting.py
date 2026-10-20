@@ -344,6 +344,105 @@ HEATMAP_CSS = """
     border: 1px solid #fecdd3;
 }
 
+/* Notion Database Table Architecture */
+.notion-table-wrapper {
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    margin: 12px 0 16px 0;
+}
+
+.notion-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    color: #27272a;
+}
+
+.notion-table th {
+    background: #f4f4f5;
+    color: #71717a;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e4e4e7;
+    text-align: left;
+}
+
+.notion-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f4f4f5;
+    vertical-align: middle;
+}
+
+.notion-table tr:last-child td {
+    border-bottom: none;
+}
+
+.notion-table tr:hover td {
+    background-color: #fafafa;
+}
+
+/* Monospace Notion Tag Pill Styles */
+.tag-pill {
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #3f3f46;
+    display: inline-block;
+}
+
+/* FEVER Claims Verdict Pills */
+.verdict-pill {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.pill-supports {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    color: #065f46;
+}
+
+.pill-refutes {
+    background: #fff1f2;
+    border: 1px solid #f43f5e;
+    color: #9f1239;
+}
+
+.pill-nei {
+    background: #f4f4f5;
+    border: 1px solid #d4d4d8;
+    color: #52525b;
+}
+
+.status-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.autofst-table {
+    width: 100%;
+}
+
 /* FST Morpheme Breakdown Table Styles */
 .fst-table-container {
     overflow-x: auto;
@@ -943,7 +1042,7 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz"
 
 def render_morpheme_table(word_breakdowns: List[Dict[str, Any]], lang: str = "kz") -> str:
     """
-    Renders a responsive HTML table detailing morphological decompositions
+    Renders a responsive Notion-styled HTML table detailing morphological decompositions
     (Word, Stem, POS, Affixes) with strict XSS sanitization.
 
     Args:
@@ -967,19 +1066,19 @@ def render_morpheme_table(word_breakdowns: List[Dict[str, Any]], lang: str = "kz
         safe_word = html.escape(raw_word, quote=True)
         safe_root = html.escape(raw_root, quote=True)
 
-        if raw_pos:
-            safe_pos = f'<span class="pos-badge">{html.escape(raw_pos, quote=True)}</span>'
+        if raw_pos and raw_pos not in ("—", "-"):
+            safe_pos = f'<span class="tag-pill pos-badge">{html.escape(raw_pos, quote=True)}</span>'
         else:
-            safe_pos = '<span class="text-muted">—</span>'
+            safe_pos = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         if raw_affixes:
             badge_list = [
-                f'<span class="morpheme-badge">{html.escape(str(aff), quote=True)}</span>'
+                f'<span class="tag-pill morpheme-badge">{html.escape(str(aff), quote=True)}</span>'
                 for aff in raw_affixes
             ]
             affixes_html = " ".join(badge_list)
         else:
-            affixes_html = '<span class="text-muted">—</span>'
+            affixes_html = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         rows.append(
             f'      <tr>\n'
@@ -1004,8 +1103,8 @@ def render_morpheme_table(word_breakdowns: List[Dict[str, Any]], lang: str = "kz
         th_affixes = "Жұрнақ / Жалғаулар (Affixes)"
 
     return (
-        f'<div class="fst-table-container">\n'
-        f'  <table class="fst-table">\n'
+        f'<div class="notion-table-wrapper fst-table-container">\n'
+        f'  <table class="notion-table fst-table">\n'
         f'    <thead>\n'
         f'      <tr>\n'
         f'        <th>{th_word}</th>\n'
@@ -1242,16 +1341,16 @@ def render_fst_decomposition_table(
     lang: str = "kz"
 ) -> str:
     """
-    Renders an 8-column morphological FST decomposition table:
-    (Word, Root, POS, Case, Plural, Tense, Person, Suffix Chain) with strict XSS sanitization.
+    Renders an 8-column morphological FST decomposition table in Notion Database style:
+    (Word, Root, Root POS, Plural, Possessive, Case, Tense, Person, Suffix Chain) with strict XSS sanitization.
 
     Args:
-        word_breakdowns: List of dicts containing 'word', 'root', 'pos', 'case',
-                         'plural', 'tense', 'person', and 'suffix_chain'.
+        word_breakdowns: List of dicts containing 'word', 'root', 'pos', 'plural',
+                         'possessive', 'case', 'tense', 'person', and 'suffix_chain'.
         lang: 'kz' for Kazakh headers, 'en' for English headers.
 
     Returns:
-        Safe HTML string containing the responsive table.
+        Safe HTML string containing the Notion-styled responsive table.
     """
     if not word_breakdowns:
         empty_msg = (
@@ -1266,8 +1365,9 @@ def render_fst_decomposition_table(
         raw_word = str(item.get("word", ""))
         raw_root = str(item.get("root", ""))
         raw_pos = str(item.get("pos", ""))
-        raw_case = str(item.get("case", "—"))
         raw_plur = str(item.get("plural", "—"))
+        raw_poss = str(item.get("possessive", item.get("poss", "—")))
+        raw_case = str(item.get("case", "—"))
         raw_tense = str(item.get("tense", "—"))
         raw_person = str(item.get("person", "—"))
         raw_chain = str(item.get("suffix_chain", item.get("affixes", "—")))
@@ -1275,51 +1375,65 @@ def render_fst_decomposition_table(
         safe_word = html.escape(raw_word, quote=True)
         safe_root = html.escape(raw_root, quote=True)
 
-        if raw_pos and raw_pos != "—":
-            safe_pos = f'<span class="pos-badge">{html.escape(raw_pos, quote=True)}</span>'
+        if raw_pos and raw_pos not in ("—", "-"):
+            safe_pos = f'<span class="tag-pill pos-badge">{html.escape(raw_pos, quote=True)}</span>'
         else:
-            safe_pos = '<span class="text-muted">—</span>'
+            safe_pos = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
-        if raw_case and raw_case != "—":
-            safe_case = f'<span class="badge-case">{html.escape(raw_case, quote=True)}</span>'
+        if raw_plur and raw_plur not in ("—", "-"):
+            safe_plur = f'<span class="tag-pill badge-plur">{html.escape(raw_plur, quote=True)}</span>'
         else:
-            safe_case = '<span class="text-muted">—</span>'
+            safe_plur = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
-        if raw_plur and raw_plur != "—":
-            safe_plur = f'<span class="badge-plur">{html.escape(raw_plur, quote=True)}</span>'
+        if raw_poss and raw_poss not in ("—", "-"):
+            safe_poss = f'<span class="tag-pill badge-poss">{html.escape(raw_poss, quote=True)}</span>'
         else:
-            safe_plur = '<span class="text-muted">—</span>'
+            safe_poss = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
-        if raw_tense and raw_tense != "—":
-            safe_tense = f'<span class="badge-tense">{html.escape(raw_tense, quote=True)}</span>'
+        if raw_case and raw_case not in ("—", "-"):
+            safe_case = f'<span class="tag-pill badge-case">{html.escape(raw_case, quote=True)}</span>'
         else:
-            safe_tense = '<span class="text-muted">—</span>'
+            safe_case = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
-        if raw_person and raw_person != "—":
-            safe_person = f'<span class="badge-person">{html.escape(raw_person, quote=True)}</span>'
+        if raw_tense and raw_tense not in ("—", "-"):
+            safe_tense = f'<span class="tag-pill badge-tense">{html.escape(raw_tense, quote=True)}</span>'
         else:
-            safe_person = '<span class="text-muted">—</span>'
+            safe_tense = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
+
+        if raw_person and raw_person not in ("—", "-"):
+            safe_person = f'<span class="tag-pill badge-person">{html.escape(raw_person, quote=True)}</span>'
+        else:
+            safe_person = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         if isinstance(raw_chain, list):
             if raw_chain:
                 safe_chain = " ".join(
-                    f'<span class="morpheme-badge">{html.escape(str(c), quote=True)}</span>'
+                    f'<span class="tag-pill morpheme-badge">{html.escape(str(c), quote=True)}</span>'
                     for c in raw_chain
                 )
             else:
-                safe_chain = '<span class="text-muted">—</span>'
-        elif raw_chain and raw_chain != "—":
-            safe_chain = html.escape(str(raw_chain), quote=True)
+                safe_chain = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
+        elif raw_chain and raw_chain not in ("—", "-"):
+            chain_str = str(raw_chain)
+            if " -> " in chain_str:
+                parts = [p.strip() for p in chain_str.split(" -> ") if p.strip()]
+                safe_chain = " ".join(
+                    f'<span class="tag-pill morpheme-badge">{html.escape(p, quote=True)}</span>'
+                    for p in parts
+                )
+            else:
+                safe_chain = f'<span class="tag-pill morpheme-badge">{html.escape(chain_str, quote=True)}</span>'
         else:
-            safe_chain = '<span class="text-muted">—</span>'
+            safe_chain = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         rows.append(
             f'      <tr>\n'
             f'        <td><strong>{safe_word}</strong></td>\n'
             f'        <td>{safe_root}</td>\n'
             f'        <td>{safe_pos}</td>\n'
-            f'        <td>{safe_case}</td>\n'
             f'        <td>{safe_plur}</td>\n'
+            f'        <td>{safe_poss}</td>\n'
+            f'        <td>{safe_case}</td>\n'
             f'        <td>{safe_tense}</td>\n'
             f'        <td>{safe_person}</td>\n'
             f'        <td>{safe_chain}</td>\n'
@@ -1331,9 +1445,10 @@ def render_fst_decomposition_table(
     if lang == "en":
         th_word = "Word"
         th_stem = "Root"
-        th_pos = "POS"
-        th_case = "Case"
+        th_pos = "Root POS"
         th_plur = "Plural"
+        th_poss = "Possessive"
+        th_case = "Case"
         th_tense = "Tense"
         th_person = "Person"
         th_chain = "Suffix Chain"
@@ -1341,22 +1456,24 @@ def render_fst_decomposition_table(
         th_word = "Сөз (Word)"
         th_stem = "Түбір (Root)"
         th_pos = "Сөз табы (POS)"
-        th_case = "Септік (Case)"
         th_plur = "Көптік (Plural)"
+        th_poss = "Тәуелдік (Possessive)"
+        th_case = "Септік (Case)"
         th_tense = "Шақ (Tense)"
         th_person = "Жақ (Person)"
         th_chain = "Жұрнақ тізбегі (Suffix Chain)"
 
     return (
-        f'<div class="fst-table-container">\n'
-        f'  <table class="fst-table">\n'
+        f'<div class="notion-table-wrapper fst-table-container">\n'
+        f'  <table class="notion-table fst-table">\n'
         f'    <thead>\n'
         f'      <tr>\n'
         f'        <th>{th_word}</th>\n'
         f'        <th>{th_stem}</th>\n'
         f'        <th>{th_pos}</th>\n'
-        f'        <th>{th_case}</th>\n'
         f'        <th>{th_plur}</th>\n'
+        f'        <th>{th_poss}</th>\n'
+        f'        <th>{th_case}</th>\n'
         f'        <th>{th_tense}</th>\n'
         f'        <th>{th_person}</th>\n'
         f'        <th>{th_chain}</th>\n'
@@ -1740,7 +1857,7 @@ def render_claims_verification_table(
     lang: str = "en"
 ) -> str:
     """
-    Renders an HTML table listing atomic claims, verdicts, evidence citations, and explanations,
+    Renders an HTML table listing atomic claims, retrieved passages, relevance, and verification verdicts,
     with an expandable 16-feature morphological diagnostic drawer under each claim row.
     All dynamic texts are strictly escaped to prevent XSS.
     """
@@ -1757,16 +1874,17 @@ def render_claims_verification_table(
         claim_text = getattr(claim_obj, "text", str(c)) if claim_obj else str(c)
         safe_claim = html.escape(claim_text, quote=True)
 
-        verdict = getattr(c, "verdict", "NOT ENOUGH INFO")
-        if verdict == "SUPPORTED":
-            v_badge = '<span class="verdict-badge verdict-supported">SUPPORTED</span>'
-        elif verdict == "REFUTED":
-            v_badge = '<span class="verdict-badge verdict-refuted">REFUTED</span>'
+        raw_verdict = str(getattr(c, "verdict", "NOT ENOUGH INFO")).upper()
+        if raw_verdict in ("SUPPORTED", "SUPPORTS"):
+            v_badge = '<span class="verdict-pill pill-supports verdict-badge verdict-supported" data-verdict="SUPPORTED">SUPPORTS</span>'
+        elif raw_verdict in ("REFUTED", "REFUTES"):
+            v_badge = '<span class="verdict-pill pill-refutes verdict-badge verdict-refuted" data-verdict="REFUTED">REFUTES</span>'
         else:
-            v_badge = '<span class="verdict-badge verdict-nei">NOT ENOUGH INFO</span>'
+            v_badge = '<span class="verdict-pill pill-nei verdict-badge verdict-nei" data-verdict="NOT ENOUGH INFO">NOT ENOUGH INFO</span>'
 
         conf = float(getattr(c, "confidence", 0.5))
         conf_str = f"{conf * 100:.1f}%"
+        rel_pill = f'<span class="tag-pill" style="font-family: \'SFMono-Regular\', Menlo, Consolas, monospace; font-weight: 600;">{conf_str}</span>'
 
         # Evidence citation in main table row
         evidence_list = getattr(c, "evidence", [])
@@ -1782,10 +1900,10 @@ def render_claims_verification_table(
                 safe_url = html.escape(ev_url, quote=True)
                 ev_html += f' <a href="{safe_url}" target="_blank" style="color: #2563eb; text-decoration: underline;">[Wiki]</a>'
         else:
-            ev_html = '<span class="text-muted">—</span>'
+            ev_html = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         explanation = getattr(c, "explanation", "")
-        safe_exp = html.escape(explanation, quote=True) if explanation else '<span class="text-muted">—</span>'
+        safe_exp = html.escape(explanation, quote=True) if explanation else '<span class="text-muted" style="color: #a1a1aa;">-</span>'
 
         # Morphological Drawer Content
         drawer_summary = "Морфологиялық сәйкестік және дәлелдемелер" if is_kz else "Morphological Alignment & Evidence Diagnostics"
@@ -1902,15 +2020,13 @@ def render_claims_verification_table(
 
         row = (
             f'      <tr>\n'
-            f'        <td style="font-weight: 600; color: #64748b;">{idx}</td>\n'
             f'        <td style="font-weight: 500;">{safe_claim}</td>\n'
+            f'        <td style="font-size: 0.82rem; line-height: 1.45;">{ev_html}</td>\n'
+            f'        <td>{rel_pill}</td>\n'
             f'        <td>{v_badge}</td>\n'
-            f'        <td style="font-family: monospace; font-weight: 600;">{conf_str}</td>\n'
-            f'        <td style="font-size: 0.8rem; line-height: 1.45;">{ev_html}</td>\n'
-            f'        <td style="font-size: 0.8rem; color: #475569;">{safe_exp}</td>\n'
             f'      </tr>\n'
             f'      <tr class="morpho-drawer-row">\n'
-            f'        <td colspan="6" style="padding: 4px 14px 10px 14px; background: #fafafa; border-bottom: 2px solid #e2e8f0;">\n'
+            f'        <td colspan="4" style="padding: 4px 14px 10px 14px; background: #fafafa; border-bottom: 2px solid #e2e8f0;">\n'
             f'          <details class="morpho-drawer">\n'
             f'            <summary style="cursor: pointer; font-weight: 600; color: #2563eb; font-size: 0.82rem; user-select: none;">{drawer_summary}</summary>\n'
             f'            <div style="margin-top: 8px;">\n'
@@ -1924,24 +2040,26 @@ def render_claims_verification_table(
 
     table_body = "\n".join(rows)
 
-    th_idx = "#"
-    th_claim = "Мәлімдеме (Claim)" if is_kz else "Atomic Claim"
-    th_verdict = "Үкім (Verdict)" if is_kz else "Verdict"
-    th_conf = "Сенімділік (Conf)" if is_kz else "Confidence"
-    th_ev = "Дәйексөз (Evidence Source)" if is_kz else "Evidence Source & Passage"
-    th_exp = "Түсіндірме (Explanation)" if is_kz else "Reasoning / Contradiction"
+    if is_kz:
+        th_claim = "Мәлімдеме (Claim)"
+        th_passage = "Дереккөз мәтіні (Retrieved Passage)"
+        th_relevance = "Сәйкестік (Relevance)"
+        th_verdict = "Тексеру үкімі (Verification Verdict)"
+    else:
+        th_claim = "Claim"
+        th_passage = "Retrieved Passage"
+        th_relevance = "Relevance"
+        th_verdict = "Verification Verdict"
 
     return (
-        f'<div class="claims-table-container">\n'
-        f'  <table class="claims-table">\n'
+        f'<div class="notion-table-wrapper claims-table-container">\n'
+        f'  <table class="notion-table claims-table">\n'
         f'    <thead>\n'
         f'      <tr>\n'
-        f'        <th style="width: 4%;">{th_idx}</th>\n'
-        f'        <th style="width: 28%;">{th_claim}</th>\n'
-        f'        <th style="width: 12%;">{th_verdict}</th>\n'
-        f'        <th style="width: 9%;">{th_conf}</th>\n'
-        f'        <th style="width: 27%;">{th_ev}</th>\n'
-        f'        <th style="width: 20%;">{th_exp}</th>\n'
+        f'        <th style="width: 32%;">{th_claim}</th>\n'
+        f'        <th style="width: 38%;">{th_passage}</th>\n'
+        f'        <th style="width: 12%;">{th_relevance}</th>\n'
+        f'        <th style="width: 18%;">{th_verdict}</th>\n'
         f'      </tr>\n'
         f'    </thead>\n'
         f'    <tbody>\n'
@@ -2001,11 +2119,11 @@ def render_autofst_inductions_table(
     lang: str = "en"
 ) -> str:
     is_kz = lang in ("kk", "kz")
-    th_stem = "Анықталған түбір (Stem)" if is_kz else "Discovered Stem"
-    th_harmony = "Үндестік (Harmony)" if is_kz else "Vowel Harmony"
-    th_coda = "Соңғы дыбыс (Coda)" if is_kz else "Consonant Coda"
-    th_suffixes = "Жалғаулар тізбегі (Affixes)" if is_kz else "Affix Sequence"
-    th_guard = "Қауіпсіздік фильтрі (Guard)" if is_kz else "Sandbox Regression"
+    th_stem = "Анықталған түбір (Stem)" if is_kz else "Candidate Stem"
+    th_harmony = "Үндестік (Harmony)" if is_kz else "Harmony"
+    th_coda = "Соңғы дыбыс (Coda)" if is_kz else "Coda"
+    th_suffixes = "Жалғаулар тізбегі (Affixes)" if is_kz else "Stripped Suffixes"
+    th_guard = "Қауіпсіздік фильтрі (Guard)" if is_kz else "Sandbox Regression Guard"
 
     if not inductions:
         no_inductions_msg = (
@@ -2016,7 +2134,7 @@ def render_autofst_inductions_table(
             "Russian-layout orthographic invariance."
         )
         return (
-            f'<div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 14px; color: #64748b; font-size: 13px;">'
+            f'<div class="notion-table-wrapper" style="padding: 16px; color: #71717a; font-size: 13px; text-align: center;">'
             f'{no_inductions_msg}</div>'
         )
 
@@ -2028,32 +2146,41 @@ def render_autofst_inductions_table(
         suffixes = html.escape(", ".join(item.get("suffixes", [])), quote=True)
         guard_status = html.escape(str(item.get("guard", "Passed (100% agreement)")), quote=True)
 
-        harm_badge = '<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жуан (Hard)</span>' if harmony == "hard" else '<span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жіңішке (Soft)</span>'
-        coda_badge = '<span style="background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Ұяң/Үнді (Voiced)</span>' if coda == "voiced" else '<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Қатаң (Voiceless)</span>'
+        stem_badge = f'<span class="tag-pill tag-pill-stem" style="font-family: \'SFMono-Regular\', Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; color: #09090b;">{stem}</span>'
+        harm_badge = '<span class="tag-pill" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жуан (Hard)</span>' if harmony == "hard" else '<span class="tag-pill" style="background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жіңішке (Soft)</span>'
+        coda_badge = '<span class="tag-pill" style="background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Ұяң/Үнді (Voiced)</span>' if coda == "voiced" else '<span class="tag-pill" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Қатаң (Voiceless)</span>'
+
+        if suffixes:
+            formatted_sfx = f"-{suffixes.replace(', ', ' -')}"
+            suffix_cell = f'<span class="tag-pill" style="font-family: \'SFMono-Regular\', Menlo, Consolas, monospace; color: #52525b;">{formatted_sfx}</span>'
+        else:
+            suffix_cell = '<span class="text-muted" style="color: #a1a1aa;">-</span>'
+
+        guard_badge = f'<span class="status-badge" style="background: #ecfdf5; border: 1px solid #10b981; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">{guard_status}</span>'
 
         row = (
-            f'<tr>\n'
-            f'  <td style="font-weight: 700; color: #0f172a; font-family: monospace; font-size: 14px;">{stem}</td>\n'
-            f'  <td>{harm_badge}</td>\n'
-            f'  <td>{coda_badge}</td>\n'
-            f'  <td style="font-family: monospace; color: #475569;">-{suffixes.replace(", ", " -")}</td>\n'
-            f'  <td><span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{guard_status}</span></td>\n'
-            f'</tr>'
+            f'      <tr>\n'
+            f'        <td>{stem_badge}</td>\n'
+            f'        <td>{harm_badge}</td>\n'
+            f'        <td>{coda_badge}</td>\n'
+            f'        <td>{suffix_cell}</td>\n'
+            f'        <td>{guard_badge}</td>\n'
+            f'      </tr>'
         )
         rows.append(row)
 
     table_body = "\n".join(rows)
 
     return (
-        f'<div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 6px;">\n'
-        f'  <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">\n'
+        f'<div class="notion-table-wrapper autofst-table-container">\n'
+        f'  <table class="notion-table autofst-table">\n'
         f'    <thead>\n'
-        f'      <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569;">\n'
-        f'        <th style="padding: 10px 14px;">{th_stem}</th>\n'
-        f'        <th style="padding: 10px 14px;">{th_harmony}</th>\n'
-        f'        <th style="padding: 10px 14px;">{th_coda}</th>\n'
-        f'        <th style="padding: 10px 14px;">{th_suffixes}</th>\n'
-        f'        <th style="padding: 10px 14px;">{th_guard}</th>\n'
+        f'      <tr>\n'
+        f'        <th>{th_stem}</th>\n'
+        f'        <th>{th_harmony}</th>\n'
+        f'        <th>{th_coda}</th>\n'
+        f'        <th>{th_suffixes}</th>\n'
+        f'        <th>{th_guard}</th>\n'
         f'      </tr>\n'
         f'    </thead>\n'
         f'    <tbody>\n'
