@@ -95,18 +95,28 @@ def get_apple_notion_theme() -> gr.Theme:
         text_size=gr.themes.sizes.text_sm,
     ).set(
         body_background_fill="#fbfbfa",
-        body_background_fill_dark="#09090b",
+        body_background_fill_dark="#fbfbfa",
         body_text_color="#18181b",
-        body_text_color_dark="#f4f4f5",
+        body_text_color_dark="#18181b",
         background_fill_primary="#ffffff",
-        background_fill_primary_dark="#18181b",
+        background_fill_primary_dark="#ffffff",
         background_fill_secondary="#f4f4f5",
-        background_fill_secondary_dark="#27272a",
+        background_fill_secondary_dark="#f4f4f5",
         border_color_primary="#e4e4e7",
-        border_color_primary_dark="#3f3f46",
+        border_color_primary_dark="#e4e4e7",
         block_background_fill="#ffffff",
+        block_background_fill_dark="#ffffff",
         block_border_width="1px",
         block_border_color="#e4e4e7",
+        block_border_color_dark="#e4e4e7",
+        block_label_background_fill="#ffffff",
+        block_label_background_fill_dark="#ffffff",
+        block_label_text_color="#52525b",
+        block_label_text_color_dark="#52525b",
+        block_title_text_color="#18181b",
+        block_title_text_color_dark="#18181b",
+        input_background_fill="#ffffff",
+        input_background_fill_dark="#ffffff",
         block_radius="8px",
         block_shadow="0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)",
         button_primary_background_fill="#18181b",
@@ -121,27 +131,129 @@ def get_apple_notion_theme() -> gr.Theme:
 
 # Extended CSS styling for minimalist Apple / Notion publication-grade dashboard aesthetics
 APP_CSS = HEATMAP_CSS + """
-/* Force Pure Light Apple / Notion Canvas across all elements and dark-mode overrides */
-:root, html, body, .gradio-container, .dark, .dark body {
+/* Complete Light Canvas & Variable Neutralization for Apple / Notion Aesthetics */
+:root, .dark, :root .dark, body.dark, .gradio-container, .dark .gradio-container, .dark * {
     color-scheme: light !important;
+    --body-background-fill: #fbfbfa !important;
+    --body-text-color: #18181b !important;
+    --body-text-color-subdued: #71717a !important;
+    --background-fill-primary: #ffffff !important;
+    --background-fill-secondary: #f4f4f5 !important;
+    --border-color-primary: #e4e4e7 !important;
+    --border-color-secondary: #e4e4e7 !important;
+    --border-color-accent: #e4e4e7 !important;
+    --block-background-fill: #ffffff !important;
+    --block-border-color: #e4e4e7 !important;
+    --block-border-width: 1px !important;
+    --block-label-background-fill: #ffffff !important;
+    --block-label-text-color: #52525b !important;
+    --block-title-text-color: #18181b !important;
+    --input-background-fill: #ffffff !important;
+    --input-border-color: #e4e4e7 !important;
+    --input-text-color: #18181b !important;
+    --table-border-color: #e4e4e7 !important;
+    --table-text-color: #18181b !important;
+    --accordion-text-color: #18181b !important;
+    --neutral-50: #fafafa !important;
+    --neutral-100: #f4f4f5 !important;
+    --neutral-200: #e4e4e7 !important;
+    --neutral-300: #d4d4d8 !important;
+    --neutral-400: #a1a1aa !important;
+    --neutral-500: #71717a !important;
+    --neutral-600: #52525b !important;
+    --neutral-700: #3f3f46 !important;
+    --neutral-800: #ffffff !important;
+    --neutral-900: #18181b !important;
+    --neutral-950: #09090b !important;
+    --tw-prose-body: #18181b !important;
+    --tw-prose-headings: #18181b !important;
+    --tw-prose-lead: #52525b !important;
+    --tw-prose-links: #18181b !important;
+    --tw-prose-bold: #18181b !important;
+    --tw-prose-invert-body: #18181b !important;
+    --tw-prose-invert-headings: #18181b !important;
+    --tw-prose-invert-lead: #52525b !important;
+    --tw-prose-invert-bold: #18181b !important;
+}
+
+html, body, .gradio-container, .dark, .dark .gradio-container {
     background-color: #fbfbfa !important;
+    background: #fbfbfa !important;
     color: #18181b !important;
 }
 
-.dark .gradio-container,
-.dark .hero-card,
-.dark .panel-box,
-.dark .workspace-left-col,
-.dark .workspace-right-col,
-.dark .tabitem,
-.dark .tabs,
-.dark textarea,
-.dark input,
-.dark .gr-box,
-.dark .gr-panel {
-    background-color: #fbfbfa !important;
+/* Enforce dark charcoal text across all prose, markdown, headers, and labels */
+.prose, .prose *, .dark .prose, .dark .prose *,
+.markdown, .markdown *, .dark .markdown, .dark .markdown *,
+h1, h2, h3, h4, h5, h6,
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+p, .dark p, span, .dark span,
+strong, .dark strong, em, .dark em,
+.block-title, .dark .block-title,
+.dark .hero-card, .dark .panel-box,
+.dark .workspace-left-col, .dark .workspace-right-col {
     color: #18181b !important;
+}
+
+/* Subtext and secondary labels */
+.quick-samples-header-row p, .quick-samples-header-row .prose p,
+.dark .quick-samples-header-row p, .dark .quick-samples-header-row .prose p,
+label, label span, .dark label, .dark label span,
+.block-label, .dark .block-label,
+[data-testid="block-label"], .dark [data-testid="block-label"] {
+    color: #52525b !important;
+}
+
+/* Enforce pure white cards and containers on all blocks, forms, and accordions */
+.block, .dark .block,
+fieldset, .dark fieldset,
+.form, .dark .form,
+.accordion, .dark .accordion,
+.accordion > .label-wrap, .dark .accordion > .label-wrap,
+.accordion > button, .dark .accordion > button,
+.accordion summary, .dark .accordion summary,
+.gr-box, .dark .gr-box,
+.gr-panel, .dark .gr-panel,
+.input-container, .dark .input-container,
+textarea, .dark textarea,
+input[type="text"], .dark input[type="text"],
+.dark .tabitem, .dark .tabs {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     border-color: #e4e4e7 !important;
+    color: #18181b !important;
+}
+
+/* Accordion header styling */
+.accordion > .label-wrap, .dark .accordion > .label-wrap,
+.accordion > button, .dark .accordion > button,
+.accordion summary, .dark .accordion summary {
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+}
+.accordion span, .dark .accordion span,
+.accordion svg, .dark .accordion svg {
+    color: #18181b !important;
+    fill: #18181b !important;
+}
+
+/* Tab bar typography */
+.tab-nav, .dark .tab-nav {
+    border-bottom: 1px solid #e4e4e7 !important;
+    background: transparent !important;
+}
+.tab-nav button, .dark .tab-nav button {
+    color: #71717a !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+}
+.tab-nav button.selected, .dark .tab-nav button.selected {
+    color: #18181b !important;
+    border-bottom: 2px solid #18181b !important;
+    font-weight: 600 !important;
+}
+.tab-nav button:hover, .dark .tab-nav button:hover {
+    color: #18181b !important;
 }
 
 /* Live typing statistics ribbon */
@@ -1781,6 +1893,33 @@ def run_full_analysis_logic(
     }
 
 
+LIGHT_MODE_HEAD_JS = """
+<script>
+(function() {
+    function enforceLightMode() {
+        if (document.documentElement) {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+        }
+        if (document.body) {
+            document.body.classList.remove('dark');
+            document.body.style.colorScheme = 'light';
+        }
+        var darkEls = document.querySelectorAll('.dark');
+        for (var i = 0; i < darkEls.length; i++) {
+            darkEls[i].classList.remove('dark');
+        }
+    }
+    enforceLightMode();
+    if (window.MutationObserver) {
+        new MutationObserver(function() { enforceLightMode(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    }
+    window.addEventListener('DOMContentLoaded', enforceLightMode);
+    setInterval(enforceLightMode, 400);
+})();
+</script>
+"""
+
 def create_app(detector: Any = None, verifier: Any = None, load_model: bool = False) -> gr.Blocks:
     """
     Constructs and returns the full Gradio Blocks application with a publication-grade
@@ -1790,12 +1929,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
     app_verifier = verifier or TrustworthyDocumentVerifier(ai_detector=app_detector)
     d = I18N["en"]
 
-    with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI", theme=get_apple_notion_theme(), css=APP_CSS) as demo:
+    with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI", theme=get_apple_notion_theme(), css=APP_CSS, head=LIGHT_MODE_HEAD_JS) as demo:
         demo.theme = get_apple_notion_theme()
         # State: stores analyzed sentences list for interactive drilldown
         raw_sents_state = gr.State([])
 
-        # Inject CSS styling safely
+        # Inject CSS styling and client-side light mode enforcement safely
         gr.HTML(f"<style>{APP_CSS}</style>", visible=False)
 
         # -------------------------------------------------------------------
