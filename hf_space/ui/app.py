@@ -557,7 +557,7 @@ I18N = {
         "input_label": "Мәтін енгізу (Document Input)",
         "input_placeholder": "Қазақша мәтінді осында жазыңыз немесе көшіріп қойыңыз (25 000 сөзге дейін)...",
         "upload_label": "Құжатты жүктеу (.txt, .docx, .pdf — макс. 10 MB)",
-        "analyze_btn": "Құжатты Талдау (Analyze Document)",
+        "analyze_btn": "Құжатты Толық Талдау (Run Full Analysis)",
         "clear_btn": "Тазалау (Clear)",
         "kpi_header": "### Құжаттың Жалпы Нәтижесі (Document KPIs)",
         "awaiting_input": "[AWAITING INPUT]",
@@ -654,7 +654,7 @@ I18N = {
         "input_label": "Document Input",
         "input_placeholder": "Paste or type Kazakh text here (up to 25,000 words)...",
         "upload_label": "Upload Document (.txt, .docx, .pdf — max 10 MB)",
-        "analyze_btn": "Analyze Document",
+        "analyze_btn": "Run Full Analysis",
         "clear_btn": "Clear",
         "kpi_header": "### Document Summary (KPIs)",
         "awaiting_input": "[AWAITING INPUT]",
@@ -913,6 +913,14 @@ def get_detector(load_model: bool = False):
         except Exception:
             pass
     return OfflineHeuristicDetector()
+
+
+def get_workspace_i18n(lang_choice: str = "English") -> Dict[str, Any]:
+    """
+    Returns localized UI dictionary for the given language choice (zero emojis).
+    """
+    lang_key = _get_lang_key(lang_choice)
+    return I18N.get(lang_key, I18N["en"])
 
 
 def _get_lang_key(lang_choice: str) -> str:

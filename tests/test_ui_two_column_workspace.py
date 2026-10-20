@@ -226,6 +226,26 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
         self.assertIn("trust-card", res["trust_card"])
         self.assertIn("notion-table", res["claims_table"])
 
+    def test_bilingual_switch_coverage(self):
+        """Verifies get_workspace_i18n returns complete dictionaries for English and Kazakh."""
+        from ui.app import get_workspace_i18n
+        kz = get_workspace_i18n("Kazakh")
+        en = get_workspace_i18n("English")
+        self.assertIn("analyze_btn", kz)
+        self.assertIn("analyze_btn", en)
+        self.assertIn("run full analysis", en["analyze_btn"].lower())
+        self.assertIn("талдау", kz["analyze_btn"].lower())
+
+    def test_zero_emojis_in_workspace(self):
+        """Verifies zero emojis in workspace dictionary and CSS."""
+        from ui.app import APP_CSS, get_workspace_i18n
+        import re
+        emoji_pattern = re.compile(r'[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F900-\U0001F9FF]')
+        self.assertEqual(len(emoji_pattern.findall(APP_CSS)), 0)
+        for lang in ["Kazakh", "English"]:
+            for k, val in get_workspace_i18n(lang).items():
+                self.assertEqual(len(emoji_pattern.findall(str(val))), 0)
+
     def test_hf_space_parity(self):
         """Verifies exact parity between ui/app.py and hf_space/ui/app.py."""
         ui_path = os.path.join(
