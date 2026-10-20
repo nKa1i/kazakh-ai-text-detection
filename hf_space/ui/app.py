@@ -81,29 +81,68 @@ from ui.sentence_analyzer import (
 from ui.linguistic_explainer import generate_linguistic_explanation
 
 
-# Extended CSS styling for academic publication-grade dashboard aesthetics
+def get_apple_notion_theme() -> gr.Theme:
+    """Constructs a minimalist Apple / Notion-style theme for Gradio Blocks."""
+    return gr.themes.Base(
+        primary_hue=gr.themes.colors.zinc,
+        secondary_hue=gr.themes.colors.zinc,
+        neutral_hue=gr.themes.colors.stone,
+        font=[gr.themes.GoogleFont("Inter"), "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        font_mono=["SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "monospace"],
+        radius_size=gr.themes.sizes.radius_sm,
+        spacing_size=gr.themes.sizes.spacing_md,
+        text_size=gr.themes.sizes.text_sm,
+    ).set(
+        body_background_fill="#fbfbfa",
+        body_background_fill_dark="#09090b",
+        body_text_color="#18181b",
+        body_text_color_dark="#f4f4f5",
+        background_fill_primary="#ffffff",
+        background_fill_primary_dark="#18181b",
+        background_fill_secondary="#f4f4f5",
+        background_fill_secondary_dark="#27272a",
+        border_color_primary="#e4e4e7",
+        border_color_primary_dark="#3f3f46",
+        block_background_fill="#ffffff",
+        block_border_width="1px",
+        block_border_color="#e4e4e7",
+        block_radius="8px",
+        block_shadow="0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)",
+        button_primary_background_fill="#18181b",
+        button_primary_background_fill_hover="#27272a",
+        button_primary_text_color="#ffffff",
+        button_secondary_background_fill="#ffffff",
+        button_secondary_background_fill_hover="#f4f4f5",
+        button_secondary_text_color="#52525b",
+        button_secondary_border_color="#e4e4e7",
+    )
+
+
+# Extended CSS styling for minimalist Apple / Notion publication-grade dashboard aesthetics
 APP_CSS = HEATMAP_CSS + """
 body, .gradio-container {
+    background-color: #fbfbfa !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-    color: #0f172a;
+    color: #18181b !important;
 }
 .hero-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
     padding: 20px 24px;
     margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 .hero-title {
     font-size: 22px;
     font-weight: 700;
-    color: #0f172a;
+    color: #09090b;
     margin-bottom: 6px;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
 }
 .hero-subtitle {
-    font-size: 14px;
-    color: #475569;
+    font-size: 13.5px;
+    color: #52525b;
     line-height: 1.55;
     margin-bottom: 12px;
 }
@@ -116,14 +155,14 @@ body, .gradio-container {
 .feature-badge {
     display: inline-flex;
     align-items: center;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
     border-radius: 4px;
-    padding: 3px 10px;
+    padding: 3px 8px;
     font-size: 11px;
-    font-weight: 600;
-    color: #334155;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 500;
+    color: #3f3f46;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
 }
 .quick-samples-wrapper {
     margin-bottom: 10px;
@@ -147,7 +186,7 @@ body, .gradio-container {
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
-    color: #475569 !important;
+    color: #52525b !important;
 }
 .lang-switch-inline {
     display: inline-flex !important;
@@ -169,21 +208,106 @@ body, .gradio-container {
     gap: 6px;
     flex-wrap: wrap;
 }
-.sample-pill {
+.sample-pill,
+.quick-sample-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #f4f4f5 !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+    padding: 5px 11px !important;
     font-size: 12px !important;
-    padding: 4px 10px !important;
-    border-radius: 9999px !important;
-    background: #f1f5f9 !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #1e293b !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
+    color: #27272a !important;
     cursor: pointer !important;
-    transition: all 0.15s ease !important;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+    box-shadow: none !important;
 }
-.sample-pill:hover {
-    background: #e2e8f0 !important;
-    border-color: #94a3b8 !important;
-    color: #0f172a !important;
+.sample-pill:hover,
+.quick-sample-pill:hover {
+    background: #e4e4e7 !important;
+    border-color: #d4d4d8 !important;
+    transform: translateY(-0.5px) !important;
+}
+.tabs > .tab-nav {
+    border-bottom: 1px solid #e4e4e7 !important;
+    gap: 4px !important;
+    background: transparent !important;
+}
+.tabs > .tab-nav > button {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #71717a !important;
+    border: none !important;
+    border-radius: 6px 6px 0 0 !important;
+    padding: 8px 16px !important;
+    background: transparent !important;
+    transition: color 0.15s ease, border-color 0.15s ease !important;
+}
+.tabs > .tab-nav > button.selected {
+    color: #09090b !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #18181b !important;
+    background: transparent !important;
+}
+button.primary,
+.gr-button-primary,
+button[variant="primary"] {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+    border: 1px solid #18181b !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease !important;
+}
+button.primary:hover,
+.gr-button-primary:hover,
+button[variant="primary"]:hover {
+    background-color: #27272a !important;
+    border-color: #27272a !important;
+}
+button.secondary,
+.gr-button-secondary,
+button[variant="secondary"] {
+    background-color: #ffffff !important;
+    color: #52525b !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+}
+button.secondary:hover,
+.gr-button-secondary:hover,
+button[variant="secondary"]:hover {
+    background-color: #f4f4f5 !important;
+    color: #18181b !important;
+    border-color: #d4d4d8 !important;
+}
+textarea,
+.gr-textbox textarea {
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #18181b !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+}
+textarea:focus,
+.gr-textbox textarea:focus {
+    border-color: #71717a !important;
+    box-shadow: 0 0 0 1px #71717a !important;
+}
+.file-upload-zone,
+.gr-file,
+.file-preview {
+    border: 1px dashed #d4d4d8 !important;
+    border-radius: 8px !important;
+    background: #fafafa !important;
+    transition: border-color 0.15s ease !important;
+}
+.file-upload-zone:hover,
+.gr-file:hover {
+    border-color: #71717a !important;
 }
 .kpi-container {
     display: flex;
@@ -196,22 +320,23 @@ body, .gradio-container {
     min-width: 130px;
     padding: 12px 14px;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 6px;
     text-align: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 .kpi-title {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #64748b;
+    color: #71717a;
     font-weight: 600;
     margin-bottom: 4px;
 }
 .kpi-value {
     font-size: 22px;
     font-weight: 700;
-    color: #0f172a;
+    color: #09090b;
 }
 .kpi-badge {
     padding: 10px 16px;
@@ -224,9 +349,9 @@ body, .gradio-container {
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 .badge-neutral {
-    background-color: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
+    background-color: #f4f4f5;
+    color: #52525b;
+    border: 1px solid #e4e4e7;
 }
 .badge-human {
     background-color: #ecfdf5;
@@ -247,14 +372,14 @@ body, .gradio-container {
     display: flex;
     gap: 10px;
     font-size: 12px;
-    color: #334155;
+    color: #52525b;
     margin-top: 6px;
     margin-bottom: 12px;
     flex-wrap: wrap;
-    background: #f8fafc;
+    background: #f4f4f5;
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
 }
 .legend-item {
     display: inline-flex;
@@ -295,17 +420,19 @@ body, .gradio-container {
 .dot-ai { background-color: #ef4444; }
 .linguistic-box {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 6px;
     padding: 14px 16px;
     margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 .panel-box {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 """
 
@@ -1322,7 +1449,8 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
     d = I18N["en"]
 
 
-    with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI") as demo:
+    with gr.Blocks(title="Kazakh AI-Text Detector & Explainability UI", theme=get_apple_notion_theme(), css=APP_CSS) as demo:
+        demo.theme = get_apple_notion_theme()
         # State: stores analyzed sentences list for interactive drilldown
         raw_sents_state = gr.State([])
 
@@ -1352,12 +1480,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                             elem_classes=["lang-switch-inline"]
                         )
                     with gr.Row(elem_classes=["quick-samples-row"]):
-                        pill_btn1 = gr.Button(d["pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn2 = gr.Button(d["pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn3 = gr.Button(d["pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn4 = gr.Button(d["pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn5 = gr.Button(d["pill_5"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        pill_btn6 = gr.Button(d["pill_6"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        pill_btn1 = gr.Button(d["pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        pill_btn2 = gr.Button(d["pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        pill_btn3 = gr.Button(d["pill_3"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        pill_btn4 = gr.Button(d["pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        pill_btn5 = gr.Button(d["pill_5"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        pill_btn6 = gr.Button(d["pill_6"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
 
                 # Main Input & KPI Section
                 with gr.Row():
@@ -1477,10 +1605,10 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                                     elem_classes=["quick-samples-title"]
                                 )
                                 with gr.Row(elem_classes=["quick-samples-row"]):
-                                    v_pill_btn1 = gr.Button(d["verify_pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
-                                    v_pill_btn2 = gr.Button(d["verify_pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
-                                    v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
-                                    v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
+                                    v_pill_btn1 = gr.Button(d["verify_pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                                    v_pill_btn2 = gr.Button(d["verify_pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                                    v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                                    v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
             
                             verify_model_radio = gr.Radio(
                                 choices=[d["verify_model_ours"], d["verify_model_base"]],
@@ -1520,11 +1648,11 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         elem_classes=["quick-samples-title"]
                     )
                     with gr.Row(elem_classes=["quick-samples-row"]):
-                        af_pill_btn1 = gr.Button(d["autofst_pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        af_pill_btn2 = gr.Button(d["autofst_pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        af_pill_btn3 = gr.Button(d["autofst_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        af_pill_btn4 = gr.Button(d["autofst_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        af_pill_btn5 = gr.Button(d["autofst_pill_5"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        af_pill_btn1 = gr.Button(d["autofst_pill_1"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        af_pill_btn2 = gr.Button(d["autofst_pill_2"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        af_pill_btn3 = gr.Button(d["autofst_pill_3"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        af_pill_btn4 = gr.Button(d["autofst_pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+                        af_pill_btn5 = gr.Button(d["autofst_pill_5"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
 
                 with gr.Row():
                     with gr.Column(scale=6):
