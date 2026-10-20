@@ -2,10 +2,12 @@
 
 from .normalizer import RussianLayoutNormalizer, SUFFIX_EQUIVALENCES
 from .inducer import AutoFSTInducer, InductionResult
+from .overlay import DynamicFSTOverlay
 
 __all__ = [
     "RussianLayoutNormalizer",
     "SUFFIX_EQUIVALENCES",
     "AutoFSTInducer",
     "InductionResult",
+    "DynamicFSTOverlay",
 ]
