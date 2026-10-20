@@ -36,7 +36,7 @@
 - Produces: CSS rules in `APP_CSS` that strictly enforce light mode (`color-scheme: light !important;`, `.dark` override), de-boxify nested gray wrappers, style the live stats ribbon (`.live-stats-ribbon`), and provide interactive diff highlights (`.diff-norm`, `.diff-induce`).
 - Consumes: `get_apple_notion_theme()`, `HEATMAP_CSS`.
 
-- [ ] **Step 1: Write unit tests verifying CSS canvas enforcement and de-boxification**
+- [x] **Step 1: Write unit tests verifying CSS canvas enforcement and de-boxification**
 
 Create `tests/test_ui_studio_canvas.py`:
 ```python
@@ -64,12 +64,12 @@ if __name__ == '__main__':
     unittest.main()
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_ui_studio_canvas.py -v`
 Expected: FAIL on missing CSS selectors.
 
-- [ ] **Step 3: Update `APP_CSS` in `ui/app.py` and `hf_space/ui/app.py`**
+- [x] **Step 3: Update `APP_CSS` in `ui/app.py` and `hf_space/ui/app.py`**
 
 - In `APP_CSS`:
   - Enforce `html, body, .gradio-container, .dark { color-scheme: light !important; background-color: #fbfbfa !important; color: #18181b !important; }`.
@@ -77,12 +77,12 @@ Expected: FAIL on missing CSS selectors.
   - Add styles for `.live-stats-ribbon`, `.scenario-card`, `.diff-norm`, and `.diff-induce`.
   - Remove redundant border frames on input wrappers.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_ui_studio_canvas.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add ui/app.py hf_space/ui/app.py tests/test_ui_studio_canvas.py
@@ -104,7 +104,7 @@ git commit -m "style(ui): enforce notion light canvas and de-boxify studio conta
   - Right Column (`scale=5`, `.workspace-right-col`): Single Executive Summary HUD + 3 Sub-Tabs (Sentence Morphology & Fusion, Auto-FST Slang Lab, Fact Verification & Trust Matrix).
 - Consumes: `render_executive_summary_card`, `render_document_heatmap`, `render_confidence_meter`.
 
-- [ ] **Step 1: Write unit tests verifying balanced Studio & Inspector structure**
+- [x] **Step 1: Write unit tests verifying balanced Studio & Inspector structure**
 
 Add to `tests/test_ui_two_column_workspace.py`:
 ```python
@@ -124,12 +124,12 @@ Add to `tests/test_ui_two_column_workspace.py`:
         # Ensure confidence_meter_display is integrated or removed as a standalone second red bar
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_ui_two_column_workspace.py -v`
 Expected: FAIL on column scales (currently 4 and 6).
 
-- [ ] **Step 3: Restructure `create_app()` in `ui/app.py` and `hf_space/ui/app.py`**
+- [x] **Step 3: Restructure `create_app()` in `ui/app.py` and `hf_space/ui/app.py`**
 
 - In `ui/app.py` and `hf_space/ui/app.py`:
   - Set `left_col` to `scale=5` and `right_col` to `scale=5`.
@@ -140,12 +140,12 @@ Expected: FAIL on column scales (currently 4 and 6).
     - Tab 2: `Auto-FST & Slang Lab` (Visual diff card, Auto-Inductions table).
     - Tab 3: `Fact Verification & Trust Matrix` (2D Trust Matrix coordinate chart, Verified Claims table).
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_ui_two_column_workspace.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add ui/app.py hf_space/ui/app.py tests/test_ui_two_column_workspace.py
@@ -171,7 +171,7 @@ git commit -m "feat(ui): scaffold balanced studio and inspector layout with heat
   - Pure English UI strings across all navigation, buttons, and headers.
 - Consumes: `DynamicFSTOverlay`, `AutoFSTInducer`, `OfflineHeuristicDetector`.
 
-- [ ] **Step 1: Write unit tests verifying English purity, diff renderer, and audit export**
+- [x] **Step 1: Write unit tests verifying English purity, diff renderer, and audit export**
 
 Add to `tests/test_ui_two_column_workspace.py`:
 ```python
@@ -202,12 +202,12 @@ Add to `tests/test_ui_two_column_workspace.py`:
         self.assertIn("diff-induce", diff_html)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m unittest tests/test_ui_two_column_workspace.py -v`
 Expected: FAIL on missing functions and bilingual slashes.
 
-- [ ] **Step 3: Implement Pure English UI & Enhancements**
+- [x] **Step 3: Implement Pure English UI & Enhancements**
 
 - In `ui/app.py` and `hf_space/ui/app.py`:
   - Remove `lang_radio` from the UI header.
@@ -220,12 +220,12 @@ Expected: FAIL on missing functions and bilingual slashes.
 - In `ui/highlighting.py` and `hf_space/ui/highlighting.py`:
   - Implement `render_morpheme_visual_diff(raw_text, normalized_text, inductions) -> str`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m unittest tests/test_ui_two_column_workspace.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add ui/app.py hf_space/ui/app.py ui/highlighting.py hf_space/ui/highlighting.py tests/test_ui_two_column_workspace.py
@@ -239,7 +239,7 @@ git commit -m "feat(ui): implement pure english navigation, morpheme visual diff
 **Files:**
 - Test: All repository UI & Auto-FST test suites
 
-- [ ] **Step 1: Run full regression test suites**
+- [x] **Step 1: Run full regression test suites**
 
 ```bash
 python -m unittest tests/test_ui_studio_canvas.py -v
@@ -252,14 +252,14 @@ python -m unittest discover -s tests -p "test_auto_fst*.py" -v
 ```
 Expected: 100% pass rate.
 
-- [ ] **Step 2: Verify conference papers invariance**
+- [x] **Step 2: Verify conference papers invariance**
 
 ```bash
 git diff origin/main..HEAD -- aist2026/paper.tex papers/kazakh_fever_conference/
 ```
 Expected: Strictly 0 diff lines.
 
-- [ ] **Step 3: Relaunch Gradio Daemon Server**
+- [x] **Step 3: Relaunch Gradio Daemon Server**
 
 Restart server on port 7860:
 ```powershell
@@ -267,4 +267,4 @@ python hf_space/app.py
 ```
 Verify `http://127.0.0.1:7860` returns HTTP 200 OK.
 
-- [ ] **Step 4: Final delivery walkthrough to user**
+- [x] **Step 4: Final delivery walkthrough to user**
