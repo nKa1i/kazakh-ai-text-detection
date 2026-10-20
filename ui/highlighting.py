@@ -20,16 +20,17 @@ HEATMAP_CSS = """
 .kaz-heatmap-container {
     line-height: 1.85;
     font-size: 1.05rem;
-    padding: 18px;
+    padding: 20px;
     border-radius: 8px;
     background-color: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e4e4e7;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     max-height: 520px;
     overflow-y: auto;
     word-wrap: break-word;
     white-space: pre-wrap;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #111827;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    color: #09090b;
 }
 
 .kaz-sentence {
@@ -43,31 +44,31 @@ HEATMAP_CSS = """
 }
 
 .kaz-sentence:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    filter: brightness(0.96);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    filter: brightness(0.97);
 }
 
 /* Three-tier classification level colors */
 .lvl-human {
-    background-color: #d1fae5;
+    background-color: #ecfdf5;
     border-color: #10b981;
     color: #065f46;
 }
 
 .lvl-amber {
-    background-color: #fef3c7;
+    background-color: #fffbeb;
     border-color: #f59e0b;
     color: #92400e;
 }
 
 .lvl-ai {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    color: #991b1b;
+    background-color: #fff1f2;
+    border-color: #f43f5e;
+    color: #9f1239;
 }
 
 .empty-doc-prompt {
-    color: #6b7280;
+    color: #71717a;
     font-style: italic;
     padding: 20px;
     text-align: center;
@@ -78,10 +79,11 @@ HEATMAP_CSS = """
 .gate-bar-wrapper {
     margin: 12px 0 16px 0;
     padding: 14px 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .gate-bar-header {
@@ -106,24 +108,24 @@ HEATMAP_CSS = """
 
 .gate-title-text {
     font-size: 0.85rem;
-    font-weight: 700;
-    color: #0f172a;
+    font-weight: 600;
+    color: #09090b;
 }
 
 .gate-subtitle {
     font-size: 0.72rem;
-    color: #64748b;
+    color: #71717a;
     margin-top: 1px;
 }
 
 .gate-bar-container {
     display: flex;
     width: 100%;
-    height: 24px;
-    border-radius: 6px;
+    height: 8px;
+    border-radius: 4px;
     overflow: hidden;
-    background-color: #e2e8f0;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    background-color: #f4f4f5;
+    border: 1px solid #e4e4e7;
 }
 
 .gate-stream-bert {
@@ -133,11 +135,10 @@ HEATMAP_CSS = """
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     transition: width 0.3s ease;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: clip;
 }
 
 .gate-stream-fst {
@@ -147,17 +148,16 @@ HEATMAP_CSS = """
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     transition: width 0.3s ease;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: clip;
 }
 
 .gate-bar-legend {
     margin-top: 8px;
     font-size: 0.78rem;
-    color: #475569;
+    color: #71717a;
     line-height: 1.45;
 }
 
@@ -167,8 +167,8 @@ HEATMAP_CSS = """
 
 /* Horizontal Confidence Meter Styles */
 .confidence-meter-container {
-    margin: 12px 0 16px 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 10px 0 14px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .confidence-meter-header {
@@ -176,85 +176,80 @@ HEATMAP_CSS = """
     justify-content: space-between;
     align-items: center;
     font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
+    font-weight: 500;
+    color: #52525b;
     margin-bottom: 6px;
 }
 
 .confidence-label {
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    font-size: 0.8rem;
-    color: #4b5563;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #71717a;
 }
 
 .confidence-value {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.95rem;
-    color: #111827;
+    color: #09090b;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 .confidence-verdict-tag {
     margin-left: 8px;
-    font-size: 0.75rem;
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    font-weight: 600;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .confidence-track {
     width: 100%;
-    height: 22px;
-    border-radius: 6px;
-    background-color: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: #f4f4f5;
     overflow: hidden;
     position: relative;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .confidence-fill {
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-size: 0.75rem;
-    font-weight: 700;
+    border-radius: 9999px;
     transition: width 0.3s ease;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .meter-human {
-    background: linear-gradient(90deg, #10b981, #059669);
+    background-color: #059669;
 }
 
 .meter-amber {
-    background: linear-gradient(90deg, #f59e0b, #d97706);
+    background-color: #d97706;
 }
 
 .meter-ai {
-    background: linear-gradient(90deg, #ef4444, #dc2626);
+    background-color: #e11d48;
 }
 
-/* Executive Summary Card Styles */
+/* Executive Summary Card Styles (Notion Callout Style) */
 .executive-summary-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
-    padding: 16px 18px;
+    padding: 18px 20px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .executive-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     gap: 12px;
     flex-wrap: wrap;
 }
@@ -264,22 +259,30 @@ HEATMAP_CSS = """
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #475569;
+    color: #71717a;
 }
 
 .executive-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 12px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid #f4f4f5;
+    padding-top: 14px;
+    margin-top: 14px;
 }
 
 .executive-kpi-tile {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 10px 12px;
-    text-align: center;
+    padding: 4px 14px;
+    border-right: 1px solid #f4f4f5;
+}
+
+.executive-kpi-tile:first-child {
+    padding-left: 0;
+}
+
+.executive-kpi-tile:last-child {
+    border-right: none;
+    padding-right: 0;
 }
 
 .executive-kpi-title {
@@ -287,21 +290,58 @@ HEATMAP_CSS = """
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #64748b;
-    margin-bottom: 4px;
+    color: #71717a;
+    margin-bottom: 6px;
 }
 
 .executive-kpi-value {
     font-size: 1.15rem;
-    font-weight: 700;
-    color: #0f172a;
+    font-weight: 600;
+    color: #09090b;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 .executive-kpi-sub {
     font-size: 0.7rem;
     font-weight: 500;
-    color: #64748b;
+    color: #a1a1aa;
     margin-top: 2px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.kpi-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+
+.badge-neutral {
+    background-color: #f4f4f5;
+    color: #52525b;
+    border: 1px solid #e4e4e7;
+}
+
+.badge-human {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-hybrid {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.badge-ai {
+    background-color: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #fecdd3;
 }
 
 /* FST Morpheme Breakdown Table Styles */
@@ -309,39 +349,38 @@ HEATMAP_CSS = """
     overflow-x: auto;
     margin: 12px 0;
     border-radius: 6px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e4e4e7;
     background-color: #ffffff;
 }
 
 .fst-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     text-align: left;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .fst-table th {
-    background-color: #f9fafb;
+    background-color: #fafafa;
     padding: 10px 14px;
     font-weight: 600;
-    color: #374151;
-    border-bottom: 2px solid #e5e7eb;
+    color: #52525b;
+    border-bottom: 1px solid #e4e4e7;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .fst-table td {
     padding: 9px 14px;
-    border-bottom: 1px solid #f3f4f6;
-    color: #1f2937;
+    border-bottom: 1px solid #f4f4f5;
+    color: #18181b;
     vertical-align: middle;
 }
 
-.fst-table tr:nth-child(even) {
-    background-color: #fcfcfd;
-}
-
 .fst-table tr:hover {
-    background-color: #f9fafb;
+    background-color: #fafafa;
 }
 
 .morpheme-badge {
@@ -350,10 +389,11 @@ HEATMAP_CSS = """
     margin: 1px 3px 1px 0;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #ede9fe;
+    font-weight: 500;
+    background-color: #f5f3ff;
     color: #6d28d9;
     border: 1px solid #ddd6fe;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 .badge-case {
@@ -361,8 +401,8 @@ HEATMAP_CSS = """
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #fef3c7;
+    font-weight: 500;
+    background-color: #fffbeb;
     color: #92400e;
     border: 1px solid #fde68a;
 }
@@ -372,8 +412,8 @@ HEATMAP_CSS = """
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #e0f2fe;
+    font-weight: 500;
+    background-color: #f0f9ff;
     color: #0369a1;
     border: 1px solid #bae6fd;
 }
@@ -383,8 +423,8 @@ HEATMAP_CSS = """
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #fce7f3;
+    font-weight: 500;
+    background-color: #fdf2f8;
     color: #9d174d;
     border: 1px solid #fbcfe8;
 }
@@ -394,8 +434,8 @@ HEATMAP_CSS = """
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #d1fae5;
+    font-weight: 500;
+    background-color: #ecfdf5;
     color: #065f46;
     border: 1px solid #a7f3d0;
 }
@@ -405,60 +445,61 @@ HEATMAP_CSS = """
     padding: 2px 7px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    background-color: #e0f2fe;
+    font-weight: 500;
+    background-color: #f0f9ff;
     color: #0369a1;
     border: 1px solid #bae6fd;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 .text-muted {
-    color: #6b7280;
+    color: #71717a;
     font-style: italic;
 }
 
 /* Factual Verification & Trust Matrix Styles */
 .trust-card-wrapper {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
-    padding: 16px 18px;
+    padding: 18px 20px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .trust-badge {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
 }
 
 .lvl-verified-human {
-    background-color: #d1fae5;
+    background-color: #ecfdf5;
     color: #065f46;
-    border: 1px solid #10b981;
+    border: 1px solid #a7f3d0;
 }
 
 .lvl-human-misinfo {
-    background-color: #fef3c7;
-    color: #92400e;
-    border: 1px solid #f59e0b;
+    background-color: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #fecdd3;
 }
 
 .lvl-ai-synthesis {
-    background-color: #dbeafe;
-    color: #1e40af;
-    border: 1px solid #3b82f6;
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
 }
 
 .lvl-ai-disinfo {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
 }
 
 .trust-bars-grid {
@@ -469,8 +510,8 @@ HEATMAP_CSS = """
 }
 
 .trust-bar-item {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #fafafa;
+    border: 1px solid #f4f4f5;
     border-radius: 6px;
     padding: 10px 12px;
 }
@@ -478,38 +519,38 @@ HEATMAP_CSS = """
 .trust-bar-label {
     display: flex;
     justify-content: space-between;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #475569;
+    color: #52525b;
     margin-bottom: 6px;
 }
 
 .trust-bar-track {
     width: 100%;
-    height: 8px;
-    background: #e2e8f0;
-    border-radius: 4px;
+    height: 6px;
+    background: #f4f4f5;
+    border-radius: 9999px;
     overflow: hidden;
 }
 
 .trust-bar-fill {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 9999px;
     transition: width 0.3s ease;
 }
 
-.fill-ai { background: #ef4444; }
-.fill-fact { background: #f59e0b; }
-.fill-trust { background: #6366f1; }
+.fill-ai { background: #e11d48; }
+.fill-fact { background: #d97706; }
+.fill-trust { background: #4f46e5; }
 
 .trust-stats-row {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
     font-size: 0.8rem;
-    color: #334155;
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
+    color: #3f3f46;
+    padding-top: 10px;
+    border-top: 1px solid #f4f4f5;
 }
 
 .trust-stat-pill {
@@ -517,20 +558,21 @@ HEATMAP_CSS = """
     align-items: center;
     padding: 2px 8px;
     border-radius: 4px;
-    font-weight: 600;
+    font-weight: 500;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
-.stat-pill-total { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
-.stat-pill-sup { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-.stat-pill-ref { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.stat-pill-nei { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.stat-pill-total { background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7; }
+.stat-pill-sup { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.stat-pill-ref { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+.stat-pill-nei { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
 
 /* Claims Verification Table Styles */
 .claims-table-container {
     width: 100%;
     overflow-x: auto;
     margin-top: 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
     background: #ffffff;
 }
@@ -540,53 +582,57 @@ HEATMAP_CSS = """
     border-collapse: collapse;
     font-size: 0.85rem;
     text-align: left;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
 }
 
 .claims-table th {
-    background-color: #f8fafc;
-    color: #334155;
+    background-color: #fafafa;
+    color: #52525b;
     font-weight: 600;
     padding: 10px 14px;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #e4e4e7;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .claims-table td {
     padding: 10px 14px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
+    border-bottom: 1px solid #f4f4f5;
+    color: #18181b;
     vertical-align: top;
 }
 
 .claims-table tr:hover {
-    background-color: #f8fafc;
+    background-color: #fafafa;
 }
 
 .verdict-badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 0.72rem;
+    font-weight: 600;
     letter-spacing: 0.02em;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 .verdict-supported {
-    background-color: #d1fae5;
+    background-color: #ecfdf5;
     color: #065f46;
-    border: 1px solid #10b981;
+    border: 1px solid #a7f3d0;
 }
 
 .verdict-refuted {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
+    background-color: #fff1f2;
+    color: #9f1239;
+    border: 1px solid #fecdd3;
 }
 
 .verdict-nei {
-    background-color: #fef3c7;
+    background-color: #fffbeb;
     color: #92400e;
-    border: 1px solid #f59e0b;
+    border: 1px solid #fde68a;
 }
 
 /* 2D Continuous Cartesian Trust Plane Styles */
@@ -594,7 +640,7 @@ HEATMAP_CSS = """
     margin: 12px 0 16px 0;
     padding: 14px 16px;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 8px;
     text-align: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
@@ -612,19 +658,19 @@ HEATMAP_CSS = """
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
     padding: 3px 10px;
     border-radius: 6px;
     font-size: 0.78rem;
-    font-family: monospace;
-    color: #1e293b;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    color: #18181b;
 }
 
-.hud-quad-q1 { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: 700; }
-.hud-quad-q2 { background: #fff1f2; border-color: #f43f5e; color: #9f1239; font-weight: 700; }
-.hud-quad-q3 { background: #fffbeb; border-color: #f59e0b; color: #92400e; font-weight: 700; }
-.hud-quad-q4 { background: #f0f9ff; border-color: #0ea5e9; color: #0369a1; font-weight: 700; }
+.hud-quad-q1 { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: 600; }
+.hud-quad-q2 { background: #fff1f2; border-color: #f43f5e; color: #9f1239; font-weight: 600; }
+.hud-quad-q3 { background: #fffbeb; border-color: #f59e0b; color: #92400e; font-weight: 600; }
+.hud-quad-q4 { background: #f0f9ff; border-color: #0ea5e9; color: #0369a1; font-weight: 600; }
 
 .trust-meter-row {
     display: grid;
@@ -634,8 +680,8 @@ HEATMAP_CSS = """
 }
 
 .trust-meter-tile {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #fafafa;
+    border: 1px solid #f4f4f5;
     border-radius: 6px;
     padding: 8px 10px;
     text-align: center;
@@ -643,12 +689,12 @@ HEATMAP_CSS = """
 
 /* Morphological Alignment Drawer Styles */
 .morpho-drawer-row:hover {
-    background: #f8fafc;
+    background: #fafafa;
 }
 
 .morpho-drawer {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e4e4e7;
     border-radius: 6px;
     padding: 8px 12px;
 }
@@ -668,8 +714,8 @@ HEATMAP_CSS = """
 }
 
 .morpho-evidence-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #fafafa;
+    border: 1px solid #e4e4e7;
     border-radius: 6px;
     padding: 8px 10px;
     margin-bottom: 8px;
@@ -693,8 +739,8 @@ HEATMAP_CSS = """
 }
 
 .morpho-diag-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #fafafa;
+    border: 1px solid #e4e4e7;
     border-radius: 6px;
     padding: 8px 10px;
     font-size: 0.78rem;
@@ -703,15 +749,15 @@ HEATMAP_CSS = """
 .morpho-diag-label {
     font-size: 0.72rem;
     font-weight: 600;
-    color: #64748b;
+    color: #71717a;
     margin-bottom: 4px;
     display: block;
 }
 
 .morpho-diag-val {
     font-size: 0.85rem;
-    font-weight: 700;
-    color: #0f172a;
+    font-weight: 600;
+    color: #09090b;
 }
 
 .morpho-badge {
@@ -720,17 +766,18 @@ HEATMAP_CSS = """
     border-radius: 4px;
     font-size: 0.72rem;
     font-weight: 600;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
-.badge-ok { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-.badge-warn { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.badge-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.badge-warn { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+.badge-info { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
 
 .mini-bar-track {
     width: 100%;
-    height: 5px;
-    background: #e2e8f0;
-    border-radius: 3px;
+    height: 4px;
+    background: #f4f4f5;
+    border-radius: 9999px;
     overflow: hidden;
     margin-top: 4px;
 }
@@ -738,7 +785,26 @@ HEATMAP_CSS = """
 .mini-bar-fill {
     height: 100%;
     background: linear-gradient(90deg, #3b82f6, #10b981);
-    border-radius: 3px;
+    border-radius: 9999px;
+}
+
+/* Auto-FST Comparison Card & Latency Pill */
+.autofst-card {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.latency-pill {
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    color: #52525b;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 </style>
 """.strip()
@@ -827,9 +893,6 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz"
     bert_pct_str = f"{bert_pct:.1f}%"
     fst_pct_str = f"{fst_pct:.1f}%"
 
-    bert_label = bert_pct_str if bert_pct >= 8.0 else ""
-    fst_label = fst_pct_str if fst_pct >= 8.0 else ""
-
     if lang == "en":
         bert_title = f"Context Stream (BERT): {bert_pct_str}"
         fst_title = f"Morpheme Stream (FST): {fst_pct_str}"
@@ -867,9 +930,9 @@ def render_dynamic_gate_bar(gate_value: Optional[float] = None, lang: str = "kz"
         f'  </div>\n'
         f'  <div class="gate-bar-container">\n'
         f'    <div class="gate-stream-bert" style="width: {bert_pct:.1f}%;" '
-        f'title="{bert_title}">{bert_label}</div>\n'
+        f'title="{bert_title}"></div>\n'
         f'    <div class="gate-stream-fst" style="width: {fst_pct:.1f}%;" '
-        f'title="{fst_title}">{fst_label}</div>\n'
+        f'title="{fst_title}"></div>\n'
         f'  </div>\n'
         f'  <div class="gate-bar-legend">\n'
         f'    <span class="gate-explanation">{expl_text}</span>\n'
@@ -965,7 +1028,7 @@ def render_confidence_meter(
     lang: str = "kz"
 ) -> str:
     """
-    Renders a horizontal confidence progress meter with percentage display
+    Renders a sleek Apple-style 6px horizontal confidence progress meter with percentage display
     and zero emoji clutter, formatted in publication-grade academic style.
 
     Args:
@@ -1005,7 +1068,7 @@ def render_confidence_meter(
         label_text = "AI Сенімділік Деңгейі"
 
     safe_verdict = html.escape(v_clean, quote=True)
-    verdict_badge = f'<span class="confidence-verdict-tag">{safe_verdict}</span>' if safe_verdict else ""
+    verdict_badge = f'<span class="confidence-verdict-tag {tier_class}">{safe_verdict}</span>' if safe_verdict else ""
 
     return (
         f'<div class="confidence-meter-container">\n'
@@ -1015,9 +1078,7 @@ def render_confidence_meter(
         f'  </div>\n'
         f'  <div class="confidence-track">\n'
         f'    <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" '
-        f'title="{label_text}: {pct_str}">\n'
-        f'      <span class="confidence-bar-text">{pct_str if p_pct >= 10.0 else ""}</span>\n'
-        f'    </div>\n'
+        f'title="{label_text}: {pct_str}"></div>\n'
         f'  </div>\n'
         f'</div>'
     )
@@ -1031,12 +1092,13 @@ def render_executive_summary_card(
     total_sents: int = 0,
     total_windows: int = 0,
     ai_ratio: float = 0.0,
+    lexical_coverage: Optional[float] = None,
 ) -> str:
     """
-    Renders an all-in-one publication-grade executive summary card:
-    - Prominent classification verdict badge.
-    - Sleek modern gradient progress bar (zero ASCII brackets).
-    - 3-tile KPI metric grid (AI Probability, AI Content Ratio, Document Volume).
+    Renders an all-in-one publication-grade executive summary card (Notion Callout Style):
+    - Prominent classification verdict badge with soft status tint.
+    - Sleek Apple-style 6px progress bar (zero ASCII brackets).
+    - 4-metric grid (Verdict, Confidence, Words, Lexical Coverage) separated by hairline vertical dividers.
     """
     if probability is None:
         p_float = 0.0
@@ -1056,6 +1118,16 @@ def render_executive_summary_card(
         r_float = 0.0
     ratio_pct = max(0.0, min(100.0, r_float * 100.0 if r_float <= 1.0 else r_float))
     ratio_str = f"{ratio_pct:.1f}%"
+
+    if lexical_coverage is not None:
+        try:
+            cov_f = float(lexical_coverage)
+            cov_pct = cov_f if cov_f > 1.0 else cov_f * 100.0
+            cov_str = f"{cov_pct:.1f}%"
+        except (ValueError, TypeError):
+            cov_str = "100.0%"
+    else:
+        cov_str = "100.0%" if total_words > 0 else "0.0%"
 
     # Color tier and verdict badge matching
     v_clean = (verdict or "").strip()
@@ -1085,32 +1157,44 @@ def render_executive_summary_card(
     if lang == "en":
         card_title = "Document Analysis Executive Summary"
         conf_label = "AI Confidence Level"
-        kpi_prob_title = "AI Probability"
-        kpi_ratio_title = "AI Content Ratio"
-        kpi_vol_title = "Document Volume"
-        kpi_vol_val = f"{total_words} words"
+        kpi_verdict_title = "Verdict"
+        kpi_conf_title = "Confidence"
+        kpi_vol_title = "Words"
+        kpi_cov_title = "Lexical Coverage"
+        vol_display = f"{total_words} words"
         kpi_vol_sub = f"{total_sents} sentences • {total_windows} window{'s' if total_windows != 1 else ''}"
         empty_default = "Awaiting Input"
+        sub_verdict = "Classification status"
+        sub_conf = "Model probability"
+        sub_cov = "FST recognized morphemes"
     else:
         card_title = "Құжатты Сараптаудың Қорытындысы"
         conf_label = "AI Сенімділік Деңгейі"
-        kpi_prob_title = "AI Ықтималдығы"
-        kpi_ratio_title = "AI Мазмұн Үлесі"
-        kpi_vol_title = "Құжат Көлемі"
-        kpi_vol_val = f"{total_words} сөз"
+        kpi_verdict_title = "Үкім"
+        kpi_conf_title = "Сенімділік"
+        kpi_vol_title = "Сөз көлемі"
+        kpi_cov_title = "Лексикалық қамту"
+        vol_display = f"{total_words} сөз"
         kpi_vol_sub = f"{total_sents} сөйлем • {total_windows} терезе"
         empty_default = "Мәтін күтілуде"
+        sub_verdict = "Жіктеу нәтижесі"
+        sub_conf = "Модель ықтималдығы"
+        sub_cov = "FST таныған морфемалар"
 
     display_verdict = v_clean if v_clean else empty_default
 
     safe_card_title = html.escape(card_title, quote=True)
     safe_conf_label = html.escape(conf_label, quote=True)
     safe_verdict = html.escape(display_verdict, quote=True)
-    safe_kpi_prob_title = html.escape(kpi_prob_title, quote=True)
-    safe_kpi_ratio_title = html.escape(kpi_ratio_title, quote=True)
+    safe_kpi_verdict = html.escape(kpi_verdict_title, quote=True)
+    safe_kpi_conf = html.escape(kpi_conf_title, quote=True)
     safe_kpi_vol_title = html.escape(kpi_vol_title, quote=True)
-    safe_vol_val = html.escape(kpi_vol_val, quote=True)
+    safe_kpi_cov = html.escape(kpi_cov_title, quote=True)
+    safe_vol_display = html.escape(vol_display, quote=True)
     safe_vol_sub = html.escape(kpi_vol_sub, quote=True)
+    safe_sub_verdict = html.escape(sub_verdict, quote=True)
+    safe_sub_conf = html.escape(sub_conf, quote=True)
+    safe_sub_cov = html.escape(sub_cov, quote=True)
 
     return (
         f'<div class="executive-summary-card">\n'
@@ -1118,30 +1202,35 @@ def render_executive_summary_card(
         f'    <span class="executive-card-title">{safe_card_title}</span>\n'
         f'    <span class="kpi-badge {badge_class}">{safe_verdict}</span>\n'
         f'  </div>\n'
-        f'  <div class="confidence-meter-container" style="margin: 4px 0 12px 0;">\n'
+        f'  <div class="confidence-meter-container" style="margin: 4px 0 14px 0;">\n'
         f'    <div class="confidence-meter-header">\n'
         f'      <span class="confidence-label">{safe_conf_label}</span>\n'
         f'      <span class="confidence-value">{pct_str}</span>\n'
         f'    </div>\n'
         f'    <div class="confidence-track">\n'
-        f'      <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" title="{safe_conf_label}: {pct_str}">\n'
-        f'        <span class="confidence-bar-text">{pct_str if p_pct >= 10.0 else ""}</span>\n'
-        f'      </div>\n'
+        f'      <div class="confidence-fill {tier_class}" style="width: {p_pct:.1f}%;" title="{safe_conf_label}: {pct_str}"></div>\n'
         f'    </div>\n'
         f'  </div>\n'
         f'  <div class="executive-kpi-grid">\n'
         f'    <div class="executive-kpi-tile">\n'
-        f'      <div class="executive-kpi-title">{safe_kpi_prob_title}</div>\n'
-        f'      <div class="executive-kpi-value">{pct_str}</div>\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_verdict}</div>\n'
+        f'      <div class="executive-kpi-value"><span class="kpi-badge {badge_class}" style="padding: 2px 8px; font-size: 0.8rem; margin: 0;">{safe_verdict}</span></div>\n'
+        f'      <div class="executive-kpi-sub">{safe_sub_verdict}</div>\n'
         f'    </div>\n'
         f'    <div class="executive-kpi-tile">\n'
-        f'      <div class="executive-kpi-title">{safe_kpi_ratio_title}</div>\n'
-        f'      <div class="executive-kpi-value">{ratio_str}</div>\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_conf}</div>\n'
+        f'      <div class="executive-kpi-value">{pct_str}</div>\n'
+        f'      <div class="executive-kpi-sub">{safe_sub_conf}</div>\n'
         f'    </div>\n'
         f'    <div class="executive-kpi-tile">\n'
         f'      <div class="executive-kpi-title">{safe_kpi_vol_title}</div>\n'
-        f'      <div class="executive-kpi-value">{safe_vol_val}</div>\n'
+        f'      <div class="executive-kpi-value">{safe_vol_display}</div>\n'
         f'      <div class="executive-kpi-sub">{safe_vol_sub}</div>\n'
+        f'    </div>\n'
+        f'    <div class="executive-kpi-tile">\n'
+        f'      <div class="executive-kpi-title">{safe_kpi_cov}</div>\n'
+        f'      <div class="executive-kpi-value">{cov_str}</div>\n'
+        f'      <div class="executive-kpi-sub">{safe_sub_cov}</div>\n'
         f'    </div>\n'
         f'  </div>\n'
         f'</div>'
@@ -1491,7 +1580,7 @@ def render_2d_trust_matrix_plane(
         f'  <div class="trust-hud-bar">\n'
         f'    <span class="hud-pill"><strong>T_fact:</strong> {t_fact_val:+.2f}</span>\n'
         f'    <span class="hud-pill"><strong>T_gen:</strong> {t_gen_val:.2f}</span>\n'
-        f'    <span class="hud-pill"><strong>𝒯(x) [T(x)]:</strong> {comp_trust:.2f}</span>\n'
+        f'    <span class="hud-pill"><strong>T(x):</strong> {comp_trust:.2f}</span>\n'
         f'    <span class="hud-pill hud-quad-{quad_code.lower()}"><strong>Quadrant:</strong> {hud_quad_display}</span>\n'
         f'  </div>\n'
         f'  {svg_markup}\n'
@@ -1592,7 +1681,7 @@ def render_trust_summary_card(
     t_fact_pct = f"{min(100.0, max(0.0, (t_fact + 1.0) / 2.0 * 100.0)):.1f}%"
     t_gen_pct = f"{min(100.0, max(0.0, t_gen * 100.0)):.1f}%"
 
-    lbl_comp_trust = "Үздіксіз сенім 𝒯(x)" if is_kz else "Composite Trust 𝒯(x)"
+    lbl_comp_trust = "Үздіксіз сенім T(x)" if is_kz else "Composite Trust T(x)"
     lbl_tf_meter = "Деректік ақиқаттық (T_fact)" if is_kz else "Factual Veracity (T_fact)"
     lbl_tg_meter = "Адамдық шығу тегі (T_gen)" if is_kz else "Generative Authenticity (T_gen)"
 
@@ -1883,24 +1972,24 @@ def render_autofst_comparison_card(
 
     if not before_text and not after_text:
         empty_prompt = "Талдау нәтижесі осында пайда болады." if is_kz else "Analysis comparison will appear here once submitted."
-        return f'<div class="hero-card" style="padding: 16px;"><p style="color: #64748b; margin: 0;">{empty_prompt}</p></div>'
+        return f'<div class="hero-card autofst-card" style="padding: 16px;"><p style="color: #64748b; margin: 0;">{empty_prompt}</p></div>'
 
     return (
-        f'<div class="hero-card" style="padding: 18px 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;">\n'
-        f'  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">\n'
-        f'    <span style="font-weight: 700; font-size: 16px; color: #0f172a;">{title}</span>\n'
-        f'    <span style="background: #f1f5f9; color: #0f172a; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; border: 1px solid #cbd5e1;">\n'
+        f'<div class="hero-card autofst-card" style="padding: 18px 20px; background: #ffffff; border: 1px solid #e4e4e7; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);">\n'
+        f'  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f4f4f5; padding-bottom: 10px;">\n'
+        f'    <span style="font-weight: 600; font-size: 15px; color: #09090b;">{title}</span>\n'
+        f'    <span class="latency-pill" style="background: #f4f4f5; color: #52525b; padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; border: 1px solid #e4e4e7; font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;">\n'
         f'      {latency_label} • Zero GPU\n'
         f'    </span>\n'
         f'  </div>\n'
         f'  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">\n'
-        f'    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px;">\n'
-        f'      <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">{before_label}</div>\n'
-        f'      <div style="font-family: monospace; font-size: 14px; color: #334155; line-height: 1.6; word-break: break-word;">{safe_before}</div>\n'
+        f'    <div style="background: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 12px 14px;">\n'
+        f'      <div style="font-size: 11px; font-weight: 600; color: #71717a; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">{before_label}</div>\n'
+        f'      <div style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #3f3f46; line-height: 1.6; word-break: break-word;">{safe_before}</div>\n'
         f'    </div>\n'
-        f'    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 14px;">\n'
-        f'      <div style="font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 6px; text-transform: uppercase;">{after_label}</div>\n'
-        f'      <div style="font-family: monospace; font-size: 14px; color: #14532d; font-weight: 600; line-height: 1.6; word-break: break-word;">{safe_after}</div>\n'
+        f'    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 12px 14px;">\n'
+        f'      <div style="font-size: 11px; font-weight: 600; color: #065f46; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">{after_label}</div>\n'
+        f'      <div style="font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #065f46; font-weight: 600; line-height: 1.6; word-break: break-word;">{safe_after}</div>\n'
         f'    </div>\n'
         f'  </div>\n'
         f'</div>'
