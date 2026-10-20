@@ -2,6 +2,7 @@
 
 import unittest
 import time
+import re
 from src.auto_fst.normalizer import RussianLayoutNormalizer
 from src.auto_fst.inducer import AutoFSTInducer
 from src.auto_fst.guard import RegressionGuard
@@ -63,6 +64,25 @@ class TestAutoFSTEndToEnd(unittest.TestCase):
         avg_ms = (time.perf_counter() - start) / iterations * 1000
         # Latency must be strictly < 5.0ms on CPU
         self.assertLess(avg_ms, 5.0)
+
+    def test_user_informal_russian_layout_sentence(self):
+        sentence = "вайбы жаксы екен бул ойыннын оте катты унады"
+        inductions = []
+        for w in sentence.split():
+            w_clean = re.sub(r'^[^\w]+|[^\w]+$', '', w)
+            w_norm = self.overlay.normalizer.normalize_word(w_clean)
+            cand = self.inducer.induce_stem(w_norm)
+            if cand:
+                passed, _ = self.guard.validate_candidate(cand.stem)
+                if passed:
+                    self.overlay.register_root(cand.stem, {"harmony": cand.harmony, "coda": cand.coda})
+                    inductions.append(cand.stem)
+
+        # Only loanword 'вайб' should be induced, no native words
+        self.assertEqual(inductions, ["вайб"])
+
+        parsed = self.overlay.analyze_and_segment(sentence)
+        self.assertEqual(parsed, "вайб -ы жақ -сы екен бұл ойын -ның өте қат -ты ұна -ды")
 
 if __name__ == '__main__':
     unittest.main()

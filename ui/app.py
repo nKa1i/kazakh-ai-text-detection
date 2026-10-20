@@ -1727,9 +1727,15 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
 
             # Check and induce roots
             inductions = []
+            seen_stems = set()
             for w in text_val.split():
-                cand = global_autofst_inducer.induce_stem(w)
-                if cand:
+                w_clean = re.sub(r'^[^\w]+|[^\w]+$', '', w)
+                if not w_clean:
+                    continue
+                w_norm = global_autofst_overlay.normalizer.normalize_word(w_clean)
+                cand = global_autofst_inducer.induce_stem(w_norm)
+                if cand and cand.stem not in seen_stems:
+                    seen_stems.add(cand.stem)
                     passed, reason = global_autofst_guard.validate_candidate(cand.stem)
                     if passed:
                         global_autofst_overlay.register_root(cand.stem, {"harmony": cand.harmony, "coda": cand.coda})
