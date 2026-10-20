@@ -9,6 +9,19 @@ from src.auto_fst.normalizer import RussianLayoutNormalizer
 
 EMPHATIC_PARTICLES = ['ғой', 'қой', 'гой', 'кой', 'мыс', 'міс', 'ау']
 
+RUSSIAN_LAYOUT_SUFFIX_MAP = {
+    'ган': 'ған', 'кан': 'қан',
+    'сын': 'сың', 'син': 'сің',
+    'гой': 'ғой', 'кой': 'қой',
+    'нын': 'ның', 'нин': 'нің',
+    'дын': 'дың', 'дин': 'дің',
+    'тын': 'тың', 'тин': 'тің',
+    'га': 'ға', 'ка': 'қа',
+    'дык': 'дық', 'дик': 'дік',
+    'тык': 'тық', 'тик': 'тік',
+    'мин': 'мін', 'миз': 'міз',
+}
+
 
 class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
     def __init__(self, normalizer: Optional[RussianLayoutNormalizer] = None):
@@ -59,26 +72,35 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                         d_raw = deriv.lstrip('-')
                         if sfx_fallback.startswith(d_raw) and len(sfx_fallback) > len(d_raw):
                             rest = sfx_fallback[len(d_raw):]
-                            return f"{word[:len(root)]} -{d_raw} -{rest}"
-                    return f"{word[:len(root)]} -{sfx_fallback}"
+                            rest_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(rest.lower(), rest)
+                            return f"{word[:len(root)]} -{d_raw} -{rest_canon}"
+                    sfx_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_fallback.lower(), sfx_fallback)
+                    return f"{word[:len(root)]} -{sfx_canon}"
         return None
 
     def analyze_and_segment(self, text: str) -> str:
         if not isinstance(text, str) or not text:
             return text
         normalized = self.normalizer.normalize_text(text)
-        words = normalized.split()
-        processed_words = []
+        tokens = normalized.split()
+        processed_tokens = []
 
-        for raw_word in words:
+        for token in tokens:
+            m_punct = re.match(r'^([^\w]*)(.*?)([^\w]*)$', token)
+            if not m_punct:
+                processed_tokens.append(token)
+                continue
+
+            leading_punct, raw_word, trailing_punct = m_punct.groups()
+
             if len(raw_word) <= 3:
-                processed_words.append(raw_word)
+                processed_tokens.append(leading_punct + raw_word + trailing_punct)
                 continue
 
             # First check code-switched loanwords
             loanword_seg = self._segment_loanword(raw_word)
             if loanword_seg:
-                processed_words.append(loanword_seg)
+                processed_tokens.append(leading_punct + loanword_seg + trailing_punct)
                 continue
 
             word = raw_word
@@ -88,20 +110,26 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
             # Check for trailing emphatic particles (e.g. тұрсыңғой -> тұрсың + -ғой)
             m_part = self.particle_re.search(word)
             if m_part and len(word[:m_part.start()]) >= 3:
-                suffixes.insert(0, m_part.group(1))
+                p_text = m_part.group(1)
+                p_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(p_text.lower(), p_text)
+                suffixes.insert(0, p_canon)
                 word = word[:m_part.start()]
 
             # 1. Verbal Personal Agreement Suffixes (e.g. келгенмін -> -мін, тұрсың -> -сың)
             m_vper = self.verb_person_re.search(word)
             if m_vper and len(word[:m_vper.start()]) >= 3:
-                suffixes.insert(0, m_vper.group(1))
+                s_text = m_vper.group(1)
+                s_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(s_text.lower(), s_text)
+                suffixes.insert(0, s_canon)
                 word = word[:m_vper.start()]
                 had_verb = True
 
             # 2. Verbal Tense / Participle Suffixes (e.g. жасалғандықтан -> -ғандықтан / -ған)
             m_vt = self.verb_tense_re.search(word)
             if m_vt and len(word[:m_vt.start()]) >= 3:
-                suffixes.insert(0, m_vt.group(1))
+                t_text = m_vt.group(1)
+                t_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(t_text.lower(), t_text)
+                suffixes.insert(0, t_canon)
                 word = word[:m_vt.start()]
                 had_verb = True
 
@@ -126,7 +154,9 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
             # 3. Noun Cases
             match = self.case_re.search(word)
             if match and len(word[:match.start()]) >= 3:
-                suffixes.insert(0, match.group(1))
+                c_text = match.group(1)
+                c_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(c_text.lower(), c_text)
+                suffixes.insert(0, c_canon)
                 word = word[:match.start()]
 
             # 4. Noun Possessives
@@ -157,11 +187,12 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                         break
 
             if suffixes:
-                processed_words.append(word + " " + " ".join(f"-{s}" for s in suffixes))
+                segmented = word + " " + " ".join(f"-{s}" for s in suffixes)
+                processed_tokens.append(leading_punct + segmented + trailing_punct)
             else:
-                processed_words.append(raw_word)
+                processed_tokens.append(leading_punct + raw_word + trailing_punct)
 
-        return " ".join(processed_words)
+        return " ".join(processed_tokens)
 
     def save_to_json(self, path: str) -> None:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)

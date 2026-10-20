@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "roots": {
+    "достар": {
+      "harmony": "hard",
+      "coda": "voiced"
+    },
+    "ойын": {
+      "harmony": "hard",
+      "coda": "voiced"
+    },
+    "донат": {
+      "harmony": "hard",
+      "coda": "voiceless"
+    },
+    "ози": {
+      "harmony": "soft",
+      "coda": "voiced"
+    },
+    "краш": {
+      "harmony": "hard",
+      "coda": "voiceless"
+    },
+    "чатбот": {
+      "harmony": "hard",
+      "coda": "voiceless"
+    },
+    "каспиред": {
+      "harmony": "soft",
+      "coda": "voiced"
+    },
+    "вайб": {
+      "harmony": "hard",
+      "coda": "voiced"
+    },
+    "чилл": {
+      "harmony": "soft",
+      "coda": "voiced"
+    }
+  }
+}
