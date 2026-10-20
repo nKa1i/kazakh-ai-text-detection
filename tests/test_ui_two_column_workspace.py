@@ -70,7 +70,7 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
         self.assertEqual(self.demo.title, "Kazakh AI-Text Detector & Explainability UI")
 
     def test_two_column_workspace_scaffold(self):
-        """Verifies workspace-row, workspace-left-col (scale=4), and workspace-right-col (scale=6)."""
+        """Verifies workspace-row, workspace-left-col (scale=5), and workspace-right-col (scale=5)."""
         rows = [b for b in self.blocks if isinstance(b, gr.Row)]
         cols = [b for b in self.blocks if isinstance(b, gr.Column)]
 
@@ -91,7 +91,7 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
             len(left_cols), 1,
             "Expected exactly one gr.Column with elem_classes=['workspace-left-col']"
         )
-        self.assertEqual(left_cols[0].scale, 4, "workspace-left-col must have scale=4")
+        self.assertEqual(left_cols[0].scale, 5, "workspace-left-col must have scale=5")
 
         right_cols = [
             c for c in cols
@@ -101,7 +101,26 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
             len(right_cols), 1,
             "Expected exactly one gr.Column with elem_classes=['workspace-right-col']"
         )
-        self.assertEqual(right_cols[0].scale, 6, "workspace-right-col must have scale=6")
+        self.assertEqual(right_cols[0].scale, 5, "workspace-right-col must have scale=5")
+
+    def test_balanced_column_scales(self):
+        """Verifies left and right columns both have scale=5 for balanced scrolling."""
+        cols = [b for b in self.blocks if isinstance(b, gr.Column)]
+        left_cols = [c for c in cols if hasattr(c, "elem_classes") and c.elem_classes and "workspace-left-col" in c.elem_classes]
+        right_cols = [c for c in cols if hasattr(c, "elem_classes") and c.elem_classes and "workspace-right-col" in c.elem_classes]
+        self.assertEqual(len(left_cols), 1)
+        self.assertEqual(len(right_cols), 1)
+        self.assertEqual(left_cols[0].scale, 5)
+        self.assertEqual(right_cols[0].scale, 5)
+
+    def test_no_duplicate_confidence_meter(self):
+        """Verifies there is no redundant second full-width confidence meter HTML block visible in the layout."""
+        html_blocks = [b for b in self.blocks if isinstance(b, gr.HTML)]
+        visible_standalone_meters = [
+            b for b in html_blocks
+            if getattr(b, "visible", True) and "confidence-track" in getattr(b, "value", "") and "executive-summary-card" not in getattr(b, "value", "")
+        ]
+        self.assertEqual(len(visible_standalone_meters), 0, "Found redundant visible standalone confidence meter")
 
     def test_single_unified_primary_text_input(self):
         """
@@ -166,19 +185,19 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
             f"Expected exactly 3 consolidated sub-tabs, found {len(tab_items)}: {tab_labels}"
         )
 
-        # Tab 1: Overview & Heatmap
+        # Tab 1: Sentence Morphology & Fusion
         self.assertTrue(
-            any("Overview" in (l or "") or "Шолу" in (l or "") for l in tab_labels),
-            f"Sub-Tab 1 missing Overview label, found: {tab_labels}"
+            any("Morphology" in (l or "") for l in tab_labels),
+            f"Sub-Tab 1 missing Morphology label, found: {tab_labels}"
         )
-        # Tab 2: Morphology & Slang Lab
+        # Tab 2: Auto-FST & Slang Lab
         self.assertTrue(
-            any("Morphology" in (l or "") or "Морфология" in (l or "") for l in tab_labels),
-            f"Sub-Tab 2 missing Morphology label, found: {tab_labels}"
+            any("Auto-FST" in (l or "") or "Slang" in (l or "") for l in tab_labels),
+            f"Sub-Tab 2 missing Auto-FST / Slang label, found: {tab_labels}"
         )
         # Tab 3: Fact Verification & Trust Matrix
         self.assertTrue(
-            any("Verification" in (l or "") or "Тексеру" in (l or "") or "Trust" in (l or "") for l in tab_labels),
+            any("Verification" in (l or "") or "Trust" in (l or "") for l in tab_labels),
             f"Sub-Tab 3 missing Verification label, found: {tab_labels}"
         )
 
@@ -245,6 +264,32 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
         for lang in ["Kazakh", "English"]:
             for k, val in get_workspace_i18n(lang).items():
                 self.assertEqual(len(emoji_pattern.findall(str(val))), 0)
+
+    def test_pure_english_ui_chrome(self):
+        """Verifies zero bilingual slash labels in tabs and buttons."""
+        tab_items = [b for b in self.blocks if isinstance(b, gr.Tab)]
+        for t in tab_items:
+            label = getattr(t, "label", "")
+            self.assertNotIn("/", label, f"Found bilingual slash in tab label: {label}")
+
+    def test_audit_markdown_export(self):
+        """Verifies generate_audit_markdown returns a valid markdown audit document."""
+        from ui.app import generate_audit_markdown, run_full_analysis_logic
+        res = run_full_analysis_logic("Қазақстан 1991 жылы тәуелсіздік алды.")
+        md_text = generate_audit_markdown(res, source_text="Қазақстан 1991 жылы тәуелсіздік алды.")
+        self.assertIn("# Document Inspection & Verification Audit Report", md_text)
+        self.assertIn("## Executive Verdict", md_text)
+
+    def test_morpheme_visual_diff_renderer(self):
+        """Verifies render_morpheme_visual_diff generates visual diff highlights."""
+        from ui.highlighting import render_morpheme_visual_diff
+        diff_html = render_morpheme_visual_diff(
+            raw_text="салем вайбтадык",
+            normalized_text="сәлем вайбтадық",
+            inductions=[{"stem": "вайб", "suffixes": ["та", "дық"]}]
+        )
+        self.assertIn("diff-norm", diff_html)
+        self.assertIn("diff-induce", diff_html)
 
     def test_hf_space_parity(self):
         """Verifies exact parity between ui/app.py and hf_space/ui/app.py."""

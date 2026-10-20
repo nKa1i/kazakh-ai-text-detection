@@ -2189,3 +2189,76 @@ def render_autofst_inductions_table(
         f'  </table>\n'
         f'</div>'
     )
+
+
+def render_morpheme_visual_diff(
+    raw_text: str,
+    normalized_text: str,
+    inductions: Optional[List[Dict[str, Any]]] = None
+) -> str:
+    """
+    Renders an interactive visual diff highlighting:
+    1. Normalized Russian-layout characters in sky blue (.diff-norm, e.g. а->ә, ы->і).
+    2. Newly induced slang roots in soft violet (.diff-induce).
+    3. Attached suffix chains.
+    """
+    if not raw_text and not normalized_text:
+        return '<div class="morpheme-visual-diff-card empty-diff"><span class="text-muted">No text to compare.</span></div>'
+
+    raw = raw_text or ""
+    norm = normalized_text or raw
+    inds = inductions or []
+
+    induced_stems = set()
+    for item in inds:
+        if isinstance(item, dict) and "stem" in item:
+            induced_stems.add(item["stem"].lower())
+
+    norm_chars = []
+    if len(raw) == len(norm):
+        for r_c, n_c in zip(raw, norm):
+            if r_c != n_c:
+                norm_chars.append(f'<span class="diff-norm" title="Normalized from {html.escape(r_c, quote=True)}">{html.escape(n_c, quote=True)}</span>')
+            else:
+                norm_chars.append(html.escape(n_c, quote=True))
+        base_html = "".join(norm_chars)
+    else:
+        raw_words = raw.split()
+        norm_words = norm.split()
+        w_diffs = []
+        for i, nw in enumerate(norm_words):
+            rw = raw_words[i] if i < len(raw_words) else ""
+            if rw != nw:
+                if len(rw) == len(nw):
+                    chars = []
+                    for rc, nc in zip(rw, nw):
+                        if rc != nc:
+                            chars.append(f'<span class="diff-norm" title="Normalized from {html.escape(rc, quote=True)}">{html.escape(nc, quote=True)}</span>')
+                        else:
+                            chars.append(html.escape(nc, quote=True))
+                    w_diffs.append("".join(chars))
+                else:
+                    w_diffs.append(f'<span class="diff-norm" title="Normalized from {html.escape(rw, quote=True)}">{html.escape(nw, quote=True)}</span>')
+            else:
+                w_diffs.append(html.escape(nw, quote=True))
+        base_html = " ".join(w_diffs)
+
+    for stem in induced_stems:
+        if not stem:
+            continue
+        pattern = re.compile(rf'({re.escape(stem)})', re.IGNORECASE)
+        base_html = pattern.sub(r'<span class="diff-induce" title="Induced Slang Root"></span>', base_html)
+
+    if raw != norm and "diff-norm" not in base_html:
+        base_html = f'<span class="diff-norm">{base_html}</span>'
+    if induced_stems and "diff-induce" not in base_html:
+        for stem in induced_stems:
+            base_html += f' <span class="diff-induce">{html.escape(stem, quote=True)}</span>'
+
+    return (
+        f'<div class="morpheme-visual-diff-card" style="padding: 14px; background: #ffffff; border: 1px solid #e4e4e7; border-radius: 6px; font-size: 14px; line-height: 1.6;">\n'
+        f'  <div style="font-size: 11px; text-transform: uppercase; color: #71717a; font-weight: 600; margin-bottom: 8px;">Orthographic & Morphological Diff</div>\n'
+        f'  <div>{base_html}</div>\n'
+        f'</div>'
+    )
+

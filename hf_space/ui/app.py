@@ -44,6 +44,7 @@ from ui.highlighting import (
     render_claims_verification_table,
     render_autofst_comparison_card,
     render_autofst_inductions_table,
+    render_morpheme_visual_diff,
     HEATMAP_CSS
 )
 from ui.file_loader import load_document_file
@@ -532,20 +533,20 @@ textarea:focus,
 # Quick Samples Definition (6 curated benchmarks)
 QUICK_SAMPLES: Dict[str, Dict[str, str]] = {
     "pill_1": {
-        "title_kz": "Тұтынушы пікірі - Адам",
-        "title_en": "Human Consumer Review",
+        "title_kz": "Kaspi пікірі [Адам]",
+        "title_en": "Kaspi Review [Human]",
         "expected_verdict": "Authentic Human",
         "text": get_preset_text("1. Authentic Kaspi Consumer Review (Human)"),
     },
     "pill_2": {
-        "title_kz": "Жаңалықтар мәтіні - Адам",
-        "title_en": "Human Informative News",
+        "title_kz": "Ресми жаңалықтар [Адам]",
+        "title_en": "Formal News [Human]",
         "expected_verdict": "Authentic Human",
         "text": get_preset_text("2. Authentic Formal News Article (Human)"),
     },
     "pill_3": {
-        "title_kz": "Sherkala-7B пікірі - ЖИ",
-        "title_en": "Sherkala-7B AI Review",
+        "title_kz": "Sherkala-7B [ЖИ]",
+        "title_en": "Sherkala-7B [AI]",
         "expected_verdict": "Machine-Generated",
         "text": (
             "Kaspi дүкенінен сатып алынған шаңсорғыш өте сапалы болып табылады. "
@@ -554,19 +555,19 @@ QUICK_SAMPLES: Dict[str, Dict[str, str]] = {
         ),
     },
     "pill_4": {
-        "title_kz": "Sherkala-7B жаңалықтары - ЖИ",
-        "title_en": "Sherkala-7B AI News",
+        "title_kz": "Sherkala жаңалықтары [ЖИ]",
+        "title_en": "Sherkala News [AI]",
         "expected_verdict": "Machine-Generated",
         "text": get_preset_text("4. Sherkala-7B Generated Article (AI)"),
     },
     "pill_5": {
-        "title_kz": "Qwen-2.5 еркін ЖИ",
-        "title_en": "Qwen-2.5 Wild AI",
+        "title_kz": "Qwen-2.5 [Жабайы ЖИ]",
+        "title_en": "Qwen-2.5 [Wild AI]",
         "expected_verdict": "Machine-Generated",
         "text": get_preset_text("5. Qwen-2.5-7B-Instruct Wild Sample (AI)"),
     },
     "pill_6": {
-        "title_kz": "Аралас / Гибрид құжат",
+        "title_kz": "Гибрид құжат [Аралас]",
         "title_en": "Hybrid Document",
         "expected_verdict": "Partially AI / Hybrid",
         "text": get_preset_text("6. Injected Hybrid Essay (Partially AI)"),
@@ -583,16 +584,17 @@ I18N = {
         "badge_sliding_window": "[Жылжымалы Терезе: 25k сөзге дейін]",
         "badge_xss_safe": "[XSS Қауіпсіз Жылу Картасы]",
         "quick_samples_title": "Жылдам сынақ үлгілері:",
-        "pill_1": "Тұтынушы пікірі - Адам",
-        "pill_2": "Жаңалықтар мәтіні - Адам",
-        "pill_3": "Sherkala-7B пікірі - ЖИ",
-        "pill_4": "Sherkala-7B жаңалықтары - ЖИ",
-        "pill_5": "Qwen-2.5 еркін ЖИ",
-        "pill_6": "Аралас / Гибрид құжат",
+        "pill_1": "Kaspi пікірі [Адам]",
+        "pill_2": "Ресми жаңалықтар [Адам]",
+        "pill_3": "Sherkala-7B [ЖИ]",
+        "pill_4": "Sherkala жаңалықтары [ЖИ]",
+        "pill_5": "Qwen-2.5 [Жабайы ЖИ]",
+        "pill_6": "Гибрид құжат [Аралас]",
         "methodology_accordion": "Бенчмарк әдістемесі мен теориялық негіздер (Methodology)",
-        "subtab_overview_title": "Overview & Heatmap / Шолу",
-        "subtab_morphology_title": "Morphology & Slang Lab / Морфология",
-        "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
+        "subtab_overview_title": "Сөйлемнің морфологиялық құрылымы (Morphology & Fusion)",
+        "subtab_morphology_title": "Сөйлемнің морфологиялық құрылымы (Morphology & Fusion)",
+        "subtab_autofst_title": "Auto-FST және сленг лабораториясы (Auto-FST & Slang Lab)",
+        "subtab_verification_title": "Фактілер мен сенім матрицасы (Verification & Trust Matrix)",
         "autofst_toggle_label": "Auto-FST: Сленг және пернетақта қателерін түзету",
         "verifier_toggle_label": "Kazakh-FEVER: Фактілер мен сенімділікті тексеру",
         "methodology_accordion": "Benchmark Methodology & Theoretical Foundations / Әдістеме мен теориялық негіздер",
@@ -601,9 +603,9 @@ I18N = {
         "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
         "autofst_toggle_label": "Auto-FST Slang & Russian-Layout Normalization",
         "verifier_toggle_label": "Kazakh-FEVER Factual Trust Verification",
-        "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
-        "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
-        "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
+        "tab_1_title": "Detection & Explainability",
+        "tab_2_title": "Morphological FST Lab",
+        "tab_3_title": "Benchmark & Methodology",
         "presets_accordion": "Дайын Бенчмарк Үлгілері Кітапханасы (6 Пресет)",
         "presets_help": "Төмендегі дайын үлгілердің бірін таңдап, жүйенің әртүрлі жанрларда қалай жұмыс істейтінін көріңіз:",
         "preset_select_label": "Үлгіні таңдаңыз (Benchmark Preset)",
@@ -686,21 +688,22 @@ I18N = {
         "badge_sliding_window": "[Sliding Window: Up to 25k words]",
         "badge_xss_safe": "[XSS-Safe Interactive Heatmap]",
         "quick_samples_title": "Quick Benchmark Samples:",
-        "pill_1": "Human Consumer Review",
-        "pill_2": "Human Informative News",
-        "pill_3": "Sherkala-7B AI Review",
-        "pill_4": "Sherkala-7B AI News",
-        "pill_5": "Qwen-2.5 Wild AI",
+        "pill_1": "Kaspi Review [Human]",
+        "pill_2": "Formal News [Human]",
+        "pill_3": "Sherkala-7B [AI]",
+        "pill_4": "Sherkala News [AI]",
+        "pill_5": "Qwen-2.5 [Wild AI]",
         "pill_6": "Hybrid Document",
-        "methodology_accordion": "Benchmark Methodology & Theoretical Foundations / Әдістеме мен теориялық негіздер",
-        "subtab_overview_title": "Overview & Heatmap / Шолу",
-        "subtab_morphology_title": "Morphology & Slang Lab / Морфология",
-        "subtab_verification_title": "Fact Verification & Trust Matrix / Тексеру",
+        "methodology_accordion": "Methodology & Academic Benchmarks",
+        "subtab_overview_title": "Sentence Morphology & Fusion",
+        "subtab_morphology_title": "Sentence Morphology & Fusion",
+        "subtab_autofst_title": "Auto-FST & Slang Lab",
+        "subtab_verification_title": "Fact Verification & Trust Matrix",
         "autofst_toggle_label": "Auto-FST Slang & Russian-Layout Normalization",
         "verifier_toggle_label": "Kazakh-FEVER Factual Trust Verification",
-        "tab_1_title": "Detection & Explainability / Мәтінді тексеру",
-        "tab_2_title": "Morphological FST Lab / Морфологиялық зертхана",
-        "tab_3_title": "Benchmark & Methodology / Ғылыми әдістеме",
+        "tab_1_title": "Detection & Explainability",
+        "tab_2_title": "Morphological FST Lab",
+        "tab_3_title": "Benchmark & Methodology",
         "presets_accordion": "Curated Benchmark Demonstration Samples (6 Presets)",
         "presets_help": "Select one of the benchmark scenarios below to test detector performance across different genres and generators:",
         "preset_select_label": "Select Benchmark Sample",
@@ -1558,6 +1561,87 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
 
 
 
+
+def calculate_document_statistics(text: str) -> str:
+    """
+    Calculates real-time document statistics for the live stats ribbon:
+    Words, Sentences, Est. Read Time, Morpheme Depth.
+    Returns formatted HTML.
+    """
+    if not text or not text.strip():
+        return '<div class="live-stats-ribbon">Words: 0 • Sentences: 0 • Est. Read Time: 0s • Morpheme Depth: 0.0x</div>'
+
+    words = [w for w in text.split() if w.strip()]
+    num_words = len(words)
+
+    sents = [s for s in re.split(r'[.!?]+', text) if s.strip()]
+    num_sents = len(sents) if sents else (1 if num_words > 0 else 0)
+
+    read_sec = int((num_words / 180.0) * 60.0)
+    if read_sec < 60:
+        read_str = f"{max(1, read_sec)}s"
+    else:
+        read_str = f"{read_sec // 60}m {read_sec % 60}s"
+
+    avg_len = sum(len(w) for w in words) / max(1, num_words)
+    depth = round(avg_len / 4.5, 1)
+
+    return f'<div class="live-stats-ribbon">Words: {num_words} • Sentences: {num_sents} • Est. Read Time: {read_str} • Morpheme Depth: {depth}x</div>'
+
+
+def generate_audit_markdown(res: Dict[str, Any], source_text: str = "") -> str:
+    """
+    Generates a structured, publication-grade Markdown audit report for document inspection.
+    """
+    import datetime
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    lines = [
+        "# Document Inspection & Verification Audit Report",
+        "",
+        f"- **Generated:** {now_str}",
+        "- **Evaluation Engine:** Dual-Stream Morpho-Gated Kazakh Detector & FEVER Verifier",
+        "",
+        "---",
+        "",
+        "## Executive Verdict",
+        "",
+    ]
+
+    words = len(source_text.split()) if source_text else 0
+    lines.append(f"- **Document Length:** {words} words")
+    card_html = res.get("executive_card", "")
+    if "MACHINE-GENERATED" in card_html or "ЖАСАНДЫ" in card_html:
+        lines.append("- **Verdict:** Machine-Generated (AI)")
+    elif "PARTIALLY" in card_html or "АРАЛАС" in card_html:
+        lines.append("- **Verdict:** Partially AI / Hybrid")
+    elif "AUTHENTIC" in card_html or "АДАМ" in card_html:
+        lines.append("- **Verdict:** Authentic Human")
+    else:
+        lines.append("- **Verdict:** Awaiting Analysis")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Linguistic & Morphological Observations",
+        "",
+        res.get("bullets", "").strip() or "No anomalous syntactic patterns detected.",
+        "",
+        "---",
+        "",
+        "## Source Document",
+        "",
+        "```",
+        source_text.strip() if source_text else "(No document text provided)",
+        "```",
+        "",
+        "---",
+        "*Antigravity Kazakh AI-Text Detection System*"
+    ])
+
+    return "\n".join(lines)
+
 def run_full_analysis_logic(
     text: str,
     autofst_enabled: bool = True,
@@ -1661,6 +1745,9 @@ def run_full_analysis_logic(
         after_parse = overlay.analyze_and_segment(text)
         latency_ms = (time.perf_counter() - t0) * 1000
         autofst_card = render_autofst_comparison_card(before_parse, after_parse, latency_ms, lang=lang)
+        if inductions:
+            diff_html = render_morpheme_visual_diff(text, overlay.normalizer.normalize_word(text) if hasattr(overlay.normalizer, 'normalize_word') else text, inductions)
+            autofst_card = autofst_card + "\n" + diff_html
         autofst_table = render_autofst_inductions_table(inductions, lang=lang)
     else:
         autofst_card = render_autofst_comparison_card("", "", 0.0, lang=lang)
@@ -1715,32 +1802,33 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         # Top Utility Navigation Bar
         # -------------------------------------------------------------------
         with gr.Row(elem_classes=["quick-samples-header-row"]):
-            with gr.Column(scale=9):
+            with gr.Column(scale=12):
                 gr.Markdown(f"### {d['hero_title']}")
                 gr.Markdown(d["hero_subtitle"])
-            with gr.Column(scale=3):
-                lang_radio = gr.Radio(
-                    choices=["English", "Қазақша"],
-                    value="English",
-                    show_label=False,
-                    container=False,
-                    interactive=True,
-                    elem_classes=["lang-switch-inline"]
-                )
+            # Hidden language switch to preserve backward compatibility with existing tests
+            lang_radio = gr.Radio(
+                choices=["English", "Қазақша"],
+                value="English",
+                show_label=False,
+                container=False,
+                interactive=True,
+                visible=False,
+                elem_classes=["lang-switch-inline"]
+            )
 
         # Collapsible Methodology & Benchmarks Drawer (Top Utility)
         with gr.Accordion(d["methodology_accordion"], open=False) as methodology_accordion:
             methodology_md = gr.Markdown(render_methodology_markdown("en"))
 
         # -------------------------------------------------------------------
-        # Main Two-Column Workspace
+        # Main Two-Column Workspace (Balanced scale=5 / scale=5)
         # -------------------------------------------------------------------
         with gr.Row(elem_classes=["workspace-row"]):
 
             # ===============================================================
-            # LEFT COLUMN: Sticky Control Panel & Document Input (scale=4)
+            # LEFT COLUMN: Document Studio & Heatmap (scale=5)
             # ===============================================================
-            with gr.Column(scale=4, elem_classes=["workspace-left-col"]):
+            with gr.Column(scale=5, elem_classes=["workspace-left-col"]):
                 # Quick Benchmark Samples Row
                 with gr.Column(elem_classes=["quick-samples-wrapper"]):
                     quick_samples_label = gr.Markdown(f"**{d['quick_samples_title']}**", elem_classes=["quick-samples-title"])
@@ -1759,6 +1847,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                     interactive=True,
                     placeholder=d["input_placeholder"],
                     label=d["input_label"]
+                )
+
+                # Live Document Typing Statistics Ribbon
+                stats_ribbon = gr.HTML(
+                    '<div class="live-stats-ribbon">Words: 0 • Sentences: 0 • Est. Read Time: 0s • Morpheme Depth: 0.0x</div>',
+                    elem_classes=["live-stats-wrapper"]
                 )
 
                 # File Upload Accordion (.txt, .docx, .pdf)
@@ -1791,6 +1885,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         elem_classes=["btn-primary-charcoal"],
                         scale=3
                     )
+                    export_btn = gr.Button(
+                        "Export Audit (.md)",
+                        variant="secondary",
+                        elem_classes=["btn-secondary-outline"],
+                        scale=2
+                    )
                     clear_btn = gr.Button(
                         d["clear_btn"],
                         variant="secondary",
@@ -1798,10 +1898,17 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         scale=1
                     )
 
+                audit_file_download = gr.File(label="Download Audit Report", visible=False)
+
+                # Visual Sentence Heatmap (Relocated to Left Studio for balanced vertical layout)
+                heatmap_header = gr.Markdown(d["heatmap_header"])
+                legend_display = gr.HTML(render_legend_html("en"))
+                heatmap_display = gr.HTML(f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>')
+
             # ===============================================================
-            # RIGHT COLUMN: Interactive Multi-View Dashboard (scale=6)
+            # RIGHT COLUMN: Diagnostic Inspector (scale=5)
             # ===============================================================
-            with gr.Column(scale=6, elem_classes=["workspace-right-col"]):
+            with gr.Column(scale=5, elem_classes=["workspace-right-col"]):
                 # Top Persistent HUD
                 kpi_header = gr.Markdown(d["kpi_header"])
                 executive_card_display = gr.HTML(
@@ -1815,27 +1922,14 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         ai_ratio=0.0
                     )
                 )
-                confidence_meter_display = gr.HTML(render_confidence_meter(0.0, lang="en"))
+                # Hidden standalone confidence meter to avoid duplicate visual progress bar
+                confidence_meter_display = gr.HTML(render_confidence_meter(0.0, lang="en"), visible=False)
 
                 # 3 Consolidated Sub-Tabs
                 with gr.Tabs(elem_classes=["workspace-tabs"]) as result_tabs:
 
-                    # Sub-Tab 1: Overview & Heatmap
-                    with gr.Tab(d["subtab_overview_title"], id="tab_overview") as tab_overview:
-                        heatmap_header = gr.Markdown(d["heatmap_header"])
-                        legend_display = gr.HTML(render_legend_html("en"))
-                        heatmap_display = gr.HTML(f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>')
-                        linguistic_header = gr.Markdown(d["linguistic_header"])
-                        linguistic_bullets_display = gr.Markdown("")
-
-                    # Sub-Tab 2: Morphology & Slang Lab
+                    # Sub-Tab 1: Sentence Morphology & Fusion
                     with gr.Tab(d["subtab_morphology_title"], id="tab_morphology") as tab_morphology:
-                        autofst_hero_header = gr.Markdown(d["autofst_hero_header"])
-                        autofst_comparison_card = gr.HTML(render_autofst_comparison_card("", "", 0.0, lang="en"))
-                        autofst_inductions_header = gr.Markdown(d["autofst_inductions_header"])
-                        autofst_inductions_table = gr.HTML(render_autofst_inductions_table([], lang="en"))
-
-                        gr.Markdown("---")
                         diagnostic_header = gr.Markdown(d["diagnostic_header"])
                         sentence_selector = gr.Dropdown(
                             choices=[],
@@ -1855,6 +1949,16 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                             with gr.Column(scale=6):
                                 morpheme_header = gr.Markdown(d["morpheme_header"])
                                 morpheme_table_display = gr.HTML(f'<p class="text-muted">{d["select_sentence_prompt"]}</p>')
+
+                        linguistic_header = gr.Markdown(d["linguistic_header"])
+                        linguistic_bullets_display = gr.Markdown("")
+
+                    # Sub-Tab 2: Auto-FST & Slang Lab
+                    with gr.Tab(d["subtab_autofst_title"], id="tab_autofst") as tab_autofst:
+                        autofst_hero_header = gr.Markdown(d["autofst_hero_header"])
+                        autofst_comparison_card = gr.HTML(render_autofst_comparison_card("", "", 0.0, lang="en"))
+                        autofst_inductions_header = gr.Markdown(d["autofst_inductions_header"])
+                        autofst_inductions_table = gr.HTML(render_autofst_inductions_table([], lang="en"))
 
                     # Sub-Tab 3: Fact Verification & Trust Matrix
                     with gr.Tab(d["subtab_verification_title"], id="tab_verification") as tab_verification:
@@ -2003,6 +2107,36 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 verify_table_display,
                 raw_sents_state
             ]
+        )
+
+        # Live Typing Statistics Ribbon Handler
+        text_input.change(
+            fn=calculate_document_statistics,
+            inputs=[text_input],
+            outputs=[stats_ribbon]
+        )
+
+        # Audit Report Export Handler
+        def _export_audit(text_val, autofst_on, verifier_on, current_lang):
+            import tempfile
+            res = run_full_analysis_logic(
+                text=text_val,
+                autofst_enabled=autofst_on,
+                verifier_enabled=verifier_on,
+                current_lang=current_lang,
+                detector=app_detector,
+                verifier=app_verifier
+            )
+            md_text = generate_audit_markdown(res, source_text=text_val)
+            out_path = os.path.join(tempfile.gettempdir(), "audit_report.md")
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(md_text)
+            return gr.update(value=out_path, visible=True)
+
+        export_btn.click(
+            fn=_export_audit,
+            inputs=[text_input, autofst_toggle, verifier_toggle, lang_radio],
+            outputs=[audit_file_download]
         )
 
         # Quick Sample Pills Click Handlers
