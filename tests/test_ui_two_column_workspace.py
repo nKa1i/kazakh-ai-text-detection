@@ -214,6 +214,18 @@ class TestUITwoColumnWorkspace(unittest.TestCase):
                 f"Found forbidden emojis in {path}: {emojis}"
             )
 
+    def test_full_analysis_handler_produces_all_outputs(self):
+        """Asserts that invoking run_full_analysis_logic produces valid results for HUD, Heatmap, Auto-FST, and Verification."""
+        from ui.app import run_full_analysis_logic
+        text = "вайбы жаксы екен бул ойыннын оте катты унады"
+        res = run_full_analysis_logic(text, autofst_enabled=True, verifier_enabled=True, current_lang="English")
+        self.assertIn("executive-summary-card", res["executive_card"])
+        self.assertIn("confidence-track", res["confidence_meter"])
+        self.assertIn("autofst-card", res["autofst_card"])
+        self.assertIn("notion-table", res["autofst_table"])
+        self.assertIn("trust-card", res["trust_card"])
+        self.assertIn("notion-table", res["claims_table"])
+
     def test_hf_space_parity(self):
         """Verifies exact parity between ui/app.py and hf_space/ui/app.py."""
         ui_path = os.path.join(

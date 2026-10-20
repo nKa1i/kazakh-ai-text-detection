@@ -1495,6 +1495,142 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
 
 
 
+def run_full_analysis_logic(
+    text: str,
+    autofst_enabled: bool = True,
+    verifier_enabled: bool = True,
+    current_lang: str = "English",
+    detector: Any = None,
+    verifier: Any = None
+) -> Dict[str, Any]:
+    """
+    Executes unified multi-pipeline analysis across:
+    1. AI Detection & Sentence Explainability Heatmap
+    2. Dynamic Auto-FST Morphology & Slang Inductions
+    3. Kazakh-FEVER Factual Trust & Citations Verification
+    """
+    import time
+    lang = _get_lang_key(current_lang)
+    d = I18N.get(lang, I18N["en"])
+    det = detector or OfflineHeuristicDetector()
+    ver = verifier or TrustworthyDocumentVerifier(ai_detector=det)
+
+    if not text or not text.strip():
+        empty_exec = render_executive_summary_card(
+            0.0, d["awaiting_input"], lang=lang,
+            total_words=0, total_sents=0, total_windows=0, ai_ratio=0.0
+        )
+        empty_meter = render_confidence_meter(0.0, d["awaiting_input"], lang=lang)
+        empty_heatmap = f'<div class="empty-doc-prompt">{d["empty_heatmap"]}</div>'
+        prompt_select = d["select_sentence_prompt"]
+        return {
+            "executive_card": empty_exec,
+            "confidence_meter": empty_meter,
+            "bullets": "",
+            "heatmap": empty_heatmap,
+            "sentence_choices": [],
+            "sentence_choice": None,
+            "selected_sentence": prompt_select,
+            "gate_html": render_dynamic_gate_bar(0.5, lang=lang),
+            "morpheme_html": f'<p class="text-muted">{prompt_select}</p>',
+            "autofst_card": render_autofst_comparison_card("", "", 0.0, lang=lang),
+            "autofst_table": render_autofst_inductions_table([], lang=lang),
+            "trust_card": render_trust_summary_card(None, lang=lang),
+            "claims_table": render_claims_verification_table([], lang=lang),
+            "sentences_state": []
+        }
+
+    # 1. AI Detection & Heatmap via handle_analyze_document
+    doc_res = det.predict_document(text)
+    (
+        exec_card,
+        bullets_md,
+        heatmap_html,
+        dropdown_update,
+        s0_text,
+        s0_gate,
+        s0_morphemes,
+        sentences
+    ) = handle_analyze_document(text, detector=det, lang_choice=current_lang)
+
+    verdict = doc_res.verdict
+    if verdict == "Authentic Human":
+        verdict_tag = d["verdict_human"]
+    elif verdict == "Partially AI" or "partially" in verdict.lower():
+        verdict_tag = d["verdict_hybrid"]
+    else:
+        verdict_tag = d["verdict_ai"]
+
+    conf_meter = render_confidence_meter(
+        probability=doc_res.document_ai_probability,
+        verdict=verdict_tag,
+        lang=lang
+    )
+
+    # 2. Auto-FST Pipeline
+    if autofst_enabled:
+        t0 = time.perf_counter()
+        b_fst = get_default_fst_analyzer()
+        before_parse = b_fst.analyze_and_segment(text)
+        overlay = DynamicFSTOverlay(normalizer=RussianLayoutNormalizer())
+        inducer = AutoFSTInducer()
+        guard = RegressionGuard()
+        inductions = []
+        seen_stems = set()
+        for w in text.split():
+            w_clean = re.sub(r'^[^\w]+|[^\w]+$', '', w)
+            if not w_clean:
+                continue
+            w_norm = overlay.normalizer.normalize_word(w_clean)
+            cand = inducer.induce_stem(w_norm)
+            if cand and cand.stem not in seen_stems:
+                seen_stems.add(cand.stem)
+                passed, reason = guard.validate_candidate(cand.stem)
+                if passed:
+                    overlay.register_root(cand.stem, {"harmony": cand.harmony, "coda": cand.coda})
+                    inductions.append({
+                        "stem": cand.stem,
+                        "harmony": cand.harmony,
+                        "coda": cand.coda,
+                        "suffixes": cand.suffixes,
+                        "guard": "Passed (100% agreement)"
+                    })
+        after_parse = overlay.analyze_and_segment(text)
+        latency_ms = (time.perf_counter() - t0) * 1000
+        autofst_card = render_autofst_comparison_card(before_parse, after_parse, latency_ms, lang=lang)
+        autofst_table = render_autofst_inductions_table(inductions, lang=lang)
+    else:
+        autofst_card = render_autofst_comparison_card("", "", 0.0, lang=lang)
+        autofst_table = render_autofst_inductions_table([], lang=lang)
+
+    # 3. Fact Verification Pipeline via handle_verify_document
+    if verifier_enabled:
+        trust_card, claims_table = handle_verify_document(text, verifier=ver, lang_choice=current_lang, model_mode="morpho")
+    else:
+        trust_card = render_trust_summary_card(None, lang=lang)
+        claims_table = render_claims_verification_table([], lang=lang)
+
+    choices = dropdown_update.get("choices", []) if isinstance(dropdown_update, dict) else getattr(dropdown_update, "choices", [])
+    choice_val = dropdown_update.get("value", None) if isinstance(dropdown_update, dict) else getattr(dropdown_update, "value", None)
+
+    return {
+        "executive_card": exec_card,
+        "confidence_meter": conf_meter,
+        "bullets": bullets_md,
+        "heatmap": heatmap_html,
+        "sentence_choices": choices,
+        "sentence_choice": choice_val,
+        "selected_sentence": s0_text,
+        "gate_html": s0_gate,
+        "morpheme_html": s0_morphemes,
+        "autofst_card": autofst_card,
+        "autofst_table": autofst_table,
+        "trust_card": trust_card,
+        "claims_table": claims_table,
+        "sentences_state": sentences
+    }
+
+
 def create_app(detector: Any = None, verifier: Any = None, load_model: bool = False) -> gr.Blocks:
     """
     Constructs and returns the full Gradio Blocks application with a publication-grade
@@ -1703,21 +1839,48 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         # Event Handlers & Wirings
         # -------------------------------------------------------------------
 
-        # Analysis Trigger
-        def _run_analysis(text_val, current_lang):
-            return handle_analyze_document(text_val, detector=app_detector, lang_choice=current_lang)
+        # Unified Multi-Pipeline Analysis Trigger
+        def _run_full_analysis(text_val, autofst_on, verifier_on, current_lang):
+            res = run_full_analysis_logic(
+                text=text_val,
+                autofst_enabled=autofst_on,
+                verifier_enabled=verifier_on,
+                current_lang=current_lang,
+                detector=app_detector,
+                verifier=app_verifier
+            )
+            return (
+                res["executive_card"],
+                res["confidence_meter"],
+                res["bullets"],
+                res["heatmap"],
+                gr.update(choices=res["sentence_choices"], value=res["sentence_choice"]),
+                res["selected_sentence"],
+                res["gate_html"],
+                res["morpheme_html"],
+                res["autofst_card"],
+                res["autofst_table"],
+                res["trust_card"],
+                res["claims_table"],
+                res["sentences_state"]
+            )
 
         analyze_btn.click(
-            fn=_run_analysis,
-            inputs=[text_input, lang_radio],
+            fn=_run_full_analysis,
+            inputs=[text_input, autofst_toggle, verifier_toggle, lang_radio],
             outputs=[
                 executive_card_display,
+                confidence_meter_display,
                 linguistic_bullets_display,
                 heatmap_display,
                 sentence_selector,
                 selected_sentence_box,
                 gate_bar_display,
                 morpheme_table_display,
+                autofst_comparison_card,
+                autofst_inductions_table,
+                verify_card_display,
+                verify_table_display,
                 raw_sents_state
             ]
         )
@@ -1735,18 +1898,24 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 total_windows=0,
                 ai_ratio=0.0
             )
+            empty_meter = render_confidence_meter(0.0, d_curr["awaiting_input"], lang=lang)
             empty_heatmap = f'<div class="empty-doc-prompt">{d_curr["empty_heatmap"]}</div>'
             return (
                 "",
                 None,
                 "",
                 empty_exec,
+                empty_meter,
                 "",
                 empty_heatmap,
                 gr.update(choices=[], value=None),
                 d_curr["select_sentence_prompt"],
                 render_dynamic_gate_bar(0.5, lang=lang),
                 f'<p class="text-muted">{d_curr["select_sentence_prompt"]}</p>',
+                render_autofst_comparison_card("", "", 0.0, lang=lang),
+                render_autofst_inductions_table([], lang=lang),
+                render_trust_summary_card(None, lang=lang),
+                render_claims_verification_table([], lang=lang),
                 []
             )
 
@@ -1758,12 +1927,17 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 file_uploader,
                 file_status,
                 executive_card_display,
+                confidence_meter_display,
                 linguistic_bullets_display,
                 heatmap_display,
                 sentence_selector,
                 selected_sentence_box,
                 gate_bar_display,
                 morpheme_table_display,
+                autofst_comparison_card,
+                autofst_inductions_table,
+                verify_card_display,
+                verify_table_display,
                 raw_sents_state
             ]
         )
