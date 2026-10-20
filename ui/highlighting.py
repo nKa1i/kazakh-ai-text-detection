@@ -1863,3 +1863,113 @@ def render_claims_verification_table(
     )
 
 
+
+
+
+def render_autofst_comparison_card(
+    before_text: str,
+    after_text: str,
+    latency_ms: float = 0.0,
+    lang: str = "en"
+) -> str:
+    is_kz = lang in ("kk", "kz")
+    title = "Морфологиялық Сегментация Салыстыруы" if is_kz else "Morphological Segmentation Comparison"
+    before_label = "Базалық FST (Тұрақты Сөздік):" if is_kz else "Baseline FST (Static Lexicon):"
+    after_label = "Auto-FST (Бейімделгіш Нейро-Символдық):" if is_kz else "Auto-FST (Adaptive Neuro-Symbolic):"
+    latency_label = f"Жылдамдық: {latency_ms:.2f} мс" if is_kz else f"Latency: {latency_ms:.2f} ms"
+
+    safe_before = html.escape(before_text or "", quote=True)
+    safe_after = html.escape(after_text or "", quote=True)
+
+    if not before_text and not after_text:
+        empty_prompt = "Талдау нәтижесі осында пайда болады." if is_kz else "Analysis comparison will appear here once submitted."
+        return f'<div class="hero-card" style="padding: 16px;"><p style="color: #64748b; margin: 0;">{empty_prompt}</p></div>'
+
+    return (
+        f'<div class="hero-card" style="padding: 18px 20px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px;">\n'
+        f'  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">\n'
+        f'    <span style="font-weight: 700; font-size: 16px; color: #0f172a;">{title}</span>\n'
+        f'    <span style="background: #f1f5f9; color: #0f172a; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; border: 1px solid #cbd5e1;">\n'
+        f'      {latency_label} • Zero GPU\n'
+        f'    </span>\n'
+        f'  </div>\n'
+        f'  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">\n'
+        f'    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px;">\n'
+        f'      <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">{before_label}</div>\n'
+        f'      <div style="font-family: monospace; font-size: 14px; color: #334155; line-height: 1.6; word-break: break-word;">{safe_before}</div>\n'
+        f'    </div>\n'
+        f'    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 14px;">\n'
+        f'      <div style="font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 6px; text-transform: uppercase;">{after_label}</div>\n'
+        f'      <div style="font-family: monospace; font-size: 14px; color: #14532d; font-weight: 600; line-height: 1.6; word-break: break-word;">{safe_after}</div>\n'
+        f'    </div>\n'
+        f'  </div>\n'
+        f'</div>'
+    )
+
+
+def render_autofst_inductions_table(
+    inductions: List[Dict[str, Any]],
+    lang: str = "en"
+) -> str:
+    is_kz = lang in ("kk", "kz")
+    th_stem = "Анықталған түбір (Stem)" if is_kz else "Discovered Stem"
+    th_harmony = "Үндестік (Harmony)" if is_kz else "Vowel Harmony"
+    th_coda = "Соңғы дыбыс (Coda)" if is_kz else "Consonant Coda"
+    th_suffixes = "Жалғаулар тізбегі (Affixes)" if is_kz else "Affix Sequence"
+    th_guard = "Қауіпсіздік фильтрі (Guard)" if is_kz else "Sandbox Regression"
+
+    if not inductions:
+        no_inductions_msg = (
+            "Жаңа сленг түбірін қосу қажет болмады: мәтін стандартты қазақ ережелеріне және "
+            "орыс пернетақтасының орфографиялық инварианттылығына сәйкес толық өңделді."
+            if is_kz else
+            "No new slang stems required: sentence was fully segmented via standard Kazakh morpheme rules and "
+            "Russian-layout orthographic invariance."
+        )
+        return (
+            f'<div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 14px; color: #64748b; font-size: 13px;">'
+            f'{no_inductions_msg}</div>'
+        )
+
+    rows = []
+    for item in inductions:
+        stem = html.escape(str(item.get("stem", "")), quote=True)
+        harmony = html.escape(str(item.get("harmony", "hard")), quote=True)
+        coda = html.escape(str(item.get("coda", "voiced")), quote=True)
+        suffixes = html.escape(", ".join(item.get("suffixes", [])), quote=True)
+        guard_status = html.escape(str(item.get("guard", "Passed (100% agreement)")), quote=True)
+
+        harm_badge = '<span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жуан (Hard)</span>' if harmony == "hard" else '<span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Жіңішке (Soft)</span>'
+        coda_badge = '<span style="background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Ұяң/Үнді (Voiced)</span>' if coda == "voiced" else '<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">Қатаң (Voiceless)</span>'
+
+        row = (
+            f'<tr>\n'
+            f'  <td style="font-weight: 700; color: #0f172a; font-family: monospace; font-size: 14px;">{stem}</td>\n'
+            f'  <td>{harm_badge}</td>\n'
+            f'  <td>{coda_badge}</td>\n'
+            f'  <td style="font-family: monospace; color: #475569;">-{suffixes.replace(", ", " -")}</td>\n'
+            f'  <td><span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">{guard_status}</span></td>\n'
+            f'</tr>'
+        )
+        rows.append(row)
+
+    table_body = "\n".join(rows)
+
+    return (
+        f'<div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 6px;">\n'
+        f'  <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">\n'
+        f'    <thead>\n'
+        f'      <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569;">\n'
+        f'        <th style="padding: 10px 14px;">{th_stem}</th>\n'
+        f'        <th style="padding: 10px 14px;">{th_harmony}</th>\n'
+        f'        <th style="padding: 10px 14px;">{th_coda}</th>\n'
+        f'        <th style="padding: 10px 14px;">{th_suffixes}</th>\n'
+        f'        <th style="padding: 10px 14px;">{th_guard}</th>\n'
+        f'      </tr>\n'
+        f'    </thead>\n'
+        f'    <tbody>\n'
+        f'{table_body}\n'
+        f'    </tbody>\n'
+        f'  </table>\n'
+        f'</div>'
+    )

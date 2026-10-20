@@ -1,7 +1,11 @@
 """Automated regression testing sandbox for candidate root induction."""
 
 from typing import List, Tuple
-from src.auto_fst.overlay import DynamicFSTOverlay
+
+try:
+    from auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    from src.auto_fst.overlay import DynamicFSTOverlay
 
 GOLDEN_SENTENCES: List[str] = [
     "Кеше кешке орталыққа келгенмін және жұмыстарды көргендіктен қайтарды.",

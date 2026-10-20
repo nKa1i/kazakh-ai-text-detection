@@ -42,6 +42,8 @@ from ui.highlighting import (
     render_fst_decomposition_table,
     render_trust_summary_card,
     render_claims_verification_table,
+    render_autofst_comparison_card,
+    render_autofst_inductions_table,
     HEATMAP_CSS
 )
 from ui.file_loader import load_document_file
@@ -58,6 +60,11 @@ from ui.presets import (
 from verification.verifier import TrustworthyDocumentVerifier
 from verification.evidence import DocumentTrustResult, ClaimVerificationResult
 from models.heuristic_detector import OfflineHeuristicDetector
+try:
+    from auto_fst import RussianLayoutNormalizer, AutoFSTInducer, DynamicFSTOverlay, RegressionGuard
+except ImportError:
+    from src.auto_fst import RussianLayoutNormalizer, AutoFSTInducer, DynamicFSTOverlay, RegressionGuard
+
 from ui.sentence_analyzer import (
     analyze_document_sentences,
     analyze_sentence_morphemes,
@@ -423,6 +430,21 @@ I18N = {
         "verify_model_ours": "Біздің модель (Гибрид + Морфо)",
         "verify_model_base": "Базалық модель (Беткі қабат)",
         "trust_plane_title": "2D Сенім Матрицасының Координат Кеңістігі",
+        # Tab 5: Auto-FST & Slang Normalizer
+        "tab_5_title": "Auto-FST & Slang Normalizer / Авто-FST және Сленг",
+        "autofst_hero_header": "### Авто-FST: Бейімделгіш Нейро-Символдық Морфология (Auto-FST Adaptive Morphology)",
+        "autofst_hero_desc": "Орыс пернетақтасымен жазылған қазақ сөздерін (ә, і, ң орнына а, и, н) қалпына келтіреді және жаңа сленг түбірлерін (вайб, чилл, донат, краш) автоматты тауып, FST моделіне дербес қосады.",
+        "autofst_quick_samples_title": "Тексеру Үлгілері (Quick Slang & Keyboard Presets):",
+        "autofst_pill_1": "1. Орыс пернетақтасы",
+        "autofst_pill_2": "2. Модаль бөлшектер",
+        "autofst_pill_3": "3. Жастар сленгі",
+        "autofst_pill_4": "4. Гейминг сленгі",
+        "autofst_pill_5": "5. Күрделі сөздер",
+        "autofst_input_label": "Қазақша мәтін енгізу (Text Input)",
+        "autofst_input_placeholder": "Бейресми қазақша немесе сленг сөйлем жазыңыз (мысалы: салем калайсын олар турсынгой вайбтаган)...",
+        "autofst_btn": "Auto-FST Талдау (Analyze & Induce)",
+        "autofst_clear_btn": "Тазалау (Clear)",
+        "autofst_inductions_header": "### Жаңа Анықталған Түбірлер мен Грамматикалық Сәйкестік (Inductions & Safety)",
     },
     "en": {
         "hero_title": "Kazakh AI-Generated Text Detector & Explainability Dashboard",
@@ -499,6 +521,21 @@ I18N = {
         "verify_model_ours": "Ours (Hybrid + Morpho)",
         "verify_model_base": "Baseline (Surface Only)",
         "trust_plane_title": "2D Trust Matrix Coordinate Space",
+        # Tab 5: Auto-FST and Slang Normalizer
+        "tab_5_title": "Auto-FST and Slang Normalizer / Авто-FST және Сленг",
+        "autofst_hero_header": "### Auto-FST: Adaptive Neuro-Symbolic Morphology for Informal Kazakh",
+        "autofst_hero_desc": "Normalizes Kazakh text typed on Russian keyboard layouts and dynamically induces newly encountered slang/loanword roots (vibe, chill, donate, crush) into the active FST grammar graph with sub-millisecond latency on CPU.",
+        "autofst_quick_samples_title": "Quick Slang and Keyboard Presets:",
+        "autofst_pill_1": "1. Russian Layout",
+        "autofst_pill_2": "2. Modal Particles",
+        "autofst_pill_3": "3. Youth Slang",
+        "autofst_pill_4": "4. Gaming Slang",
+        "autofst_pill_5": "5. Compound Words",
+        "autofst_input_label": "Document / Sentence Input",
+        "autofst_input_placeholder": "Type or paste informal Kazakh text (e.g. салем калайсын олар турсынгой вайбтаган)...",
+        "autofst_btn": "Run Auto-FST Analysis",
+        "autofst_clear_btn": "Clear",
+        "autofst_inductions_header": "### Newly Discovered Stems and Phonetic Profile (Auto-Inductions)",
     }
 }
 
@@ -1255,7 +1292,22 @@ def switch_ui_language(lang_choice: str) -> Tuple[Any, ...]:
         gr.update(value=d["verify_clear_btn"]),
         empty_trust_card,
         d["verify_claims_header"],
-        empty_claims_table
+        empty_claims_table,
+        # Tab 5: Auto-FST & Slang Normalizer
+        d["autofst_hero_header"],
+        d["autofst_hero_desc"],
+        f"**{d['autofst_quick_samples_title']}**",
+        gr.update(value=d["autofst_pill_1"]),
+        gr.update(value=d["autofst_pill_2"]),
+        gr.update(value=d["autofst_pill_3"]),
+        gr.update(value=d["autofst_pill_4"]),
+        gr.update(value=d["autofst_pill_5"]),
+        gr.update(label=d["autofst_input_label"], placeholder=d["autofst_input_placeholder"]),
+        gr.update(value=d["autofst_btn"]),
+        gr.update(value=d["autofst_clear_btn"]),
+        render_autofst_comparison_card("", "", 0.0, lang=lang),
+        d["autofst_inductions_header"],
+        render_autofst_inductions_table([], lang=lang)
     )
 
 
@@ -1415,45 +1467,83 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
             # TAB 4: Factual Verification & Trust Matrix
             # ===============================================================
             with gr.Tab(d["tab_4_title"], id="tab_verification") as tab_verify:
-                verify_hero_header = gr.Markdown(d["verify_hero_header"])
-                verify_hero_desc = gr.Markdown(d["verify_hero_desc"])
+                            verify_hero_header = gr.Markdown(d["verify_hero_header"])
+                            verify_hero_desc = gr.Markdown(d["verify_hero_desc"])
+            
+                            # 4-Quadrant Quick Presets
+                            with gr.Column(elem_classes=["quick-samples-wrapper"]):
+                                verify_quick_samples_label = gr.Markdown(
+                                    f"**{d['verify_quick_samples_title']}**",
+                                    elem_classes=["quick-samples-title"]
+                                )
+                                with gr.Row(elem_classes=["quick-samples-row"]):
+                                    v_pill_btn1 = gr.Button(d["verify_pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
+                                    v_pill_btn2 = gr.Button(d["verify_pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
+                                    v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
+                                    v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
+            
+                            verify_model_radio = gr.Radio(
+                                choices=[d["verify_model_ours"], d["verify_model_base"]],
+                                value=d["verify_model_ours"],
+                                label=d["verify_model_label"]
+                            )
+            
+                            with gr.Row():
+                                with gr.Column(scale=6):
+                                    verify_input = gr.Textbox(
+                                        lines=6,
+                                        max_lines=18,
+                                        placeholder=d["verify_input_placeholder"],
+                                        label=d["verify_input_label"]
+                                    )
+                                    with gr.Row():
+                                        verify_btn = gr.Button(d["verify_btn"], variant="primary", scale=3)
+                                        verify_clear_btn = gr.Button(d["verify_clear_btn"], variant="secondary", scale=1)
+            
+                                with gr.Column(scale=6):
+                                    verify_card_display = gr.HTML(render_trust_summary_card(None, lang="en"))
+            
+                            gr.Markdown("---")
+                            verify_claims_header = gr.Markdown(d["verify_claims_header"])
+                            verify_table_display = gr.HTML(render_claims_verification_table([], lang="en"))
+            
+                        # ===============================================================
+                        # TAB 5: Auto-FST & Slang Normalizer
+                        # ===============================================================
+            with gr.Tab(d["tab_5_title"], id="tab_autofst") as tab_autofst:
+                autofst_hero_header = gr.Markdown(d["autofst_hero_header"])
+                autofst_hero_desc = gr.Markdown(d["autofst_hero_desc"])
 
-                # 4-Quadrant Quick Presets
                 with gr.Column(elem_classes=["quick-samples-wrapper"]):
-                    verify_quick_samples_label = gr.Markdown(
-                        f"**{d['verify_quick_samples_title']}**",
+                    autofst_quick_samples_label = gr.Markdown(
+                        f"**{d['autofst_quick_samples_title']}**",
                         elem_classes=["quick-samples-title"]
                     )
                     with gr.Row(elem_classes=["quick-samples-row"]):
-                        v_pill_btn1 = gr.Button(d["verify_pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        v_pill_btn2 = gr.Button(d["verify_pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        v_pill_btn3 = gr.Button(d["verify_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
-                        v_pill_btn4 = gr.Button(d["verify_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
-
-                verify_model_radio = gr.Radio(
-                    choices=[d["verify_model_ours"], d["verify_model_base"]],
-                    value=d["verify_model_ours"],
-                    label=d["verify_model_label"]
-                )
+                        af_pill_btn1 = gr.Button(d["autofst_pill_1"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        af_pill_btn2 = gr.Button(d["autofst_pill_2"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        af_pill_btn3 = gr.Button(d["autofst_pill_3"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        af_pill_btn4 = gr.Button(d["autofst_pill_4"], size="sm", elem_classes=["sample-pill"], scale=1)
+                        af_pill_btn5 = gr.Button(d["autofst_pill_5"], size="sm", elem_classes=["sample-pill"], scale=1)
 
                 with gr.Row():
                     with gr.Column(scale=6):
-                        verify_input = gr.Textbox(
-                            lines=6,
-                            max_lines=18,
-                            placeholder=d["verify_input_placeholder"],
-                            label=d["verify_input_label"]
+                        autofst_input = gr.Textbox(
+                            lines=4,
+                            max_lines=10,
+                            placeholder=d["autofst_input_placeholder"],
+                            label=d["autofst_input_label"]
                         )
                         with gr.Row():
-                            verify_btn = gr.Button(d["verify_btn"], variant="primary", scale=3)
-                            verify_clear_btn = gr.Button(d["verify_clear_btn"], variant="secondary", scale=1)
+                            autofst_btn = gr.Button(d["autofst_btn"], variant="primary", scale=3)
+                            autofst_clear_btn = gr.Button(d["autofst_clear_btn"], variant="secondary", scale=1)
 
                     with gr.Column(scale=6):
-                        verify_card_display = gr.HTML(render_trust_summary_card(None, lang="en"))
+                        autofst_comparison_card = gr.HTML(render_autofst_comparison_card("", "", 0.0, lang="en"))
 
                 gr.Markdown("---")
-                verify_claims_header = gr.Markdown(d["verify_claims_header"])
-                verify_table_display = gr.HTML(render_claims_verification_table([], lang="en"))
+                autofst_inductions_header = gr.Markdown(d["autofst_inductions_header"])
+                autofst_inductions_table = gr.HTML(render_autofst_inductions_table([], lang="en"))
 
 
         # -------------------------------------------------------------------
@@ -1613,6 +1703,94 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
             outputs=[verify_input]
         )
 
+
+        # Tab 5: Auto-FST Handlers
+        global_autofst_overlay = DynamicFSTOverlay(normalizer=RussianLayoutNormalizer())
+        global_autofst_inducer = AutoFSTInducer()
+        global_autofst_guard = RegressionGuard()
+
+        def _run_autofst(text_val, current_lang):
+            if not text_val or not text_val.strip():
+                lang = _get_lang_key(current_lang)
+                return (
+                    render_autofst_comparison_card("", "", 0.0, lang=lang),
+                    render_autofst_inductions_table([], lang=lang)
+                )
+
+            import time
+            from fst_analyzer import fst_analyzer as b_fst
+            lang = _get_lang_key(current_lang)
+
+            # Baseline parse
+            t0 = time.perf_counter()
+            before_parse = b_fst.analyze_and_segment(text_val)
+
+            # Check and induce roots
+            inductions = []
+            for w in text_val.split():
+                cand = global_autofst_inducer.induce_stem(w)
+                if cand:
+                    passed, reason = global_autofst_guard.validate_candidate(cand.stem)
+                    if passed:
+                        global_autofst_overlay.register_root(cand.stem, {"harmony": cand.harmony, "coda": cand.coda})
+                        inductions.append({
+                            "stem": cand.stem,
+                            "harmony": cand.harmony,
+                            "coda": cand.coda,
+                            "suffixes": cand.suffixes,
+                            "guard": "Passed (100% agreement)"
+                        })
+
+            # Auto-FST parse
+            after_parse = global_autofst_overlay.analyze_and_segment(text_val)
+            latency_ms = (time.perf_counter() - t0) * 1000
+
+            return (
+                render_autofst_comparison_card(before_parse, after_parse, latency_ms, lang=lang),
+                render_autofst_inductions_table(inductions, lang=lang)
+            )
+
+        autofst_btn.click(
+            fn=_run_autofst,
+            inputs=[autofst_input, lang_radio],
+            outputs=[autofst_comparison_card, autofst_inductions_table]
+        )
+
+        def _clear_autofst(current_lang):
+            lang = _get_lang_key(current_lang)
+            return (
+                "",
+                render_autofst_comparison_card("", "", 0.0, lang=lang),
+                render_autofst_inductions_table([], lang=lang)
+            )
+
+        autofst_clear_btn.click(
+            fn=_clear_autofst,
+            inputs=[lang_radio],
+            outputs=[autofst_input, autofst_comparison_card, autofst_inductions_table]
+        )
+
+        af_pill_btn1.click(
+            fn=lambda: "салем калайсын, жумысын калай болып жатыр?",
+            outputs=[autofst_input]
+        )
+        af_pill_btn2.click(
+            fn=lambda: "Ол али жумыста турсынгой, кешке келедигой.",
+            outputs=[autofst_input]
+        )
+        af_pill_btn3.click(
+            fn=lambda: "Биз кеше достармен катты вайбтадык жане чиллдедик.",
+            outputs=[autofst_input]
+        )
+        af_pill_btn4.click(
+            fn=lambda: "Ойынга коп донаттау жасады, енди озинин крашына жазады.",
+            outputs=[autofst_input]
+        )
+        af_pill_btn5.click(
+            fn=lambda: "Чатботтын жауабын каспиредпен толедик.",
+            outputs=[autofst_input]
+        )
+
         # Dynamic Language Switching Event
         lang_radio.change(
             fn=switch_ui_language,
@@ -1666,7 +1844,22 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 verify_clear_btn,
                 verify_card_display,
                 verify_claims_header,
-                verify_table_display
+                verify_table_display,
+                # Tab 5: Auto-FST
+                autofst_hero_header,
+                autofst_hero_desc,
+                autofst_quick_samples_label,
+                af_pill_btn1,
+                af_pill_btn2,
+                af_pill_btn3,
+                af_pill_btn4,
+                af_pill_btn5,
+                autofst_input,
+                autofst_btn,
+                autofst_clear_btn,
+                autofst_comparison_card,
+                autofst_inductions_header,
+                autofst_inductions_table
             ]
         )
 

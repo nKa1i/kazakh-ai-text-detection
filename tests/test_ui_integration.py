@@ -336,10 +336,10 @@ class TestUiIntegration(unittest.TestCase):
             self.assertNotIn("Da Lei", md)
 
     def test_language_switch(self):
-        """Verifies switching language updates all pills, labels, methodology, and placeholders across 4 tabs."""
+        """Verifies switching language updates all pills, labels, methodology, and placeholders across 5 tabs."""
         en_outputs = switch_ui_language("English")
         self.assertIsInstance(en_outputs, tuple)
-        self.assertEqual(len(en_outputs), 49)
+        self.assertEqual(len(en_outputs), 63)
 
         # Verify English strings in key positions
         quick_samples_en = en_outputs[0]
@@ -358,9 +358,13 @@ class TestUiIntegration(unittest.TestCase):
         verify_samples_en = en_outputs[37]
         self.assertIn("Four-Quadrant Demonstration Samples", verify_samples_en)
 
+        # Tab 5 Auto-FST strings in English
+        autofst_hero_en = en_outputs[49]
+        self.assertIn("Adaptive Neuro-Symbolic Morphology", autofst_hero_en)
+
         # Switch back to Kazakh
         kz_outputs = switch_ui_language("Қазақша")
-        self.assertEqual(len(kz_outputs), 49)
+        self.assertEqual(len(kz_outputs), 63)
         quick_samples_kz = kz_outputs[0]
         self.assertIn("Жылдам сынақ үлгілері", quick_samples_kz)
 
@@ -369,6 +373,9 @@ class TestUiIntegration(unittest.TestCase):
 
         verify_hero_kz = kz_outputs[35]
         self.assertIn("Деректі Тексеру", verify_hero_kz)
+
+        autofst_hero_kz = kz_outputs[49]
+        self.assertIn("Бейімделгіш Нейро-Символдық Морфология", autofst_hero_kz)
 
 
     def test_zero_emoji_constraint_across_ui(self):
