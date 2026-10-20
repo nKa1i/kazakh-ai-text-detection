@@ -454,12 +454,12 @@ class TestUiIntegration(unittest.TestCase):
             text_out, status_out = handle_file_upload(tmp_path)
             self.assertEqual(text_out, "Жүктелген файлдағы қазақша мәтін үлгісі.")
             self.assertIn("File loaded successfully", status_out)
-            self.assertNotIn("✅", status_out)
+            self.assertNotIn("\u2705", status_out)
 
             # Explicit Kazakh
             _, status_kz = handle_file_upload(tmp_path, lang_choice="kz")
             self.assertIn("сәтті жүктелді", status_kz)
-            self.assertNotIn("✅", status_kz)
+            self.assertNotIn("\u2705", status_kz)
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
