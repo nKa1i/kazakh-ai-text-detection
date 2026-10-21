@@ -83,106 +83,110 @@ from ui.linguistic_explainer import generate_linguistic_explanation
 
 
 def get_apple_notion_theme() -> gr.Theme:
-    """Constructs a minimalist Apple / Notion-style theme for Gradio Blocks."""
+    """Constructs a minimalist Apple / Notion-style dark charcoal theme for Gradio Blocks."""
     return gr.themes.Base(
-        primary_hue=gr.themes.colors.zinc,
+        primary_hue=gr.themes.colors.blue,
         secondary_hue=gr.themes.colors.zinc,
-        neutral_hue=gr.themes.colors.stone,
+        neutral_hue=gr.themes.colors.zinc,
         font=[gr.themes.GoogleFont("Inter"), "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
         font_mono=["SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "monospace"],
         radius_size=gr.themes.sizes.radius_sm,
         spacing_size=gr.themes.sizes.spacing_md,
         text_size=gr.themes.sizes.text_sm,
     ).set(
-        body_background_fill="#fbfbfa",
-        body_background_fill_dark="#fbfbfa",
-        body_text_color="#18181b",
-        body_text_color_dark="#18181b",
-        background_fill_primary="#ffffff",
-        background_fill_primary_dark="#ffffff",
-        background_fill_secondary="#f4f4f5",
-        background_fill_secondary_dark="#f4f4f5",
-        border_color_primary="#e4e4e7",
-        border_color_primary_dark="#e4e4e7",
-        block_background_fill="#ffffff",
-        block_background_fill_dark="#ffffff",
+        body_background_fill="#121316",
+        body_background_fill_dark="#121316",
+        body_text_color="#f3f4f6",
+        body_text_color_dark="#f3f4f6",
+        body_text_color_subdued="#9ca3af",
+        body_text_color_subdued_dark="#9ca3af",
+        background_fill_primary="#1a1b22",
+        background_fill_primary_dark="#1a1b22",
+        background_fill_secondary="#21232d",
+        background_fill_secondary_dark="#21232d",
+        border_color_primary="#2d313d",
+        border_color_primary_dark="#2d313d",
+        block_background_fill="#1a1b22",
+        block_background_fill_dark="#1a1b22",
         block_border_width="1px",
-        block_border_color="#e4e4e7",
-        block_border_color_dark="#e4e4e7",
-        block_label_background_fill="#ffffff",
-        block_label_background_fill_dark="#ffffff",
-        block_label_text_color="#52525b",
-        block_label_text_color_dark="#52525b",
-        block_title_text_color="#18181b",
-        block_title_text_color_dark="#18181b",
-        input_background_fill="#ffffff",
-        input_background_fill_dark="#ffffff",
+        block_border_color="#2d313d",
+        block_border_color_dark="#2d313d",
+        block_label_background_fill="#1a1b22",
+        block_label_background_fill_dark="#1a1b22",
+        block_label_text_color="#9ca3af",
+        block_label_text_color_dark="#9ca3af",
+        block_title_text_color="#f3f4f6",
+        block_title_text_color_dark="#f3f4f6",
+        input_background_fill="#1e2029",
+        input_background_fill_dark="#1e2029",
+        input_border_color="#2d313d",
+        input_border_color_dark="#2d313d",
         block_radius="8px",
-        block_shadow="0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02)",
-        button_primary_background_fill="#18181b",
-        button_primary_background_fill_hover="#27272a",
+        block_shadow="0 1px 3px rgba(0, 0, 0, 0.25)",
+        button_primary_background_fill="#2563eb",
+        button_primary_background_fill_hover="#1d4ed8",
         button_primary_text_color="#ffffff",
-        button_secondary_background_fill="#ffffff",
-        button_secondary_background_fill_hover="#f4f4f5",
-        button_secondary_text_color="#52525b",
-        button_secondary_border_color="#e4e4e7",
+        button_secondary_background_fill="#21232d",
+        button_secondary_background_fill_hover="#2b2d3a",
+        button_secondary_text_color="#f3f4f6",
+        button_secondary_border_color="#2d313d",
     )
 
 
 # Extended CSS styling for minimalist Apple / Notion publication-grade dashboard aesthetics
 APP_CSS = HEATMAP_CSS + """
-/* Complete Light Canvas & Variable Neutralization for Apple / Notion Aesthetics */
+/* Publication-Grade Apple / Notion Deep Charcoal Dark Theme */
 :root, .dark, :root .dark, body.dark, .gradio-container, .dark .gradio-container, .dark * {
-    color-scheme: light !important;
-    --body-background-fill: #fbfbfa !important;
-    --body-text-color: #18181b !important;
-    --body-text-color-subdued: #71717a !important;
-    --background-fill-primary: #ffffff !important;
-    --background-fill-secondary: #f4f4f5 !important;
-    --border-color-primary: #e4e4e7 !important;
-    --border-color-secondary: #e4e4e7 !important;
-    --border-color-accent: #e4e4e7 !important;
-    --block-background-fill: #ffffff !important;
-    --block-border-color: #e4e4e7 !important;
+    color-scheme: dark !important;
+    --body-background-fill: #121316 !important;
+    --body-text-color: #f3f4f6 !important;
+    --body-text-color-subdued: #9ca3af !important;
+    --background-fill-primary: #1a1b22 !important;
+    --background-fill-secondary: #21232d !important;
+    --border-color-primary: #2d313d !important;
+    --border-color-secondary: #2d313d !important;
+    --border-color-accent: #3b82f6 !important;
+    --block-background-fill: #1a1b22 !important;
+    --block-border-color: #2d313d !important;
     --block-border-width: 1px !important;
-    --block-label-background-fill: #ffffff !important;
-    --block-label-text-color: #52525b !important;
-    --block-title-text-color: #18181b !important;
-    --input-background-fill: #ffffff !important;
-    --input-border-color: #e4e4e7 !important;
-    --input-text-color: #18181b !important;
-    --table-border-color: #e4e4e7 !important;
-    --table-text-color: #18181b !important;
-    --accordion-text-color: #18181b !important;
-    --neutral-50: #fafafa !important;
-    --neutral-100: #f4f4f5 !important;
-    --neutral-200: #e4e4e7 !important;
-    --neutral-300: #d4d4d8 !important;
-    --neutral-400: #a1a1aa !important;
-    --neutral-500: #71717a !important;
-    --neutral-600: #52525b !important;
-    --neutral-700: #3f3f46 !important;
-    --neutral-800: #ffffff !important;
-    --neutral-900: #18181b !important;
-    --neutral-950: #09090b !important;
-    --tw-prose-body: #18181b !important;
-    --tw-prose-headings: #18181b !important;
-    --tw-prose-lead: #52525b !important;
-    --tw-prose-links: #18181b !important;
-    --tw-prose-bold: #18181b !important;
-    --tw-prose-invert-body: #18181b !important;
-    --tw-prose-invert-headings: #18181b !important;
-    --tw-prose-invert-lead: #52525b !important;
-    --tw-prose-invert-bold: #18181b !important;
+    --block-label-background-fill: #1a1b22 !important;
+    --block-label-text-color: #9ca3af !important;
+    --block-title-text-color: #f3f4f6 !important;
+    --input-background-fill: #1e2029 !important;
+    --input-border-color: #2d313d !important;
+    --input-text-color: #f3f4f6 !important;
+    --table-border-color: #2d313d !important;
+    --table-text-color: #f3f4f6 !important;
+    --accordion-text-color: #f3f4f6 !important;
+    --neutral-50: #121316 !important;
+    --neutral-100: #1a1b22 !important;
+    --neutral-200: #21232d !important;
+    --neutral-300: #2d313d !important;
+    --neutral-400: #9ca3af !important;
+    --neutral-500: #9ca3af !important;
+    --neutral-600: #cbd5e1 !important;
+    --neutral-700: #e2e8f0 !important;
+    --neutral-800: #1a1b22 !important;
+    --neutral-900: #f3f4f6 !important;
+    --neutral-950: #ffffff !important;
+    --tw-prose-body: #f3f4f6 !important;
+    --tw-prose-headings: #f3f4f6 !important;
+    --tw-prose-lead: #9ca3af !important;
+    --tw-prose-links: #60a5fa !important;
+    --tw-prose-bold: #f3f4f6 !important;
+    --tw-prose-invert-body: #f3f4f6 !important;
+    --tw-prose-invert-headings: #f3f4f6 !important;
+    --tw-prose-invert-lead: #9ca3af !important;
+    --tw-prose-invert-bold: #f3f4f6 !important;
 }
 
 html, body, .gradio-container, .dark, .dark .gradio-container {
-    background-color: #fbfbfa !important;
-    background: #fbfbfa !important;
-    color: #18181b !important;
+    background-color: #121316 !important;
+    background: #121316 !important;
+    color: #f3f4f6 !important;
 }
 
-/* Enforce dark charcoal text across all prose, markdown, headers, and labels */
+/* Enforce crisp high-contrast text across all prose, markdown, headers, and labels */
 .prose, .prose *, .dark .prose, .dark .prose *,
 .markdown, .markdown *, .dark .markdown, .dark .markdown *,
 h1, h2, h3, h4, h5, h6,
@@ -192,7 +196,7 @@ strong, .dark strong, em, .dark em,
 .block-title, .dark .block-title,
 .dark .hero-card, .dark .panel-box,
 .dark .workspace-left-col, .dark .workspace-right-col {
-    color: #18181b !important;
+    color: #f3f4f6 !important;
 }
 
 /* Subtext and secondary labels */
@@ -201,10 +205,10 @@ strong, .dark strong, em, .dark em,
 label, label span, .dark label, .dark label span,
 .block-label, .dark .block-label,
 [data-testid="block-label"], .dark [data-testid="block-label"] {
-    color: #52525b !important;
+    color: #9ca3af !important;
 }
 
-/* Enforce pure white cards and containers on all blocks, forms, and accordions */
+/* Enforce dark charcoal cards and containers on all blocks, forms, and accordions */
 .block, .dark .block,
 fieldset, .dark fieldset,
 .form, .dark .form,
@@ -218,42 +222,52 @@ fieldset, .dark fieldset,
 textarea, .dark textarea,
 input[type="text"], .dark input[type="text"],
 .dark .tabitem, .dark .tabs {
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    border-color: #e4e4e7 !important;
-    color: #18181b !important;
+    background-color: #1a1b22 !important;
+    background: #1a1b22 !important;
+    border-color: #2d313d !important;
+    color: #f3f4f6 !important;
+}
+
+/* Textarea input dark surface */
+textarea, .dark textarea,
+input[type="text"], .dark input[type="text"] {
+    background-color: #1e2029 !important;
+    background: #1e2029 !important;
+    border: 1px solid #2d313d !important;
+    color: #f3f4f6 !important;
 }
 
 /* Accordion header styling */
 .accordion > .label-wrap, .dark .accordion > .label-wrap,
 .accordion > button, .dark .accordion > button,
 .accordion summary, .dark .accordion summary {
-    border: 1px solid #e4e4e7 !important;
+    border: 1px solid #2d313d !important;
     border-radius: 6px !important;
+    background: #1e2029 !important;
 }
 .accordion span, .dark .accordion span,
 .accordion svg, .dark .accordion svg {
-    color: #18181b !important;
-    fill: #18181b !important;
+    color: #f3f4f6 !important;
+    fill: #f3f4f6 !important;
 }
 
 /* Tab bar typography */
 .tab-nav, .dark .tab-nav {
-    border-bottom: 1px solid #e4e4e7 !important;
+    border-bottom: 1px solid #2d313d !important;
     background: transparent !important;
 }
 .tab-nav button, .dark .tab-nav button {
-    color: #71717a !important;
+    color: #9ca3af !important;
     font-weight: 500 !important;
     background: transparent !important;
 }
 .tab-nav button.selected, .dark .tab-nav button.selected {
-    color: #18181b !important;
-    border-bottom: 2px solid #18181b !important;
+    color: #f3f4f6 !important;
+    border-bottom: 2px solid #3b82f6 !important;
     font-weight: 600 !important;
 }
 .tab-nav button:hover, .dark .tab-nav button:hover {
-    color: #18181b !important;
+    color: #f3f4f6 !important;
 }
 
 /* Live typing statistics ribbon */
@@ -263,7 +277,7 @@ input[type="text"], .dark input[type="text"],
     gap: 12px;
     font-size: 11.5px;
     font-weight: 500;
-    color: #71717a;
+    color: #9ca3af;
     font-family: "SFMono-Regular", Menlo, Consolas, monospace;
     padding: 4px 6px 8px 6px;
     letter-spacing: 0.02em;
@@ -271,46 +285,46 @@ input[type="text"], .dark input[type="text"],
 
 /* Visual diff styling */
 .diff-norm {
-    background-color: #e0f2fe !important;
-    color: #0369a1 !important;
+    background-color: rgba(56, 189, 248, 0.18) !important;
+    color: #38bdf8 !important;
     padding: 1px 4px !important;
     border-radius: 3px !important;
     font-weight: 600 !important;
-    border-bottom: 1.5px solid #38bdf8 !important;
+    border-bottom: 1.5px solid #0ea5e9 !important;
 }
 
 .diff-induce {
-    background-color: #f3e8ff !important;
-    color: #7e22ce !important;
+    background-color: rgba(192, 132, 252, 0.18) !important;
+    color: #c084fc !important;
     padding: 1px 4px !important;
     border-radius: 3px !important;
     font-weight: 600 !important;
-    border-bottom: 1.5px solid #c084fc !important;
+    border-bottom: 1.5px solid #a855f7 !important;
 }
 
 body, .gradio-container {
-    background-color: #fbfbfa !important;
+    background-color: #121316 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-    color: #18181b !important;
+    color: #f3f4f6 !important;
 }
 .hero-card {
-    background: #ffffff;
-    border: 1px solid #e4e4e7;
+    background: #1a1b22;
+    border: 1px solid #2d313d;
     border-radius: 8px;
     padding: 20px 24px;
     margin-bottom: 18px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .hero-title {
     font-size: 22px;
     font-weight: 700;
-    color: #09090b;
+    color: #f3f4f6;
     margin-bottom: 6px;
     letter-spacing: -0.015em;
 }
 .hero-subtitle {
     font-size: 13.5px;
-    color: #52525b;
+    color: #9ca3af;
     line-height: 1.55;
     margin-bottom: 12px;
 }
@@ -323,13 +337,13 @@ body, .gradio-container {
 .feature-badge {
     display: inline-flex;
     align-items: center;
-    background: #f4f4f5;
-    border: 1px solid #e4e4e7;
+    background: #21232d;
+    border: 1px solid #2d313d;
     border-radius: 4px;
     padding: 3px 8px;
     font-size: 11px;
     font-weight: 500;
-    color: #3f3f46;
+    color: #cbd5e1;
     font-family: "SFMono-Regular", Menlo, Consolas, monospace;
 }
 .quick-samples-wrapper {
@@ -354,7 +368,7 @@ body, .gradio-container {
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
-    color: #52525b !important;
+    color: #9ca3af !important;
 }
 .lang-switch-inline {
     display: inline-flex !important;
@@ -380,32 +394,32 @@ body, .gradio-container {
 .quick-sample-pill {
     display: inline-flex !important;
     align-items: center !important;
-    background: #f4f4f5 !important;
-    border: 1px solid #e4e4e7 !important;
+    background: #21232d !important;
+    border: 1px solid #2d313d !important;
     border-radius: 6px !important;
     padding: 5px 11px !important;
     font-size: 12px !important;
     font-weight: 500 !important;
-    color: #27272a !important;
+    color: #e2e8f0 !important;
     cursor: pointer !important;
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
     box-shadow: none !important;
 }
 .sample-pill:hover,
 .quick-sample-pill:hover {
-    background: #e4e4e7 !important;
-    border-color: #d4d4d8 !important;
+    background: #2a2d3a !important;
+    border-color: #3b4252 !important;
     transform: translateY(-0.5px) !important;
 }
 .tabs > .tab-nav {
-    border-bottom: 1px solid #e4e4e7 !important;
+    border-bottom: 1px solid #2d313d !important;
     gap: 4px !important;
     background: transparent !important;
 }
 .tabs > .tab-nav > button {
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: #71717a !important;
+    color: #9ca3af !important;
     border: none !important;
     border-radius: 6px 6px 0 0 !important;
     padding: 8px 16px !important;
@@ -413,17 +427,17 @@ body, .gradio-container {
     transition: color 0.15s ease, border-color 0.15s ease !important;
 }
 .tabs > .tab-nav > button.selected {
-    color: #09090b !important;
+    color: #f3f4f6 !important;
     font-weight: 600 !important;
-    border-bottom: 2px solid #18181b !important;
+    border-bottom: 2px solid #3b82f6 !important;
     background: transparent !important;
 }
 button.primary,
 .gr-button-primary,
 button[variant="primary"] {
-    background-color: #18181b !important;
+    background-color: #2563eb !important;
     color: #ffffff !important;
-    border: 1px solid #18181b !important;
+    border: 1px solid #2563eb !important;
     border-radius: 6px !important;
     font-weight: 500 !important;
     transition: background-color 0.15s ease, border-color 0.15s ease !important;
@@ -431,15 +445,15 @@ button[variant="primary"] {
 button.primary:hover,
 .gr-button-primary:hover,
 button[variant="primary"]:hover {
-    background-color: #27272a !important;
-    border-color: #27272a !important;
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
 }
 button.secondary,
 .gr-button-secondary,
 button[variant="secondary"] {
-    background-color: #ffffff !important;
-    color: #52525b !important;
-    border: 1px solid #e4e4e7 !important;
+    background-color: #21232d !important;
+    color: #f3f4f6 !important;
+    border: 1px solid #2d313d !important;
     border-radius: 6px !important;
     font-weight: 500 !important;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
@@ -447,198 +461,99 @@ button[variant="secondary"] {
 button.secondary:hover,
 .gr-button-secondary:hover,
 button[variant="secondary"]:hover {
-    background-color: #f4f4f5 !important;
-    color: #18181b !important;
-    border-color: #d4d4d8 !important;
-}
-textarea,
-.gr-textbox textarea {
-    border: 1px solid #e4e4e7 !important;
-    border-radius: 6px !important;
-    background: #ffffff !important;
-    color: #18181b !important;
-    box-shadow: none !important;
-    font-family: inherit !important;
-}
-textarea:focus,
-.gr-textbox textarea:focus {
-    border-color: #71717a !important;
-    box-shadow: 0 0 0 1px #71717a !important;
-}
-.file-upload-zone,
-.gr-file,
-.file-preview {
-    border: 1px dashed #d4d4d8 !important;
-    border-radius: 8px !important;
-    background: #fafafa !important;
-    transition: border-color 0.15s ease !important;
-}
-.file-upload-zone:hover,
-.gr-file:hover {
-    border-color: #71717a !important;
-}
-.kpi-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-.kpi-card {
-    flex: 1;
-    min-width: 130px;
-    padding: 12px 14px;
-    background: #ffffff;
-    border: 1px solid #e4e4e7;
-    border-radius: 6px;
-    text-align: center;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-.kpi-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #71717a;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-.kpi-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #09090b;
-}
-.kpi-badge {
-    padding: 10px 16px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 14px;
-    text-align: center;
-    margin-bottom: 10px;
-    letter-spacing: 0.04em;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-}
-.badge-neutral {
-    background-color: #f4f4f5;
-    color: #52525b;
-    border: 1px solid #e4e4e7;
-}
-.badge-human {
-    background-color: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-}
-.badge-hybrid {
-    background-color: #fffbeb;
-    color: #92400e;
-    border: 1px solid #fde68a;
-}
-.badge-ai {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-.legend-bar {
-    display: flex;
-    gap: 10px;
-    font-size: 12px;
-    color: #52525b;
-    margin-top: 6px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    background: #f4f4f5;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #e4e4e7;
-}
-.legend-item {
-    display: inline-flex;
-    align-items: center;
-}
-.legend-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-}
-.legend-pill-human {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #065f46;
-}
-.legend-pill-amber {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    color: #92400e;
-}
-.legend-pill-ai {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
-}
-.legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-}
-.dot-human { background-color: #10b981; }
-.dot-amber { background-color: #f59e0b; }
-.dot-ai { background-color: #ef4444; }
-.linguistic-box {
-    background: #ffffff;
-    border: 1px solid #e4e4e7;
-    border-radius: 6px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-.panel-box {
-    background: #ffffff;
-    border: 1px solid #e4e4e7;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-/* Unified Two-Column Workspace Styles */
-.workspace-row {
-    gap: 20px !important;
-    align-items: flex-start !important;
+    background-color: #2b2d3a !important;
 }
 .workspace-left-col {
-    position: sticky !important;
-    top: 20px !important;
+    background: #1a1b22;
+    border: 1px solid #2d313d;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .workspace-right-col {
-    min-width: 0 !important;
+    background: #1a1b22;
+    border: 1px solid #2d313d;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
-.workspace-tabs {
-    margin-top: 16px !important;
+.panel-box {
+    background: #1a1b22;
+    border: 1px solid #2d313d;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
-.btn-primary-charcoal {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-    border: 1px solid #18181b !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
+.card-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #2d313d;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
 }
-.btn-primary-charcoal:hover {
-    background-color: #27272a !important;
-    border-color: #27272a !important;
+.card-header-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #f3f4f6;
+    letter-spacing: -0.01em;
 }
-.btn-secondary-outline {
-    background-color: #ffffff !important;
-    color: #52525b !important;
-    border: 1px solid #e4e4e7 !important;
-    border-radius: 6px !important;
-    font-weight: 500 !important;
+.badge-count {
+    background: #21232d;
+    border: 1px solid #2d313d;
+    border-radius: 9999px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #cbd5e1;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
 }
-.btn-secondary-outline:hover {
-    background-color: #f4f4f5 !important;
-    color: #18181b !important;
-    border-color: #d4d4d8 !important;
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+.status-pill.human {
+    background: rgba(16, 185, 129, 0.16);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.status-pill.amber {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.status-pill.ai {
+    background: rgba(244, 63, 94, 0.18);
+    color: #fb7185;
+    border: 1px solid rgba(251, 113, 133, 0.3);
+}
+.gate-value-tag {
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+.model-perf-ribbon {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    padding: 8px 12px;
+    background: #21232d;
+    border-radius: 6px;
+    border: 1px solid #2d313d;
+    margin-top: 10px;
+}
+.model-perf-item strong {
+    color: #f3f4f6;
+    font-weight: 600;
 }
 """
 
@@ -1896,26 +1811,22 @@ def run_full_analysis_logic(
 LIGHT_MODE_HEAD_JS = """
 <script>
 (function() {
-    function enforceLightMode() {
+    function enforceDarkMode() {
         if (document.documentElement) {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.style.colorScheme = 'light';
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
         }
         if (document.body) {
-            document.body.classList.remove('dark');
-            document.body.style.colorScheme = 'light';
-        }
-        var darkEls = document.querySelectorAll('.dark');
-        for (var i = 0; i < darkEls.length; i++) {
-            darkEls[i].classList.remove('dark');
+            document.body.classList.add('dark');
+            document.body.style.colorScheme = 'dark';
         }
     }
-    enforceLightMode();
+    enforceDarkMode();
     if (window.MutationObserver) {
-        new MutationObserver(function() { enforceLightMode(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        new MutationObserver(function() { enforceDarkMode(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }
-    window.addEventListener('DOMContentLoaded', enforceLightMode);
-    setInterval(enforceLightMode, 400);
+    window.addEventListener('DOMContentLoaded', enforceDarkMode);
+    setInterval(enforceDarkMode, 400);
 })();
 </script>
 """

@@ -15,7 +15,16 @@ KAZAKH_STOPWORDS = {
     "және", "мен", "бен", "пен", "де", "да", "та", "те", "бұл", "ол", "оның", "олар",
     "үшін", "туралы", "бойынша", "арқылы", "сияқты", "тура", "бойы", "дейін",
     "болып", "бола", "болған", "болды", "екен", "етіп", "еткен", "етті",
-    "бір", "барлық", "бар", "жоқ", "ресми", "түрде", "деген", "деп", "осы", "сол"
+    "бір", "барлық", "бар", "жоқ", "ресми", "түрде", "деген", "деп", "осы", "сол",
+    "маңызды", "маңыз", "маңызы", "маңызға",
+    "келген", "кел", "келеді", "келу", "келді",
+    "айналды", "айнал", "айналып", "айналу",
+    "кез", "әр", "әрбір", "әркім", "кейбір", "кей", "барша", "бүкіл",
+    "аса", "өте", "тым", "ең", "негізгі", "негізінен", "жалпы",
+    "етіледі", "етілген", "ету", "етеді", "болу", "болуы", "болады", "болар",
+    "ретте", "ретінде", "жатыр", "отыр", "тұр", "жүр",
+    "арналған", "байланысты", "қатысты", "сәйкес", "қатар", "бірге", "жөнінде", "секілді",
+    "адам", "маман", "саласында", "саласы", "деңгейде", "деңгейі", "деңгей"
 }
 
 
@@ -30,12 +39,14 @@ class HybridEvidenceRetriever:
         knowledge_store: KnowledgeStore,
         k1: float = 1.5,
         b: float = 0.75,
-        dense_weight: float = 0.30
+        dense_weight: float = 0.30,
+        min_score: float = 0.20
     ):
         self.store = knowledge_store
         self.k1 = k1
         self.b = b
         self.dense_weight = max(0.0, min(1.0, dense_weight))
+        self.min_score = min_score
 
     def _compute_idf(self, stem: str) -> float:
         """Computes Robertson-Spärck Jones IDF for a morphological stem."""
@@ -95,12 +106,18 @@ class HybridEvidenceRetriever:
             if not orig_passage:
                 continue
 
+            matched = matched_stems_map[pid]
+            # Multi-term relevance gate:
+            # If query has 3+ content stems, require at least 2 distinct matched stems
+            # to filter out spurious single-word hits on long out-of-domain sentences
+            if len(unique_q_stems) >= 3 and len(matched) < 2:
+                continue
+
             # Asymptotic saturation curve for BM25 score (score / (score + 5.0))
             # Prevents single isolated stop-term from dominating
             norm_bm25 = bm25_val / (bm25_val + 5.0)
 
             # Dense / semantic overlap component
-            matched = matched_stems_map[pid]
             doc_unique_stems = set(orig_passage.stemmed_tokens) - KAZAKH_STOPWORDS
             overlap_count = len(matched)
             semantic_overlap = (
@@ -110,6 +127,8 @@ class HybridEvidenceRetriever:
 
             # Combined hybrid score
             final_score = (1.0 - self.dense_weight) * norm_bm25 + self.dense_weight * semantic_overlap
+            if final_score < self.min_score:
+                continue
 
             # Return detached copy with query-specific score and matched stems
             results.append(
