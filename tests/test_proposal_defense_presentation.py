@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Automated regression test suite for Master's Proposal Defense Presentation.
-Validates 5-element structure, 21 slides, branding, metadata, and figures.
+Automated regression test suite for Master's Proposal Defense Presentation (10-Minute Compact).
+Validates 5-element structure, 12 slides, English-only enlarged tracker, branding, and figures.
 """
 
 import os
@@ -20,9 +20,9 @@ class TestProposalDefensePresentation(unittest.TestCase):
         self.assertTrue(os.path.exists(PPTX_PATH), f"Presentation must exist at {PPTX_PATH}")
         self.prs = Presentation(PPTX_PATH)
 
-    def test_slide_count_is_21(self):
-        """Verify the presentation has exactly 21 slides."""
-        self.assertEqual(len(self.prs.slides), 21, f"Expected 21 slides, got {len(self.prs.slides)}")
+    def test_slide_count_is_12(self):
+        """Verify the presentation has exactly 12 slides for a 10-minute defense."""
+        self.assertEqual(len(self.prs.slides), 12, f"Expected 12 slides, got {len(self.prs.slides)}")
 
     def test_desktop_mirror_exists(self):
         """Verify Desktop mirror exists and has non-zero size."""
@@ -33,6 +33,7 @@ class TestProposalDefensePresentation(unittest.TestCase):
         """Verify Slide 1 contains correct candidate and defense metadata."""
         slide1 = self.prs.slides[0]
         full_text = " ".join(shp.text for shp in slide1.shapes if shp.has_text_frame)
+        self.assertIn("DAULET ANEKESH", full_text)
         self.assertIn("大雷", full_text)
         self.assertIn("郭斌", full_text)
         self.assertIn("2026", full_text)
@@ -57,20 +58,47 @@ class TestProposalDefensePresentation(unittest.TestCase):
         return " ".join(texts)
 
     def test_toc_slide_5_elements(self):
-        """Verify Slide 2 (TOC) lists all 5 canonical sections."""
+        """Verify Slide 2 (TOC) lists all 5 canonical sections in English."""
         slide2 = self.prs.slides[1]
         full_text = self._extract_all_text(slide2.shapes)
-        self.assertIn("研究背景", full_text)
-        self.assertTrue("相关工作" in full_text or "国内外研究现状" in full_text)
-        self.assertIn("研究内容", full_text)
-        self.assertTrue("研究创新" in full_text or "科学创新" in full_text)
-        self.assertTrue("进展安排" in full_text or "进度安排" in full_text)
+        self.assertIn("Research Background", full_text)
+        self.assertIn("Related Work", full_text)
+        self.assertIn("Research Content", full_text)
+        self.assertIn("Research Innovations", full_text)
+        self.assertIn("Schedule", full_text)
+
+    def test_top_tracker_english_only(self):
+        """Verify top tracker on content slides contains only English section titles."""
+        expected_sections = [
+            "Research Background",
+            "Related Work",
+            "Research Content",
+            "Research Innovations",
+            "Schedule"
+        ]
+        # Check Slide 3 (index 2)
+        slide3 = self.prs.slides[2]
+        header_texts = [
+            shp.text_frame.text.strip()
+            for shp in slide3.shapes
+            if shp.top < 1000000 and shp.has_text_frame and shp.text_frame.text.strip() in expected_sections
+        ]
+        for sec in expected_sections:
+            self.assertIn(sec, header_texts, f"Top tracker missing English title: {sec}")
+
+    def test_schedule_is_only_schedule_table(self):
+        """Verify Section 5 has only the schedule/timeline slide (Slide 11)."""
+        slide11 = self.prs.slides[10]
+        full_text = self._extract_all_text(slide11.shapes)
+        self.assertIn("Dissertation Schedule", full_text)
+        self.assertIn("2026.10", full_text)
+        self.assertIn("2027.06", full_text)
 
     def test_closing_slide_thanks(self):
-        """Verify Slide 21 contains closing thanks and guidance request."""
-        slide21 = self.prs.slides[20]
-        full_text = " ".join(shp.text for shp in slide21.shapes if shp.has_text_frame)
-        self.assertTrue("批评指正" in full_text or "THANKS" in full_text or "Thank You" in full_text)
+        """Verify Slide 12 contains closing thanks and guidance request."""
+        slide12 = self.prs.slides[11]
+        full_text = " ".join(shp.text for shp in slide12.shapes if shp.has_text_frame)
+        self.assertTrue("批评指正" in full_text or "Thank You" in full_text)
 
 
 if __name__ == "__main__":
