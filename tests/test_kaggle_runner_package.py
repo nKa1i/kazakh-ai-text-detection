@@ -72,7 +72,9 @@ class TestKaggleRunnerPackage(unittest.TestCase):
         self.assertGreater(len(b64_str), 1000)
 
         decompressed = decompress_corpus_from_base64(b64_str)
-        self.assertEqual(len(decompressed), 72)
+        with open("data/kazakh_knowledge_corpus.jsonl", "r", encoding="utf-8") as f_corp:
+            expected_count = sum(1 for line in f_corp if line.strip())
+        self.assertEqual(len(decompressed), expected_count)
         expected_keys = {"passage_id", "title", "text", "domain"}
         domains = set()
         for doc in decompressed:

@@ -131,7 +131,9 @@ class TestPackageNLIKaggleKernel(unittest.TestCase):
         self.assertIsNotNone(corpus_match)
         corpus_b64 = corpus_match.group(1)
         corpus_records = decompress_dataset_from_base64(corpus_b64)
-        self.assertEqual(len(corpus_records), 108)
+        with open("data/kazakh_knowledge_corpus.jsonl", "r", encoding="utf-8") as f_corp:
+            expected_corpus_count = sum(1 for line in f_corp if line.strip())
+        self.assertEqual(len(corpus_records), expected_corpus_count)
 
     @patch("subprocess.run")
     def test_package_nli_kernel_push(self, mock_subproc):
