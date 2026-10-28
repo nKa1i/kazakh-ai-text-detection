@@ -95,6 +95,16 @@ class TestExpandKnowledgeCorpus(unittest.TestCase):
             for p in lines:
                 self.assertTrue(validate_knowledge_passage(p))
 
+    def test_programming_and_ai_topic_coverage(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_file = os.path.join(tmpdir, "corpus.jsonl")
+            corpus = build_curated_knowledge_corpus(out_file)
+            self.assertGreaterEqual(len(corpus), 150)
+            titles_and_texts = " ".join(p["title"] + " " + p["text"] for p in corpus)
+            self.assertIn("бағдарламалау тілдері", titles_and_texts.lower())
+            self.assertIn("жасанды интеллект", titles_and_texts.lower())
+            self.assertIn("сырдария", titles_and_texts.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
