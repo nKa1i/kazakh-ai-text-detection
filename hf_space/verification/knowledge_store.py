@@ -10,6 +10,14 @@ from collections import defaultdict
 from typing import Dict, List, Tuple, Optional, Any
 
 from fst_analyzer import AdvancedKazakhFSTAnalyzer
+
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        DynamicFSTOverlay = AdvancedKazakhFSTAnalyzer
 from verification.evidence import EvidencePassage
 
 
@@ -19,8 +27,8 @@ class KnowledgeStore:
     an in-memory inverted index keyed on FST root stems to bridge agglutinative variation.
     """
 
-    def __init__(self, fst_analyzer: Optional[AdvancedKazakhFSTAnalyzer] = None):
-        self.fst = fst_analyzer or AdvancedKazakhFSTAnalyzer()
+    def __init__(self, fst_analyzer: Optional[Any] = None):
+        self.fst = fst_analyzer if fst_analyzer is not None else DynamicFSTOverlay()
         self.passages: Dict[str, EvidencePassage] = {}
         # stem -> list of (passage_id, term_frequency)
         self.inverted_index: Dict[str, List[Tuple[str, int]]] = defaultdict(list)
@@ -42,12 +50,27 @@ class KnowledgeStore:
 
         stems = [w]
 
+        # 0. Check Normalized Form (e.g. галымдардын -> ғалымдардың)
+        if hasattr(self.fst, "normalizer") and self.fst.normalizer is not None:
+            norm_w = self.fst.normalizer.normalize_word(w)
+            if norm_w and norm_w not in stems:
+                stems.append(norm_w)
+                if norm_w != w:
+                    seg_norm = self.fst.analyze_and_segment(norm_w)
+                    if " -" in seg_norm:
+                        norm_root = seg_norm.split(" -")[0].strip()
+                        if len(norm_root) >= 2 and norm_root not in stems:
+                            stems.append(norm_root)
+
         # 1. Check Case Suffix Base (e.g., алматының -> алматы)
-        match = self.fst.case_re.search(w)
-        if match and len(w[:match.start()]) >= 3:
-            case_base = w[:match.start()]
-            if case_base not in stems:
-                stems.append(case_base)
+        if w.endswith("стан") and len(w) >= 5:
+            pass  # -стан is a toponymic root suffix ending in 'н', not ablative -тан
+        else:
+            match = self.fst.case_re.search(w)
+            if match and len(w[:match.start()]) >= 3:
+                case_base = w[:match.start()]
+                if case_base not in stems:
+                    stems.append(case_base)
 
         # 2. Check FST Deep Root (e.g., алматының -> алмат)
         seg = self.fst.analyze_and_segment(w)

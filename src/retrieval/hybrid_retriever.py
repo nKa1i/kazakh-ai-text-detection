@@ -25,6 +25,14 @@ except ImportError:
             sys.path.insert(0, root_dir)
         from fst_analyzer import AdvancedKazakhFSTAnalyzer
 
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        DynamicFSTOverlay = AdvancedKazakhFSTAnalyzer
+
 # Try importing rank_bm25; provide pure-Python BM25Okapi fallback if unavailable
 try:
     from rank_bm25 import BM25Okapi
@@ -114,8 +122,8 @@ class KazakhFSTStemmer:
     Extracts root morphemes by stripping inflectional and derivational suffixes.
     """
 
-    def __init__(self, fst_analyzer: Optional[AdvancedKazakhFSTAnalyzer] = None):
-        self.fst = fst_analyzer if fst_analyzer is not None else AdvancedKazakhFSTAnalyzer()
+    def __init__(self, fst_analyzer: Optional[Any] = None):
+        self.fst = fst_analyzer if fst_analyzer is not None else DynamicFSTOverlay()
 
     def stem_word(self, word: str) -> List[str]:
         """
@@ -130,6 +138,18 @@ class KazakhFSTStemmer:
             return [w]
 
         stems = [w]
+
+        # 0. Check Normalized Form (e.g. галымдардын -> ғалымдардың)
+        if hasattr(self.fst, "normalizer") and self.fst.normalizer is not None:
+            norm_w = self.fst.normalizer.normalize_word(w)
+            if norm_w and norm_w not in stems:
+                stems.append(norm_w)
+                if norm_w != w:
+                    seg_norm = self.fst.analyze_and_segment(norm_w)
+                    if " -" in seg_norm:
+                        norm_root = seg_norm.split(" -")[0].strip()
+                        if norm_root and len(norm_root) >= 2 and norm_root not in stems:
+                            stems.append(norm_root)
 
         # 1. Check FST segmentation
         seg = self.fst.analyze_and_segment(w)

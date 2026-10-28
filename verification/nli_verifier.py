@@ -6,11 +6,19 @@ detecting numerical/temporal conflicts and morphological negation mismatches.
 """
 
 import re
-from typing import List, Tuple, Optional, Set
+from typing import List, Tuple, Optional, Set, Any
 
 from verification.evidence import AtomicClaim, EvidencePassage, ClaimVerificationResult
 from verification.retriever import KAZAKH_STOPWORDS
 from fst_analyzer import AdvancedKazakhFSTAnalyzer
+
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        DynamicFSTOverlay = AdvancedKazakhFSTAnalyzer
 
 
 NEGATION_PATTERNS = [
@@ -39,10 +47,10 @@ class NLIClaimVerifier:
     def __init__(
         self,
         min_similarity_threshold: float = 0.20,
-        fst_analyzer: Optional[AdvancedKazakhFSTAnalyzer] = None
+        fst_analyzer: Optional[Any] = None
     ):
         self.min_sim = min_similarity_threshold
-        self.fst = fst_analyzer or AdvancedKazakhFSTAnalyzer()
+        self.fst = fst_analyzer if fst_analyzer is not None else DynamicFSTOverlay()
 
     def extract_years(self, text: str) -> List[str]:
         """Extracts 4-digit historical calendar years from text."""
@@ -75,6 +83,13 @@ class NLIClaimVerifier:
         for t in tokens:
             if t in KAZAKH_STOPWORDS or len(t) < 2:
                 continue
+            # Check FST segmentation first to extract canonical root (handles voicing/syncope/Russian layout)
+            seg = self.fst.analyze_and_segment(t)
+            if " -" in seg:
+                root = seg.split(" -")[0].strip()
+                if len(root) >= 2:
+                    stems.append(root)
+                    continue
             # In Kazakh, -стан is a toponymic root suffix ending in nasal 'н'.
             # Ablative after 'н' is always -нан/-нен, never -тан/-тен.
             if t.endswith("стан") and len(t) >= 5:

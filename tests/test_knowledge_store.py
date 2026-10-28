@@ -148,6 +148,18 @@ class TestKnowledgeStore(unittest.TestCase):
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+    def test_autofst_v2_voicing_syncope_and_russian_layout_indexing(self):
+        # Verify KnowledgeStore stems voiced ('кітабы' -> 'кітап'), syncopated ('халқы' -> 'халық'),
+        # and Russian-layout ('галымдардын' -> 'ғалым') forms into canonical roots
+        stems_kitap = self.store.stem_word("кітабы")
+        self.assertIn("кітап", stems_kitap)
+
+        stems_khalyk = self.store.stem_word("халқы")
+        self.assertIn("халық", stems_khalyk)
+
+        stems_galym = self.store.stem_word("галымдардын")
+        self.assertIn("ғалым", stems_galym)
+
 
 if __name__ == "__main__":
     unittest.main()

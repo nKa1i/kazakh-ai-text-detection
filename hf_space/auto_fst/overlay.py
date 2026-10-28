@@ -15,12 +15,12 @@ except (ImportError, ValueError):
         from src.auto_fst.normalizer import RussianLayoutNormalizer
 
 try:
-    from .phonology import MorphophonologicalRestorer
+    from .phonology import MorphophonologicalRestorer, SYNCOPE_STEM_MAP
 except (ImportError, ValueError):
     try:
-        from auto_fst.phonology import MorphophonologicalRestorer
+        from auto_fst.phonology import MorphophonologicalRestorer, SYNCOPE_STEM_MAP
     except ImportError:
-        from src.auto_fst.phonology import MorphophonologicalRestorer
+        from src.auto_fst.phonology import MorphophonologicalRestorer, SYNCOPE_STEM_MAP
 
 EMPHATIC_PARTICLES = ['ғой', 'қой', 'гой', 'кой', 'мыс', 'міс', 'ау']
 
@@ -32,6 +32,9 @@ RUSSIAN_LAYOUT_SUFFIX_MAP = {
     'дын': 'дың', 'дин': 'дің',
     'тын': 'тың', 'тин': 'тің',
     'га': 'ға', 'ка': 'қа',
+    'лығ': 'лық', 'ліг': 'лік',
+    'дығ': 'дық', 'діг': 'дік',
+    'тығ': 'тық', 'тіг': 'тік',
     'дык': 'дық', 'дик': 'дік',
     'тык': 'тық', 'тик': 'тік',
     'мин': 'мін', 'миз': 'міз',
@@ -101,6 +104,7 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
         self.deriv_adjectives = [
             'ғандықтан', 'гендіктен', 'қандықтан', 'кендіктен',
             'лық', 'лік', 'дық', 'дік', 'тық', 'тік',
+            'лығ', 'ліг', 'дығ', 'діг', 'тығ', 'тіг',
             'дык', 'дик', 'тык', 'тик',
             'ша', 'ше'
         ]
@@ -138,6 +142,54 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
         self._refresh_roots()
         return True
 
+    def _decompose_nominal_tail(self, sfx: str) -> List[str]:
+        """Decomposes a nominal suffix chain (Plural + Possessive + Case) on a loanword root."""
+        sfx_lower = sfx.lower()
+        if sfx_lower in COMPOUND_LOANWORD_TAILS:
+            p1, p2 = COMPOUND_LOANWORD_TAILS[sfx_lower]
+            return [
+                RUSSIAN_LAYOUT_SUFFIX_MAP.get(p1, p1),
+                RUSSIAN_LAYOUT_SUFFIX_MAP.get(p2, p2),
+            ]
+        if sfx_lower == 'сын':
+            return ['сын']
+
+        rem = sfx_lower
+        parts: List[str] = []
+
+        # 1. Strip outer Case ending if remaining stem is non-empty
+        m_case = self.case_re.search(rem)
+        if m_case and len(rem[:m_case.start()]) >= 1:
+            c_raw = m_case.group(1)
+            c_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(c_raw, c_raw)
+            parts.insert(0, c_canon)
+            rem = rem[:m_case.start()]
+
+        # 2. Strip Possessive ending if remaining stem is non-empty
+        if rem:
+            m_poss = self.poss_re.search(rem)
+            if m_poss and len(rem[:m_poss.start()]) >= 2:
+                p_raw = m_poss.group(1)
+                p_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(p_raw, p_raw)
+                parts.insert(0, p_canon)
+                rem = rem[:m_poss.start()]
+
+        # 3. Check if remaining prefix is a Plural marker (-лар/-лер/-дар/-дер/-тар/-тер)
+        if rem in self.plurals:
+            parts.insert(0, rem)
+            return parts
+
+        if not rem and parts:
+            return parts
+
+        if rem and parts:
+            rem_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(rem, rem)
+            parts.insert(0, rem_canon)
+            return parts
+
+        canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_lower, sfx)
+        return [canon]
+
     def _segment_loanword(self, word: str) -> Optional[str]:
         w_lower = word.lower()
         for root in self.loanword_roots:
@@ -161,11 +213,6 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                 sfx_fallback = word[root_len:]
                 if len(sfx_fallback) >= 1:
                     sfx_lower = sfx_fallback.lower()
-                    if sfx_lower in COMPOUND_LOANWORD_TAILS:
-                        p1, p2 = COMPOUND_LOANWORD_TAILS[sfx_lower]
-                        p1_c = RUSSIAN_LAYOUT_SUFFIX_MAP.get(p1, p1)
-                        p2_c = RUSSIAN_LAYOUT_SUFFIX_MAP.get(p2, p2)
-                        return f"{actual_root} -{p1_c} -{p2_c}"
 
                     # Check if suffix contains verbalizer + tense/person (e.g. вайбтадық -> вайб -та -дық)
                     for deriv in ['-та', '-те', '-да', '-де', '-ла', '-ле']:
@@ -176,11 +223,8 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                                 rest_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(rest, rest)
                                 return f"{actual_root} -{d_raw} -{rest_canon}"
 
-                    if sfx_lower == 'сын':
-                        return f"{actual_root} -сын"
-
-                    sfx_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_lower, sfx_fallback)
-                    return f"{actual_root} -{sfx_canon}"
+                    tail_parts = self._decompose_nominal_tail(sfx_fallback)
+                    return f"{actual_root} " + " ".join(f"-{p}" for p in tail_parts)
         return None
 
     def analyze_and_segment(self, text: str) -> str:
@@ -239,9 +283,19 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                 stem_cand = word[:m_vper.start()]
                 s_text = m_vper.group(1).lower()
 
-                # Disambiguation A: if word ends with сың/сің/сын/син, check if stem_cand + 'с' is a valid noun ending in 'с' (e.g. жұмыс, дос)
-                # where сың is actually root-final 'с' + 2nd person possessive '-ың' (жұмысың -> жұмыс -ың)
-                if s_text in ('сың', 'сің', 'сын', 'син') and (stem_cand + 'с').lower() in ('жұмыс', 'дос', 'бас', 'тас', 'құс', 'шаш'):
+                # Disambiguation A: 2nd-person verbal -сың/-сің never attaches directly to a bare stem
+                # ending in -ы/-і unless preceded by adjectival -ды/-ді/-ты/-ті/-лы/-лі or agentive -шы/-ші.
+                # Thus stems ending in bare -ы/-і (жұмы-сың, дауы-сың, табы-сың, жеңі-сің, құрылы-сың) or known
+                # monosyllabic s-stems (дос, бас, тас, құс, жас, ас, іс) are s-final nouns + possessive -ың/-ің.
+                is_adj_or_agent = (
+                    stem_cand.lower().endswith(('ды', 'ді', 'ты', 'ті', 'шы', 'ші', 'сы', 'сі'))
+                    or (stem_cand.lower().endswith(('лы', 'лі')) and not stem_cand.lower().endswith(('ылы', 'ілі')))
+                )
+                is_s_final_noun = (
+                    (stem_cand.lower().endswith(('ы', 'і')) and not is_adj_or_agent)
+                    or (stem_cand + 'с').lower() in ('дос', 'бас', 'тас', 'құс', 'жас', 'ас', 'іс')
+                )
+                if s_text in ('сың', 'сің', 'сын', 'син') and is_s_final_noun:
                     word = stem_cand + 'с'
                     p_sfx = 'ың' if s_text in ('сың', 'сын') else 'ің'
                     suffixes.insert(0, p_sfx)
@@ -283,9 +337,14 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                         break
 
             # 3. Noun Cases
-            match = None
-            if word.lower() != 'ерні':
-                match = self.case_re.search(word)
+            # Do not strip accusative -ны/-ні if word is a syncopated stem + 3rd-person possessive -ы/-і
+            # (e.g. мұрны -> мұрн + ы, қарны -> қарн + ы, ерні -> ерн + і, орны -> орн + ы, көңлі -> көңл + і)
+            is_syncope_possessive = (
+                len(word) >= 4
+                and word[-1].lower() in ('ы', 'і')
+                and word[:-1].lower() in SYNCOPE_STEM_MAP
+            )
+            match = None if is_syncope_possessive else self.case_re.search(word)
             if match:
                 matched_sfx = match.group(1)
                 stem_cand = word[:match.start()]

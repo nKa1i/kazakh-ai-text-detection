@@ -18,6 +18,14 @@ from typing import List, Tuple, Dict, Any, Optional, Set, Union
 from fst_analyzer import fst_analyzer, AdvancedKazakhFSTAnalyzer
 
 try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        DynamicFSTOverlay = AdvancedKazakhFSTAnalyzer
+
+try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
@@ -163,11 +171,11 @@ class MorphologicalAffixExtractor:
 
     def __init__(
         self,
-        fst: Optional[AdvancedKazakhFSTAnalyzer] = None,
+        fst: Optional[Any] = None,
         mask_indices: Optional[List[int]] = None,
         ablation_mode: Optional[str] = None,
     ):
-        self.fst = fst or fst_analyzer
+        self.fst = fst if fst is not None else DynamicFSTOverlay()
         self.default_mask_indices = list(mask_indices) if mask_indices is not None else None
         self.default_ablation_mode = ablation_mode
 

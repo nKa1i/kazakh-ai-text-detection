@@ -30,6 +30,16 @@
 {"surface": "жазғанбыз", "normalized": "жазғанбыз", "expected_stem": "жаз", "expected_suffixes": ["ған", "быз"], "category": "native_multi_suffix"}
 {"surface": "көргендіктен", "normalized": "көргендіктен", "expected_stem": "көр", "expected_suffixes": ["гендіктен"], "category": "native_multi_suffix"}
 {"surface": "оқығандарға", "normalized": "оқығандарға", "expected_stem": "оқы", "expected_suffixes": ["ған", "дар", "ға"], "category": "native_multi_suffix"}
+{"surface": "елдерге", "normalized": "елдерге", "expected_stem": "ел", "expected_suffixes": ["дер", "ге"], "category": "native_multi_suffix"}
+{"surface": "аттардың", "normalized": "аттардың", "expected_stem": "ат", "expected_suffixes": ["тар", "дың"], "category": "native_multi_suffix"}
+{"surface": "тілегіміз", "normalized": "тілегіміз", "expected_stem": "тілек", "expected_suffixes": ["іміз"], "category": "native_multi_suffix"}
+{"surface": "балаларға", "normalized": "балаларға", "expected_stem": "бала", "expected_suffixes": ["лар", "ға"], "category": "native_multi_suffix"}
+{"surface": "оқушылардың", "normalized": "оқушылардың", "expected_stem": "оқу", "expected_suffixes": ["шы", "лар", "дың"], "category": "native_multi_suffix"}
+{"surface": "қоғамдық", "normalized": "қоғамдық", "expected_stem": "қоғам", "expected_suffixes": ["дық"], "category": "native_multi_suffix"}
+{"surface": "жазылған", "normalized": "жазылған", "expected_stem": "жазыл", "expected_suffixes": ["ған"], "category": "native_multi_suffix"}
+{"surface": "барғандар", "normalized": "барғандар", "expected_stem": "бар", "expected_suffixes": ["ған", "дар"], "category": "native_multi_suffix"}
+{"surface": "келгендерге", "normalized": "келгендерге", "expected_stem": "кел", "expected_suffixes": ["ген", "дер", "ге"], "category": "native_multi_suffix"}
+{"surface": "достарың", "normalized": "достарың", "expected_stem": "дос", "expected_suffixes": ["тар", "ың"], "category": "native_multi_suffix"}
 {"surface": "кітабы", "normalized": "кітабы", "expected_stem": "кітап", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
 {"surface": "жүрегі", "normalized": "жүрегі", "expected_stem": "жүрек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
 {"surface": "халқы", "normalized": "халқы", "expected_stem": "халық", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
@@ -61,6 +71,16 @@
 {"surface": "көйлегі", "normalized": "көйлегі", "expected_stem": "көйлек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
 {"surface": "сүйегі", "normalized": "сүйегі", "expected_stem": "сүйек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
 {"surface": "таяғы", "normalized": "таяғы", "expected_stem": "таяқ", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
+{"surface": "мұрны", "normalized": "мұрны", "expected_stem": "мұрын", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
+{"surface": "қарны", "normalized": "қарны", "expected_stem": "қарын", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
+{"surface": "көңлі", "normalized": "көңлі", "expected_stem": "көңіл", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "кәсібі", "normalized": "кәсібі", "expected_stem": "кәсіп", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "себебі", "normalized": "себебі", "expected_stem": "себеп", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "талабы", "normalized": "талабы", "expected_stem": "талап", "expected_suffixes": ["ы"], "category": "morphophonological_alternation"}
+{"surface": "көмегі", "normalized": "көмегі", "expected_stem": "көмек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "терегі", "normalized": "терегі", "expected_stem": "терек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "кезегі", "normalized": "кезегі", "expected_stem": "кезек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
+{"surface": "төсегі", "normalized": "төсегі", "expected_stem": "төсек", "expected_suffixes": ["і"], "category": "morphophonological_alternation"}
 {"surface": "вайбтадық", "normalized": "вайбтадық", "expected_stem": "вайб", "expected_suffixes": ["та", "дық"], "category": "code_switched_slang"}
 {"surface": "доставкасы", "normalized": "доставкасы", "expected_stem": "доставка", "expected_suffixes": ["сы"], "category": "code_switched_slang"}
 {"surface": "чатботтың", "normalized": "чатботтың", "expected_stem": "чатбот", "expected_suffixes": ["тың"], "category": "code_switched_slang"}
@@ -91,6 +111,15 @@
 {"surface": "профильде", "normalized": "профильде", "expected_stem": "профиль", "expected_suffixes": ["де"], "category": "code_switched_slang"}
 {"surface": "вайбтаған", "normalized": "вайбтаған", "expected_stem": "вайб", "expected_suffixes": ["та", "ған"], "category": "code_switched_slang"}
 {"surface": "крашыма", "normalized": "крашыма", "expected_stem": "краш", "expected_suffixes": ["ым", "а"], "category": "code_switched_slang"}
+{"surface": "клиенттердің", "normalized": "клиенттердің", "expected_stem": "клиент", "expected_suffixes": ["тер", "дің"], "category": "code_switched_slang"}
+{"surface": "аккаунттарға", "normalized": "аккаунттарға", "expected_stem": "аккаунт", "expected_suffixes": ["тар", "ға"], "category": "code_switched_slang"}
+{"surface": "видеолардың", "normalized": "видеолардың", "expected_stem": "видео", "expected_suffixes": ["лар", "дың"], "category": "code_switched_slang"}
+{"surface": "файлдарымыз", "normalized": "файлдарымыз", "expected_stem": "файл", "expected_suffixes": ["дар", "ымыз"], "category": "code_switched_slang"}
+{"surface": "сервистерге", "normalized": "сервистерге", "expected_stem": "сервис", "expected_suffixes": ["тер", "ге"], "category": "code_switched_slang"}
+{"surface": "курьерлердің", "normalized": "курьерлердің", "expected_stem": "курьер", "expected_suffixes": ["лер", "дің"], "category": "code_switched_slang"}
+{"surface": "бонустары", "normalized": "бонустары", "expected_stem": "бонус", "expected_suffixes": ["тар", "ы"], "category": "code_switched_slang"}
+{"surface": "карталарды", "normalized": "карталарды", "expected_stem": "карта", "expected_suffixes": ["лар", "ды"], "category": "code_switched_slang"}
+{"surface": "сайттардан", "normalized": "сайттардан", "expected_stem": "сайт", "expected_suffixes": ["тар", "дан"], "category": "code_switched_slang"}
 {"surface": "калайсын", "normalized": "қалайсың", "expected_stem": "қалай", "expected_suffixes": ["сың"], "category": "russian_layout_corrupted"}
 {"surface": "турсынгой", "normalized": "тұрсыңғой", "expected_stem": "тұр", "expected_suffixes": ["сың", "ғой"], "category": "russian_layout_corrupted"}
 {"surface": "галымдардын", "normalized": "ғалымдардың", "expected_stem": "ғалым", "expected_suffixes": ["дар", "дың"], "category": "russian_layout_corrupted"}
@@ -121,3 +150,11 @@
 {"surface": "кози", "normalized": "көзі", "expected_stem": "көз", "expected_suffixes": ["і"], "category": "russian_layout_corrupted"}
 {"surface": "кулак", "normalized": "құлақ", "expected_stem": "құлақ", "expected_suffixes": [], "category": "russian_layout_corrupted"}
 {"surface": "журеги", "normalized": "жүрегі", "expected_stem": "жүрек", "expected_suffixes": ["і"], "category": "russian_layout_corrupted"}
+{"surface": "дауысын", "normalized": "дауысың", "expected_stem": "дауыс", "expected_suffixes": ["ың"], "category": "russian_layout_corrupted"}
+{"surface": "табысын", "normalized": "табысың", "expected_stem": "табыс", "expected_suffixes": ["ың"], "category": "russian_layout_corrupted"}
+{"surface": "кужаттар", "normalized": "құжаттар", "expected_stem": "құжат", "expected_suffixes": ["тар"], "category": "russian_layout_corrupted"}
+{"surface": "гарышкерлер", "normalized": "ғарышкерлер", "expected_stem": "ғарышкер", "expected_suffixes": ["лер"], "category": "russian_layout_corrupted"}
+{"surface": "корганыс", "normalized": "қорғаныс", "expected_stem": "қорғаныс", "expected_suffixes": [], "category": "russian_layout_corrupted"}
+{"surface": "балаларга", "normalized": "балаларға", "expected_stem": "бала", "expected_suffixes": ["лар", "ға"], "category": "russian_layout_corrupted"}
+{"surface": "окушылардын", "normalized": "оқушылардың", "expected_stem": "оқу", "expected_suffixes": ["шы", "лар", "дың"], "category": "russian_layout_corrupted"}
+{"surface": "когамдык", "normalized": "қоғамдық", "expected_stem": "қоғам", "expected_suffixes": ["дық"], "category": "russian_layout_corrupted"}

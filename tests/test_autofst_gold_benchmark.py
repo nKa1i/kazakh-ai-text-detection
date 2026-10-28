@@ -18,7 +18,7 @@ class TestAutoFSTGoldBenchmark(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_path = os.path.join(tmpdir, "gold.jsonl")
             items = build_gold_autofst_benchmark(out_path)
-            self.assertGreaterEqual(len(items), 120)
+            self.assertGreaterEqual(len(items), 160)
             categories = {item["category"] for item in items}
             self.assertEqual(categories, set(VALID_MORPH_CATEGORIES))
             for item in items:
@@ -37,7 +37,7 @@ class TestAutoFSTGoldBenchmark(unittest.TestCase):
             self.assertIn("overall", metrics)
             self.assertIn("by_category", metrics)
             self.assertGreaterEqual(metrics["overall"]["stem_accuracy"], 0.95)
-            self.assertGreaterEqual(metrics["overall"]["exact_segmentation_accuracy"], 0.94)
+            self.assertGreaterEqual(metrics["overall"]["exact_segmentation_accuracy"], 0.96)
             self.assertGreaterEqual(metrics["overall"]["boundary_f1"], 0.95)
             self.assertGreaterEqual(metrics["overall"]["normalization_accuracy"], 0.98)
 

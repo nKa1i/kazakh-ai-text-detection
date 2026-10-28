@@ -1,7 +1,7 @@
 {
   "overall": {
-    "total_samples": 123,
-    "normalization_accuracy": 0.9837,
+    "total_samples": 160,
+    "normalization_accuracy": 0.9875,
     "stem_accuracy": 1.0,
     "exact_segmentation_accuracy": 1.0,
     "boundary_precision": 1.0,
@@ -10,28 +10,28 @@
   },
   "by_category": {
     "native_multi_suffix": {
-      "total": 32,
+      "total": 42,
       "normalization_accuracy": 1.0,
       "stem_accuracy": 1.0,
       "exact_segmentation_accuracy": 1.0,
       "boundary_f1": 1.0
     },
     "morphophonological_alternation": {
-      "total": 31,
+      "total": 41,
       "normalization_accuracy": 1.0,
       "stem_accuracy": 1.0,
       "exact_segmentation_accuracy": 1.0,
       "boundary_f1": 1.0
     },
     "code_switched_slang": {
-      "total": 30,
-      "normalization_accuracy": 0.9333,
+      "total": 39,
+      "normalization_accuracy": 0.9487,
       "stem_accuracy": 1.0,
       "exact_segmentation_accuracy": 1.0,
       "boundary_f1": 1.0
     },
     "russian_layout_corrupted": {
-      "total": 30,
+      "total": 38,
       "normalization_accuracy": 1.0,
       "stem_accuracy": 1.0,
       "exact_segmentation_accuracy": 1.0,

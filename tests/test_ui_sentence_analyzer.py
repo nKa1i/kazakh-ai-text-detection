@@ -319,5 +319,12 @@ class TestUiSentenceAnalyzer(unittest.TestCase):
         self.assertTrue(any("PLUR" in aff for aff in b_plur[0]["affixes"]))
 
 
+    def test_voicing_and_syncope_root_restoration_in_sentence_analyzer(self):
+        from ui.sentence_analyzer import analyze_sentence_morphemes
+        breakdowns = analyze_sentence_morphemes("кітабы халқы жүрегі")
+        roots = [b["root"] for b in breakdowns]
+        self.assertEqual(roots, ["кітап", "халық", "жүрек"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -93,6 +93,33 @@ class TestDynamicFSTOverlay(unittest.TestCase):
         self.assertNotIn("дәп -тер", segmented)
         self.assertIn("жұмыс -ың", segmented)
 
+    def test_ood_generalization_loanword_chains_syncope_and_deverbal_nouns(self):
+        # 1. Multi-suffix loanword chains NOT in COMPOUND_LOANWORD_TAILS
+        raw_loans = "клиенттердің аккаунттарға видеолардың файлдарымыз"
+        seg_loans = self.overlay.analyze_and_segment(raw_loans)
+        self.assertIn("клиент -тер -дің", seg_loans)
+        self.assertIn("аккаунт -тар -ға", seg_loans)
+        self.assertIn("видео -лар -дың", seg_loans)
+        self.assertIn("файл -дар -ымыз", seg_loans)
+
+        # 2. All syncope stems ending in 'н' before 3rd-person possessive -ы/-і
+        raw_syncope = "мұрны қарны ерні орны көңлі"
+        seg_syncope = self.overlay.analyze_and_segment(raw_syncope)
+        self.assertIn("мұрын -ы", seg_syncope)
+        self.assertIn("қарын -ы", seg_syncope)
+        self.assertIn("ерін -і", seg_syncope)
+        self.assertIn("орын -ы", seg_syncope)
+        self.assertIn("көңіл -і", seg_syncope)
+
+        # 3. Unseen deverbal/abstract nouns ending in -ыс/-іс + 2nd-person possessive -ың/-ің
+        raw_deverbal = "дауысың табысың жеңісің құрылысың"
+        seg_deverbal = self.overlay.analyze_and_segment(raw_deverbal)
+        self.assertIn("дауыс -ың", seg_deverbal)
+        self.assertIn("табыс -ың", seg_deverbal)
+        self.assertIn("жеңіс -ің", seg_deverbal)
+        self.assertIn("құрылыс -ың", seg_deverbal)
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,15 +24,33 @@ from kaz_mage.chunker import SentencePreservingChunker
 from kaz_mage.document import DocumentAnalysisResult, DocumentChunk
 from fst_analyzer import AdvancedKazakhFSTAnalyzer
 
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        DynamicFSTOverlay = AdvancedKazakhFSTAnalyzer
+
+try:
+    from src.auto_fst.phonology import MorphophonologicalRestorer
+except (ImportError, ValueError):
+    try:
+        from auto_fst.phonology import MorphophonologicalRestorer
+    except ImportError:
+        MorphophonologicalRestorer = None
+
+_RESTORER = MorphophonologicalRestorer() if MorphophonologicalRestorer is not None else None
+
 # Module-level singleton for the FST analyzer
 _DEFAULT_FST_ANALYZER: Optional[AdvancedKazakhFSTAnalyzer] = None
 
 
-def get_default_fst_analyzer() -> AdvancedKazakhFSTAnalyzer:
-    """Returns or lazily creates a singleton AdvancedKazakhFSTAnalyzer."""
+def get_default_fst_analyzer() -> Any:
+    """Returns or lazily creates a singleton DynamicFSTOverlay / AdvancedKazakhFSTAnalyzer."""
     global _DEFAULT_FST_ANALYZER
     if _DEFAULT_FST_ANALYZER is None:
-        _DEFAULT_FST_ANALYZER = AdvancedKazakhFSTAnalyzer()
+        _DEFAULT_FST_ANALYZER = DynamicFSTOverlay()
     return _DEFAULT_FST_ANALYZER
 
 
@@ -331,6 +349,8 @@ def analyze_sentence_morphemes(
         else:
             pos = "STEM/OTHER"
 
+        if matched_affixes and _RESTORER is not None:
+            current = _RESTORER.restore_stem(current, matched_affixes[0][0], set(loanword_roots))
         root = current
         annotated_affixes = [f"-{sfx} ({tag})" for sfx, tag in matched_affixes]
 
