@@ -4,6 +4,7 @@ from .normalizer import RussianLayoutNormalizer, SUFFIX_EQUIVALENCES
 from .inducer import AutoFSTInducer, InductionResult
 from .overlay import DynamicFSTOverlay
 from .guard import RegressionGuard, GOLDEN_SENTENCES
+from .phonology import MorphophonologicalRestorer
 
 __all__ = [
     "RussianLayoutNormalizer",
@@ -13,4 +14,5 @@ __all__ = [
     "DynamicFSTOverlay",
     "RegressionGuard",
     "GOLDEN_SENTENCES",
+    "MorphophonologicalRestorer",
 ]

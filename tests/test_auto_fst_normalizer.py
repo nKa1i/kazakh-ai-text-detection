@@ -37,5 +37,20 @@ class TestRussianLayoutNormalizer(unittest.TestCase):
         self.assertIn("сың", SUFFIX_EQUIVALENCES)
         self.assertIn("сын", SUFFIX_EQUIVALENCES["сың"])
 
+    def test_synharmonic_unseen_kazakh_stems(self):
+        # Words not in static 350-word map should still be restored via synharmony + suffix rules
+        self.assertEqual(self.normalizer.normalize_word("галымдардын"), "ғалымдардың")
+        self.assertEqual(self.normalizer.normalize_word("мемлекеттик"), "мемлекеттік")
+        self.assertEqual(self.normalizer.normalize_word("курылысшылар"), "құрылысшылар")
+        self.assertEqual(self.normalizer.normalize_word("казакстандык"), "қазақстандық")
+
+    def test_russian_loanwords_preserved_uncorrupted(self):
+        # Russian loanwords with velar к/г + back vowels must NOT be turned into қ/ғ
+        self.assertEqual(self.normalizer.normalize_word("газет"), "газет")
+        self.assertEqual(self.normalizer.normalize_word("карта"), "карта")
+        self.assertEqual(self.normalizer.normalize_word("колледж"), "колледж")
+        self.assertEqual(self.normalizer.normalize_word("доставка"), "доставка")
+
+
 if __name__ == '__main__':
     unittest.main()

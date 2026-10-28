@@ -18,6 +18,13 @@ class TestRegressionGuard(unittest.TestCase):
         self.assertFalse(passed)
         self.assertIn("Reserved native root", reason)
 
+    def test_extended_native_stems_rejected(self):
+        # Extended native stems must also be protected from slang collision
+        for stem in ["ғалым", "мемлекет", "білім", "тарих", "қоғам"]:
+            passed, reason = self.guard.validate_candidate(stem)
+            self.assertFalse(passed, f"Stem '{stem}' should be reserved")
+            self.assertIn("Reserved native root", reason)
+
     def test_short_length_candidate_rejected(self):
         passed, reason = self.guard.validate_candidate("а")
         self.assertFalse(passed)

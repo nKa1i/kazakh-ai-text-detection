@@ -5,6 +5,7 @@ import json
 import re
 from typing import Dict, List, Optional
 from fst_analyzer import AdvancedKazakhFSTAnalyzer, COMMON_LOANWORD_ROOTS
+
 try:
     from .normalizer import RussianLayoutNormalizer
 except (ImportError, ValueError):
@@ -12,6 +13,14 @@ except (ImportError, ValueError):
         from auto_fst.normalizer import RussianLayoutNormalizer
     except ImportError:
         from src.auto_fst.normalizer import RussianLayoutNormalizer
+
+try:
+    from .phonology import MorphophonologicalRestorer
+except (ImportError, ValueError):
+    try:
+        from auto_fst.phonology import MorphophonologicalRestorer
+    except ImportError:
+        from src.auto_fst.phonology import MorphophonologicalRestorer
 
 EMPHATIC_PARTICLES = ['ғой', 'қой', 'гой', 'кой', 'мыс', 'міс', 'ау']
 
@@ -33,6 +42,7 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
     def __init__(self, normalizer: Optional[RussianLayoutNormalizer] = None):
         super().__init__()
         self.normalizer = normalizer or RussianLayoutNormalizer()
+        self.restorer = MorphophonologicalRestorer()
         self.custom_lexicon: Dict[str, dict] = {}
         # Initialize roots with longest-match-first sorting
         self._refresh_roots()
@@ -70,8 +80,20 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
     def _segment_loanword(self, word: str) -> Optional[str]:
         w_lower = word.lower()
         for root in self.loanword_roots:
+            matched = False
+            root_len = len(root)
             if w_lower.startswith(root) and len(w_lower) > len(root):
-                sfx_fallback = word[len(root):]
+                matched = True
+            elif root[-1] in ('п', 'қ', 'к') and len(w_lower) > len(root):
+                # Voiced root variant: п->б, қ->ғ, к->г
+                voiced_char = {'п': 'б', 'қ': 'ғ', 'к': 'г'}[root[-1]]
+                voiced_prefix = root[:-1] + voiced_char
+                if w_lower.startswith(voiced_prefix):
+                    matched = True
+                    root_len = len(voiced_prefix)
+
+            if matched:
+                sfx_fallback = word[root_len:]
                 if len(sfx_fallback) >= 1:
                     # Check if suffix contains verbalizer + tense/person (e.g. вайбтадық -> вайб -та -дық)
                     for deriv in ['-та', '-те', '-да', '-де', '-ла', '-ле']:
@@ -79,9 +101,9 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                         if sfx_fallback.startswith(d_raw) and len(sfx_fallback) > len(d_raw):
                             rest = sfx_fallback[len(d_raw):]
                             rest_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(rest.lower(), rest)
-                            return f"{word[:len(root)]} -{d_raw} -{rest_canon}"
+                            return f"{root} -{d_raw} -{rest_canon}"
                     sfx_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_fallback.lower(), sfx_fallback)
-                    return f"{word[:len(root)]} -{sfx_canon}"
+                    return f"{root} -{sfx_canon}"
         return None
 
     def analyze_and_segment(self, text: str) -> str:
@@ -101,6 +123,15 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
 
             if len(raw_word) <= 3:
                 processed_tokens.append(leading_punct + raw_word + trailing_punct)
+                continue
+
+            # Hyphenated mixed-script tokens (e.g. AI-дың, ChatGPT-мен, iPhone-ға)
+            m_mixed = re.match(r'^([A-Za-z0-9_]+)-([а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺ]+)$', raw_word)
+            if m_mixed:
+                root_str = m_mixed.group(1)
+                sfx_str = m_mixed.group(2)
+                sfx_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_str.lower(), sfx_str)
+                processed_tokens.append(leading_punct + f"{root_str} -{sfx_canon}" + trailing_punct)
                 continue
 
             # First check code-switched loanwords
@@ -193,6 +224,8 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
                         break
 
             if suffixes:
+                # Apply morphophonological stem restoration (voicing & syncope)
+                word = self.restorer.restore_stem(word, suffixes[0], set(self.loanword_roots))
                 segmented = word + " " + " ".join(f"-{s}" for s in suffixes)
                 processed_tokens.append(leading_punct + segmented + trailing_punct)
             else:

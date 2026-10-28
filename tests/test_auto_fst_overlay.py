@@ -1,4 +1,4 @@
-"""Unit tests for DynamicFSTOverlay, longest-match sorting, and JSON persistence."""
+"""Unit tests for DynamicFSTOverlay, longest-match sorting, morphophonological alternation, and JSON persistence."""
 
 import os
 import unittest
@@ -45,6 +45,30 @@ class TestDynamicFSTOverlay(unittest.TestCase):
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
+
+    def test_mixed_script_hyphenated_segmentation(self):
+        raw = "Біз жаңа AI-дың жүйесін қолданып, ChatGPT-мен сөйлестік."
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("AI -дың", segmented)
+        self.assertIn("ChatGPT -мен", segmented)
+
+    def test_native_voicing_alternation_in_overlay(self):
+        raw = "Оқушының кітабы үстелде жатыр, ал оның жүрегі тыныш."
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("кітап -ы", segmented)
+        self.assertIn("жүрек -і", segmented)
+
+    def test_vowel_syncope_alternation_in_overlay(self):
+        raw = "Қазақстан халқы бейбітшілікті қалайды."
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("халық -ы", segmented)
+
+    def test_registered_loanword_voicing_alternation(self):
+        self.overlay.register_root("стартап")
+        raw = "Бұл жаңа стартабы тез өсті."
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("стартап -ы", segmented)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,7 @@
 """Orthographic normalizer for Kazakh text typed on Russian keyboard layouts."""
 
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 HIGH_FREQ_RUSSIAN_LAYOUT_MAP: Dict[str, str] = {
     # 1. Demonstratives & Pronouns
@@ -396,6 +396,34 @@ SUFFIX_EQUIVALENCES: Dict[str, List[str]] = {
     "ке": ["ке"],
 }
 
+PROTECTED_LOANWORD_PREFIXES: Set[str] = {
+    "газет", "карта", "колледж", "доставка", "оплата", "канал", "компания",
+    "команда", "камера", "кабинет", "гарантия", "кредит", "клиент", "курьер",
+    "каталог", "компьютер", "программа", "телефон", "интернет", "банк",
+    "центр", "спорт", "парк", "кафе", "музей", "театр", "класс", "группа",
+    "факс", "код", "чек", "курс", "проект", "сайт", "файл", "видео", "фото"
+}
+
+KNOWN_STEM_RESTORATION: Dict[str, str] = {
+    "галым": "ғалым",
+    "мемлекет": "мемлекет",
+    "курылыс": "құрылыс",
+    "казакстан": "қазақстан",
+    "маселе": "мәселе",
+    "тауелсиздик": "тәуелсіздік",
+    "укимет": "үкімет",
+    "билим": "білім",
+    "гылым": "ғылым",
+    "когам": "қоғам",
+    "алем": "әлем",
+    "онер": "өнер",
+    "багдарлама": "бағдарлама",
+    "адебиет": "әдебиет",
+    "тарих": "тарих",
+    "урпак": "ұрпақ",
+    "жаналык": "жаңалық",
+}
+
 
 class RussianLayoutNormalizer:
     def __init__(self, custom_map: Optional[Dict[str, str]] = None):
@@ -403,8 +431,28 @@ class RussianLayoutNormalizer:
         if custom_map:
             self.word_map.update(custom_map)
 
+    def _apply_synharmonic_stem_restoration(self, word: str) -> str:
+        w_lower = word.lower()
+        for p in PROTECTED_LOANWORD_PREFIXES:
+            if w_lower.startswith(p):
+                return word
+
+        for stem_raw, stem_restored in KNOWN_STEM_RESTORATION.items():
+            if w_lower.startswith(stem_raw):
+                tail = word[len(stem_raw):]
+                if word.isupper():
+                    return (stem_restored + tail).upper()
+                elif word.istitle():
+                    return (stem_restored + tail).capitalize()
+                return stem_restored + tail
+        return word
+
     def normalize_word(self, word: str) -> str:
         w_lower = word.lower()
+        for p in PROTECTED_LOANWORD_PREFIXES:
+            if w_lower.startswith(p):
+                return word
+
         if w_lower in self.word_map:
             mapped = self.word_map[w_lower]
             if word.isupper():
@@ -414,11 +462,17 @@ class RussianLayoutNormalizer:
             return mapped
 
         # Apply harmonic suffix regex restoration if not directly in map
+        normalized = word
         for pat, repl in HARMONIC_SUFFIX_PATTERNS:
-            if pat.match(word):
-                return pat.sub(repl, word)
+            if pat.match(normalized):
+                normalized = pat.sub(repl, normalized)
+                break
 
-        return word
+        # Apply synharmonic stem restoration
+        normalized = self._apply_synharmonic_stem_restoration(normalized)
+
+        return normalized
+
 
     def normalize_text(self, text: str) -> str:
         if not text:

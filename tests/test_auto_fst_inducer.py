@@ -1,4 +1,4 @@
-"""Unit tests for AutoFSTInducer and phonetic profiling."""
+"""Unit tests for AutoFSTInducer, recursive slot parsing, and corpus-level paradigm induction."""
 
 import unittest
 from src.auto_fst.inducer import AutoFSTInducer, InductionResult
@@ -49,6 +49,36 @@ class TestAutoFSTInducer(unittest.TestCase):
         self.assertIsNone(self.inducer.induce_stem("ббб"))
         self.assertIsNone(self.inducer.induce_stem("asdfgh"))
         self.assertIsNone(self.inducer.induce_stem(""))
+
+    def test_multi_stack_suffix_chain_induction(self):
+        # 3-stack suffix: донат + тар + ымыз + дан
+        res = self.inducer.induce_stem("донаттарымыздан")
+        self.assertIsNotNone(res)
+        self.assertEqual(res.stem, "донат")
+        self.assertEqual(res.suffixes, ["тар", "ымыз", "дан"])
+
+    def test_mixed_script_hyphenated_token_induction(self):
+        res_ai = self.inducer.induce_stem("AI-дың")
+        self.assertIsNotNone(res_ai)
+        self.assertEqual(res_ai.stem, "AI")
+        self.assertEqual(res_ai.suffixes, ["дың"])
+
+        res_gpt = self.inducer.induce_stem("ChatGPT-мен")
+        self.assertIsNotNone(res_gpt)
+        self.assertEqual(res_gpt.stem, "ChatGPT")
+        self.assertEqual(res_gpt.suffixes, ["мен"])
+
+    def test_corpus_level_paradigm_induction(self):
+        texts = [
+            "Бүгін кешке достармен қатты вайбтадық.",
+            "Мына ойынның вайбы өте ерекше болды."
+        ]
+        inductions = self.inducer.induce_from_corpus(texts, min_paradigm_size=2)
+        stems = [ind.stem for ind in inductions]
+        self.assertIn("вайб", stems)
+        vib_ind = next(ind for ind in inductions if ind.stem == "вайб")
+        self.assertGreaterEqual(vib_ind.confidence, 0.99)
+
 
 if __name__ == '__main__':
     unittest.main()

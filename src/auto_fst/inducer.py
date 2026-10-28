@@ -1,6 +1,7 @@
 """Automated morphological stem inducer and phonetic profiler for slang and loanwords."""
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -10,6 +11,20 @@ VOICED_CONSONANTS = set('бвгджзлмнңруй')
 VOICELESS_CONSONANTS = set('пфкқтсшщхцч')
 
 KNOWN_SUFFIX_CHAINS = [
+    # 3-Stack Plural + Possessive + Case
+    ['-тар', '-ымыз', '-дан'], ['-тер', '-іміз', '-ден'],
+    ['-дар', '-ымыз', '-дан'], ['-дер', '-іміз', '-ден'],
+    ['-лар', '-ымыз', '-дан'], ['-лер', '-іміз', '-ден'],
+    ['-тар', '-ыңыз', '-дан'], ['-тер', '-іңіз', '-ден'],
+    ['-тар', '-ымыз', '-ға'], ['-тер', '-іміз', '-ге'],
+    ['-дар', '-ымыз', '-ға'], ['-дер', '-іміз', '-ге'],
+    ['-лар', '-ымыз', '-ға'], ['-лер', '-іміз', '-ге'],
+    # 2-Stack Plural + Possessive
+    ['-тар', '-ымыз'], ['-тер', '-іміз'],
+    ['-дар', '-ымыз'], ['-дер', '-іміз'],
+    ['-лар', '-ымыз'], ['-лер', '-іміз'],
+    ['-ымыз', '-дан'], ['-іміз', '-ден'],
+    ['-ыңыз', '-дан'], ['-іңіз', '-ден'],
     # Complex Verbalizer + Tense + Person
     ['-та', '-ған', '-дықтан'], ['-те', '-ген', '-діктен'],
     ['-та', '-ған'], ['-те', '-ген'], ['-да', '-ған'], ['-де', '-ген'],
@@ -82,7 +97,33 @@ class AutoFSTInducer:
     def induce_stem(self, token: str) -> Optional[InductionResult]:
         if not token or not isinstance(token, str):
             return None
-        token_clean = re.sub(r'^[^\w]+|[^\w]+$', '', token)
+        token_clean = re.sub(r'^[^\w\-]+|[^\w\-]+$', '', token)
+        if not token_clean:
+            return None
+
+        # 1. Check for hyphenated mixed-script tokens (e.g. AI-дың, ChatGPT-мен, iPhone-ға)
+        m_mixed = re.match(r'^([A-Za-z0-9_]+)-([а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺ]+)$', token_clean)
+        if m_mixed:
+            root = m_mixed.group(1)
+            sfx_raw = m_mixed.group(2).lower()
+            sorted_chains = sorted(KNOWN_SUFFIX_CHAINS, key=lambda c: len("".join(s.lstrip('-') for s in c)), reverse=True)
+            sfx_chain = None
+            for chain in sorted_chains:
+                chain_str = "".join(s.lstrip('-') for s in chain)
+                if sfx_raw == chain_str:
+                    sfx_chain = [s.lstrip('-') for s in chain]
+                    break
+            if not sfx_chain:
+                sfx_canon = RUSSIAN_LAYOUT_SUFFIX_MAP.get(sfx_raw, sfx_raw)
+                sfx_chain = [sfx_canon]
+            return InductionResult(
+                stem=root,
+                suffixes=sfx_chain,
+                harmony="hard",
+                coda="voiced",
+                confidence=0.99
+            )
+
         if not re.match(r'^[а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺ]+$', token_clean):
             return None
         t_lower = token_clean.lower()
@@ -117,3 +158,28 @@ class AutoFSTInducer:
                                 confidence=0.98 if len(stem) >= 4 else 0.85
                             )
         return None
+
+    def induce_from_corpus(self, texts: List[str], min_paradigm_size: int = 2) -> List[InductionResult]:
+        """Induces roots with confirmed paradigm diversity across corpus sentences."""
+        paradigm_map = defaultdict(lambda: {"chains": set(), "results": []})
+        for text in texts:
+            # Tokenize words, preserving hyphenated tokens
+            for token in re.findall(r'[A-Za-z0-9А-Яа-яӘәІіҢңҒғҮүҰұҚқӨөҺһ\-]+', text):
+                res = self.induce_stem(token)
+                if res:
+                    chain_tuple = tuple(res.suffixes)
+                    paradigm_map[res.stem]["chains"].add(chain_tuple)
+                    paradigm_map[res.stem]["results"].append(res)
+
+        verified = []
+        for stem, data in paradigm_map.items():
+            if len(data["chains"]) >= min_paradigm_size:
+                best_res = data["results"][0]
+                verified.append(InductionResult(
+                    stem=stem,
+                    suffixes=best_res.suffixes,
+                    harmony=best_res.harmony,
+                    coda=best_res.coda,
+                    confidence=0.99
+                ))
+        return verified
