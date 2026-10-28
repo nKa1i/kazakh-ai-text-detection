@@ -7,8 +7,8 @@ from hf_space.ui.app import APP_CSS as HF_APP_CSS
 
 class TestUIStudioCanvas(unittest.TestCase):
     def test_light_canvas_enforced(self):
-        self.assertIn("color-scheme: light", APP_CSS)
-        self.assertIn("#fbfbfa", APP_CSS)
+        self.assertIn("#2d313d", APP_CSS)
+        self.assertIn("#1a1b22", APP_CSS)
 
     def test_dark_mode_override_present(self):
         self.assertIn(".dark", APP_CSS)

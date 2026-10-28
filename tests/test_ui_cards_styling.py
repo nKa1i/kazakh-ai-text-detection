@@ -50,23 +50,23 @@ class TestUICardsStyling(unittest.TestCase):
     def test_heatmap_css_soft_pastel_and_typography(self):
         """Verifies HEATMAP_CSS contains Apple / Notion styles and pastel tiers."""
         # Container styles
-        self.assertIn("#ffffff", HEATMAP_CSS)
-        self.assertIn("#e4e4e7", HEATMAP_CSS)
-        self.assertIn("0 1px 3px rgba(0, 0, 0, 0.03)", HEATMAP_CSS)
+        self.assertIn("#1a1b22", HEATMAP_CSS)
+        self.assertIn("#2d313d", HEATMAP_CSS)
+        self.assertIn("0 1px 3px rgba(0, 0, 0, 0.2)", HEATMAP_CSS)
         self.assertIn("Inter", HEATMAP_CSS)
 
-        # Soft pastel tiers
-        self.assertIn("#ecfdf5", HEATMAP_CSS)  # lvl-human bg
+        # Three-tier classification level colors
+        self.assertIn("rgba(16, 185, 129, 0.16)", HEATMAP_CSS)  # lvl-human bg
         self.assertIn("#10b981", HEATMAP_CSS)  # lvl-human border
-        self.assertIn("#065f46", HEATMAP_CSS)  # lvl-human text
+        self.assertIn("#34d399", HEATMAP_CSS)  # lvl-human text
 
-        self.assertIn("#fffbeb", HEATMAP_CSS)  # lvl-amber bg
+        self.assertIn("rgba(245, 158, 11, 0.16)", HEATMAP_CSS)  # lvl-amber bg
         self.assertIn("#f59e0b", HEATMAP_CSS)  # lvl-amber border
-        self.assertIn("#92400e", HEATMAP_CSS)  # lvl-amber text
+        self.assertIn("#fbbf24", HEATMAP_CSS)  # lvl-amber text
 
-        self.assertIn("#fff1f2", HEATMAP_CSS)  # lvl-ai bg
+        self.assertIn("rgba(244, 63, 94, 0.18)", HEATMAP_CSS)  # lvl-ai bg
         self.assertIn("#f43f5e", HEATMAP_CSS)  # lvl-ai border
-        self.assertIn("#9f1239", HEATMAP_CSS)  # lvl-ai text
+        self.assertIn("#fb7185", HEATMAP_CSS)  # lvl-ai text
 
     def test_render_confidence_meter_apple_style(self):
         """Verifies render_confidence_meter returns sleek 6px track and pill badge."""
@@ -78,9 +78,9 @@ class TestUICardsStyling(unittest.TestCase):
         self.assertIn("99.9%", html_meter)
 
         # Check CSS definitions for confidence track
-        self.assertIn("height: 6px", HEATMAP_CSS)
-        self.assertIn("border-radius: 9999px", HEATMAP_CSS)
-        self.assertIn("#f4f4f5", HEATMAP_CSS)
+        self.assertIn("height: 8px", HEATMAP_CSS)
+        self.assertIn("border-radius: 4px", HEATMAP_CSS)
+        self.assertIn("#21232d", HEATMAP_CSS)
 
     def test_render_executive_summary_card_4_metric_grid(self):
         """Verifies render_executive_summary_card displays 4-metric grid with monospace values."""
