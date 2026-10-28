@@ -69,6 +69,30 @@ class TestDynamicFSTOverlay(unittest.TestCase):
         segmented = self.overlay.analyze_and_segment(raw)
         self.assertIn("стартап -ы", segmented)
 
+    def test_loanword_nominal_suffixes_not_corrupted_by_verbalizer(self):
+        # каспиден -> каспи -ден (NOT каспи -де -н)
+        # бонустар -> бонус -тар (NOT бонус -та -р)
+        # видеолар -> видео -лар (NOT видео -ла -р)
+        # файлдарды -> файл -дар -ды (NOT файл -да -рды)
+        raw = "каспиден бонустар видеолар файлдарды чектерді курьерден"
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("каспи -ден", segmented)
+        self.assertIn("бонус -тар", segmented)
+        self.assertIn("видео -лар", segmented)
+        self.assertIn("файл -дар -ды", segmented)
+        self.assertIn("чек -тер -ді", segmented)
+        self.assertIn("курьер -ден", segmented)
+
+    def test_two_letter_roots_and_uninflected_words(self):
+        # үйлердің -> үй -лер -дің; ұлдардың -> ұл -дар -дың; дәптер -> дәптер (unsplit)
+        raw = "үйлердің ұлдардың дәптер жұмысың"
+        segmented = self.overlay.analyze_and_segment(raw)
+        self.assertIn("үй -лер -дің", segmented)
+        self.assertIn("ұл -дар -дың", segmented)
+        self.assertIn("дәптер", segmented)
+        self.assertNotIn("дәп -тер", segmented)
+        self.assertIn("жұмыс -ың", segmented)
+
 
 if __name__ == '__main__':
     unittest.main()

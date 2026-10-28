@@ -51,6 +51,13 @@ class TestRussianLayoutNormalizer(unittest.TestCase):
         self.assertEqual(self.normalizer.normalize_word("колледж"), "колледж")
         self.assertEqual(self.normalizer.normalize_word("доставка"), "доставка")
 
+    def test_general_back_vowel_synharmonic_restoration(self):
+        # Unseen words NOT in KNOWN_STEM_RESTORATION must still be restored algorithmically
+        self.assertEqual(self.normalizer.normalize_word("кужаттар"), "құжаттар")
+        self.assertEqual(self.normalizer.normalize_word("гарышкерлер"), "ғарышкерлер")
+        self.assertEqual(self.normalizer.normalize_word("карганда"), "қарғанда")
+        self.assertEqual(self.normalizer.normalize_word("корганыс"), "қорғаныс")
+
 
 if __name__ == '__main__':
     unittest.main()

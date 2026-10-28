@@ -401,7 +401,11 @@ PROTECTED_LOANWORD_PREFIXES: Set[str] = {
     "команда", "камера", "кабинет", "гарантия", "кредит", "клиент", "курьер",
     "каталог", "компьютер", "программа", "телефон", "интернет", "банк",
     "центр", "спорт", "парк", "кафе", "музей", "театр", "класс", "группа",
-    "факс", "код", "чек", "курс", "проект", "сайт", "файл", "видео", "фото"
+    "факс", "код", "чек", "курс", "проект", "сайт", "файл", "видео", "фото",
+    "каспи", "аккаунт", "профиль", "бонус", "скидка", "сервис", "оператор",
+    "комиссия", "процент", "качество", "бронь", "грант", "гранд", "меню",
+    "плюс", "отзыв", "товар", "заявка", "сумма", "арна", "номер", "пароль",
+    "страница", "приложение", "возврат", "заказ", "акция", "тикток", "ватсап", "инстаграм", "телеграм", "вайб", "чилл", "краш", "донат", "чатбот"
 }
 
 KNOWN_STEM_RESTORATION: Dict[str, str] = {
@@ -422,6 +426,10 @@ KNOWN_STEM_RESTORATION: Dict[str, str] = {
     "тарих": "тарих",
     "урпак": "ұрпақ",
     "жаналык": "жаңалық",
+    "гарыш": "ғарыш",
+    "корган": "қорған",
+    "карган": "қарған",
+    "кужат": "құжат",
 }
 
 
@@ -431,20 +439,43 @@ class RussianLayoutNormalizer:
         if custom_map:
             self.word_map.update(custom_map)
 
+    @staticmethod
+    def _match_casing(original: str, restored_lower: str) -> str:
+        if original.isupper():
+            return restored_lower.upper()
+        if original.istitle():
+            return restored_lower.capitalize()
+        return restored_lower
+
     def _apply_synharmonic_stem_restoration(self, word: str) -> str:
         w_lower = word.lower()
         for p in PROTECTED_LOANWORD_PREFIXES:
             if w_lower.startswith(p):
                 return word
 
+        # 1. Known explicit stem restorations
         for stem_raw, stem_restored in KNOWN_STEM_RESTORATION.items():
             if w_lower.startswith(stem_raw):
                 tail = word[len(stem_raw):]
-                if word.isupper():
-                    return (stem_restored + tail).upper()
-                elif word.istitle():
-                    return (stem_restored + tail).capitalize()
-                return stem_restored + tail
+                res = stem_restored + tail.lower()
+                return self._match_casing(word, res)
+
+        # 2. Algorithmic back-vowel synharmonic rule
+        # If word has back vowels and velar consonants without protected loanword status
+        has_back = any(ch in "аоұыу" for ch in w_lower)
+        if has_back and len(w_lower) >= 4:
+            res = w_lower
+            for qu_pref in ("кужат", "курыл", "куткар", "кунды", "купия", "кукык"):
+                if res.startswith(qu_pref):
+                    res = "құ" + res[2:]
+                    break
+            # Velar -> Uvular restoration adjacent to back vowels
+            res = re.sub(r'к(?=[аоұы])', 'қ', res)
+            res = re.sub(r'(?<=[аоұы])к', 'қ', res)
+            res = re.sub(r'г(?=[аоұы])', 'ғ', res)
+            res = re.sub(r'(?<=[аоұы])г', 'ғ', res)
+            return self._match_casing(word, res)
+
         return word
 
     def normalize_word(self, word: str) -> str:

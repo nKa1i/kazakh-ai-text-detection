@@ -36,9 +36,10 @@ class TestAutoFSTGoldBenchmark(unittest.TestCase):
             metrics = evaluate_autofst_on_benchmark(bench_path, res_path)
             self.assertIn("overall", metrics)
             self.assertIn("by_category", metrics)
-            self.assertGreaterEqual(metrics["overall"]["stem_accuracy"], 0.85)
-            self.assertGreaterEqual(metrics["overall"]["boundary_f1"], 0.85)
-            self.assertGreaterEqual(metrics["overall"]["normalization_accuracy"], 0.90)
+            self.assertGreaterEqual(metrics["overall"]["stem_accuracy"], 0.95)
+            self.assertGreaterEqual(metrics["overall"]["exact_segmentation_accuracy"], 0.94)
+            self.assertGreaterEqual(metrics["overall"]["boundary_f1"], 0.95)
+            self.assertGreaterEqual(metrics["overall"]["normalization_accuracy"], 0.98)
 
 
 if __name__ == "__main__":

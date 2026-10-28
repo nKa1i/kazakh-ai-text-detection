@@ -1,41 +1,41 @@
 {
   "overall": {
     "total_samples": 123,
-    "normalization_accuracy": 1.0,
-    "stem_accuracy": 0.8862,
-    "exact_segmentation_accuracy": 0.7642,
-    "boundary_precision": 0.9145,
-    "boundary_recall": 0.858,
-    "boundary_f1": 0.8854
+    "normalization_accuracy": 0.9837,
+    "stem_accuracy": 1.0,
+    "exact_segmentation_accuracy": 1.0,
+    "boundary_precision": 1.0,
+    "boundary_recall": 1.0,
+    "boundary_f1": 1.0
   },
   "by_category": {
     "native_multi_suffix": {
       "total": 32,
       "normalization_accuracy": 1.0,
-      "stem_accuracy": 0.8125,
-      "exact_segmentation_accuracy": 0.6562,
-      "boundary_f1": 0.8718
+      "stem_accuracy": 1.0,
+      "exact_segmentation_accuracy": 1.0,
+      "boundary_f1": 1.0
     },
     "morphophonological_alternation": {
       "total": 31,
       "normalization_accuracy": 1.0,
       "stem_accuracy": 1.0,
-      "exact_segmentation_accuracy": 0.9677,
-      "boundary_f1": 0.9841
+      "exact_segmentation_accuracy": 1.0,
+      "boundary_f1": 1.0
     },
     "code_switched_slang": {
       "total": 30,
-      "normalization_accuracy": 1.0,
+      "normalization_accuracy": 0.9333,
       "stem_accuracy": 1.0,
-      "exact_segmentation_accuracy": 0.7333,
-      "boundary_f1": 0.88
+      "exact_segmentation_accuracy": 1.0,
+      "boundary_f1": 1.0
     },
     "russian_layout_corrupted": {
       "total": 30,
       "normalization_accuracy": 1.0,
-      "stem_accuracy": 0.7333,
-      "exact_segmentation_accuracy": 0.7,
-      "boundary_f1": 0.8136
+      "stem_accuracy": 1.0,
+      "exact_segmentation_accuracy": 1.0,
+      "boundary_f1": 1.0
     }
   }
 }

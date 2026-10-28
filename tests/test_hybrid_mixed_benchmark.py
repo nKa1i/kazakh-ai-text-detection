@@ -9,6 +9,7 @@ import unittest
 from scripts.build_hybrid_mixed_benchmark import (
     build_hybrid_mixed_dataset,
     evaluate_span_boundary_detection,
+    _score_sentence_ai_likelihood,
     PROVENANCE_CLASSES,
     GENERATOR_FAMILIES
 )
@@ -38,6 +39,19 @@ class TestHybridMixedBenchmark(unittest.TestCase):
             self.assertIn("boundary_iou", metrics)
             self.assertIn("by_generator", metrics)
             self.assertGreater(metrics["sentence_macro_f1"], 0.65)
+
+    def test_sentence_pool_diversity_and_fst_scoring(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_path = os.path.join(tmpdir, "hybrid_spans.jsonl")
+            docs = build_hybrid_mixed_dataset(out_path, num_per_class=25)
+            all_sentences = [s for d in docs for s in d["sentences"]]
+            unique_sentences = set(all_sentences)
+            self.assertGreaterEqual(len(unique_sentences), 65)
+
+            human_score = _score_sentence_ai_likelihood("Біз кеше кешке достармен бірге қыдырып, керемет демалып қайттық қой.")
+            ai_score = _score_sentence_ai_likelihood("Аталған мемлекеттік бағдарлама шеңберінде экономикалық процестерді цифрландыру бойынша тиісті шаралар қабылданған.")
+            self.assertLess(human_score, 0.45)
+            self.assertGreater(ai_score, 0.55)
 
 
 if __name__ == "__main__":
