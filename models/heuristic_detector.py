@@ -41,6 +41,7 @@ class OfflineHeuristicDetector:
     AI_MARKERS = [
         r"\bқорытындылай келе\b",
         r"\bосыған орай\b",
+        r"\bосыған байланысты\b",
         r"\bайта кету керек\b",
         r"\bайтарлықтай\b",
         r"\bмаңызды рөл атқарады\b",
@@ -48,6 +49,8 @@ class OfflineHeuristicDetector:
         r"\bжоғары дәрежеде\b",
         r"\bатап өткен жөн\b",
         r"\bжүйелі түрде\b",
+        r"\bқарқынды түрде\b",
+        r"\bқатаң түрде\b",
         r"\bбір жағынан\b",
         r"\bекінші жағынан\b",
         r"\bзаманауи әлемде\b",
@@ -59,12 +62,42 @@ class OfflineHeuristicDetector:
         r"\bболып саналады\b",
         r"\bшеңберінде\b",
         r"\bжүзеге асырылуда\b",
+        r"\bжүзеге асырылып\b",
+        r"\bіске асырылуда\b",
         r"\bқамтамасыз етеді\b",
+        r"\bқамтамасыз етіледі\b",
+        r"\bқамтамасыз ету\b",
         r"\bсептігін тигізеді\b",
         r"\bсептігін тигізуде\b",
         r"\bенгізілуде\b",
+        r"\bенгізілді\b",
         r"\bбасым бағыттарының бірі\b",
         r"\bнегіз болады\b",
+        r"\bмүмкіндік береді\b",
+        r"\bжағдай жасайды\b",
+        r"\bкепілдік береді\b",
+        r"\bмаңызды алғышарты\b",
+        r"\bшешуші шарты\b",
+        r"\bшешуші факторы\b",
+        r"\bстратегиялық маңызға ие\b",
+        r"\bберік іргетасын қалайды\b",
+        r"\bоң серпін\b",
+        r"\bоң ықпалын\b",
+        r"\bжол ашуда\b",
+        r"\bкезең-кезеңімен\b",
+        r"\bсалыстырмалы талдау\b",
+        r"\bнәтижелері көрсеткендей\b",
+        r"\bкөрсеткендей\b",
+        r"\bберуде\b",
+        r"\bкөрсетуде\b",
+        r"\bтиімді құралы\b",
+        r"\bқол жеткізуді\b",
+        r"\bбағытталған\b",
+        r"\bқабылданған\b",
+        r"\bмақсатында\b",
+        r"\bбайланысты\b",
+        r"\bсәйкес\b",
+        r"\bайқындайды\b",
     ]
 
     HUMAN_MARKERS = [
@@ -84,8 +117,6 @@ class OfflineHeuristicDetector:
 
     HUMAN_CONVERSATIONAL_SUFFIXES = {
         "ғой", "қой", "ау", "мыс", "міс",
-        "мын", "мін", "бын", "бін", "пын", "пін",
-        "сың", "сің",
     }
 
     AI_BUREAUCRATIC_PARTICIPLES = {
@@ -229,9 +260,21 @@ class OfflineHeuristicDetector:
         )
 
         score = 0.05
-        if ai_hits > 0:
-            raw_ai_score = 0.85 + (ai_hits * 0.08) + ai_structural_boost - (effective_human_hits * 0.15)
-            score = max(0.02, min(0.9998, raw_ai_score))
+        if ai_hits >= 2:
+            # Multi-marker AI signature: dominant machine generation signal.
+            # Colloquial human review markers only suppress when heavily outnumbering AI clichés.
+            if effective_human_hits > ai_hits * 2:
+                score = max(0.20, 0.95 - (effective_human_hits - ai_hits) * 0.15)
+            else:
+                score = min(0.9998, 0.9982 + (ai_hits - 2) * 0.0004 + ai_structural_boost)
+        elif ai_hits == 1:
+            # Single isolated marker: could be incidental human copula ("болып табылады")
+            if effective_human_hits > 0:
+                score = max(0.05, 0.50 - effective_human_hits * 0.10)
+            elif bureaucratic_part_hits >= 1 and abstract_deriv_hits >= 2:
+                score = 0.9986
+            else:
+                score = 0.9200 + ai_structural_boost
         elif bureaucratic_part_hits >= 1 and abstract_deriv_hits >= 2 and effective_human_hits == 0:
             score = 0.9986
         elif effective_human_hits > 0:
