@@ -405,7 +405,7 @@ class DynamicFSTOverlay(AdvancedKazakhFSTAnalyzer):
 
             # 7. Agentive Derivational Suffixes (-ші / -шы)
             if self._valid_stem_len(word) and not had_verb:
-                for ag in self.agentive_suffixes:
+                for ag in getattr(self, "agentive_suffixes", ["ші", "шы"]):
                     if word.lower().endswith(ag) and self._valid_stem_len(word[:-len(ag)]):
                         sfx = word[-len(ag):]
                         word = word[:-len(ag)]

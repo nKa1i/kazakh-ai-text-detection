@@ -357,6 +357,72 @@ class TestHfSpaceSynchronizedComponents(unittest.TestCase):
         finally:
             sys.path = old_sys_path
 
+    def test_heuristic_detector_autofst_v2_and_dynamic_gate_in_hf_space(self):
+        """Assert hf_space/models/heuristic_detector.py exports OfflineHeuristicDetector with compute_dynamic_gate."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "models", "heuristic_detector.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist in hf_space bundle")
+
+        spec = importlib.util.spec_from_file_location("hf_space_models_heuristic_detector", target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec.loader.exec_module(mod)
+            self.assertTrue(hasattr(mod, "OfflineHeuristicDetector"))
+            det = mod.OfflineHeuristicDetector()
+            self.assertTrue(hasattr(det, "compute_dynamic_gate"))
+            gate = det.compute_dynamic_gate("Бұл қазақша сынақ мәтіні.")
+            self.assertGreaterEqual(gate, 0.22)
+            self.assertLessEqual(gate, 0.74)
+        finally:
+            sys.path = old_sys_path
+
+    def test_morpheme_tokenizer_autofst_v2_in_hf_space(self):
+        """Assert hf_space/morpheme_tokenizer.py exports MorphemeTokenizer using DynamicFSTOverlay."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "morpheme_tokenizer.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist in hf_space bundle")
+
+        spec = importlib.util.spec_from_file_location("hf_space_morpheme_tokenizer", target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec.loader.exec_module(mod)
+            self.assertTrue(hasattr(mod, "MorphemeTokenizer"))
+            tok = mod.MorphemeTokenizer()
+            self.assertTrue(hasattr(tok.fst, "normalizer"))
+            tokens = tok.tokenize_text("Бугин каспиден заказ бердим")
+            self.assertIn("-ден", tokens)
+        finally:
+            sys.path = old_sys_path
+
+    def test_auto_fst_v2_package_exports_in_hf_space(self):
+        """Assert hf_space/auto_fst exports DynamicFSTOverlay and RussianLayoutNormalizer."""
+        import importlib.util
+        norm_path = os.path.join(HF_SPACE_DIR, "auto_fst", "normalizer.py")
+        over_path = os.path.join(HF_SPACE_DIR, "auto_fst", "overlay.py")
+        self.assertTrue(os.path.isfile(norm_path))
+        self.assertTrue(os.path.isfile(over_path))
+
+        spec_norm = importlib.util.spec_from_file_location("hf_space_auto_fst_normalizer", norm_path)
+        mod_norm = importlib.util.module_from_spec(spec_norm)
+        spec_norm.loader.exec_module(mod_norm)
+        self.assertTrue(hasattr(mod_norm, "RussianLayoutNormalizer"))
+
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec_over = importlib.util.spec_from_file_location("hf_space_auto_fst_overlay", over_path)
+            mod_over = importlib.util.module_from_spec(spec_over)
+            spec_over.loader.exec_module(mod_over)
+            self.assertTrue(hasattr(mod_over, "DynamicFSTOverlay"))
+        finally:
+            sys.path = old_sys_path
+
 
 if __name__ == "__main__":
     unittest.main()

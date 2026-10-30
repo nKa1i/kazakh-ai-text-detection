@@ -16,6 +16,9 @@ class TestMultiDomainKernelBuild(unittest.TestCase):
         # Verify all required components are embedded in the generated kernel
         required_symbols = [
             "AdvancedKazakhFSTAnalyzer",
+            "DynamicFSTOverlay",
+            "RussianLayoutNormalizer",
+            "compute_dynamic_gate",
             "MorphemeTokenizer",
             "MorphemeEncoder",
             "MorphoContrastiveDetector",
@@ -32,6 +35,8 @@ class TestMultiDomainKernelBuild(unittest.TestCase):
         ]
         for sym in required_symbols:
             self.assertIn(sym, code, f"Symbol '{sym}' missing from generated kernel.")
+
+        self.assertIn("fst_analyzer = DynamicFSTOverlay()", code)
 
         if os.path.exists(kernel_path):
             os.remove(kernel_path)

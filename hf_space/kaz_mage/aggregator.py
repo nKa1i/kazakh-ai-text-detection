@@ -1,4 +1,4 @@
-import math
+﻿import math
 from typing import List, Optional
 from .document import DocumentChunk, DocumentAnalysisResult
 

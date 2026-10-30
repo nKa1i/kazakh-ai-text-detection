@@ -24,6 +24,40 @@ import zlib
 from typing import Optional
 
 
+def _build_embedded_autofst_v2_source(repo_root: str) -> str:
+    phon_path = os.path.join(repo_root, "src", "auto_fst", "phonology.py")
+    norm_path = os.path.join(repo_root, "src", "auto_fst", "normalizer.py")
+    over_path = os.path.join(repo_root, "src", "auto_fst", "overlay.py")
+
+    with open(phon_path, "r", encoding="utf-8") as f:
+        phon_src = f.read()
+    with open(norm_path, "r", encoding="utf-8") as f:
+        norm_src = f.read()
+    with open(over_path, "r", encoding="utf-8") as f:
+        over_src = f.read()
+
+    phon_lines = [l for l in phon_src.splitlines() if not (l.startswith("# -*-") or l.strip().startswith('"""'))]
+    norm_lines = [l for l in norm_src.splitlines() if not (l.startswith("# -*-") or l.strip().startswith('"""'))]
+
+    over_raw_lines = over_src.splitlines()
+    start_idx = 0
+    for idx, l in enumerate(over_raw_lines):
+        if l.startswith("EMPHATIC_PARTICLES ="):
+            start_idx = idx
+            break
+    over_lines = over_raw_lines[start_idx:]
+
+    combined = "\n".join([
+        "\n# -----------------------------------------------------------------------------",
+        "# 1b. Embedded Auto-FST v2 Components (Phonology, Normalizer, DynamicFSTOverlay)",
+        "# -----------------------------------------------------------------------------",
+        "\n".join(phon_lines),
+        "\n".join(norm_lines),
+        "\n".join(over_lines),
+    ])
+    return combined
+
+
 def build_multi_domain_kernel(
     output_path: Optional[str] = None,
     train_data_path: Optional[str] = None,
@@ -137,8 +171,10 @@ def build_multi_domain_kernel(
     print(f"Compressed eval data: {len(raw_eval_bytes):,} bytes -> {len(comp_eval_bytes):,} bytes ({len(b64_eval_str):,} b64 chars)")
 
     # Replace placeholders in kernel template
+    autofst_v2_code = _build_embedded_autofst_v2_source(repo_root)
     kernel_code = KERNEL_TEMPLATE.replace("__MULTI_DOMAIN_TRAIN_B64__", b64_train_str)
     kernel_code = kernel_code.replace("__MAGE_EVAL_DATA_B64__", b64_eval_str)
+    kernel_code = kernel_code.replace("__EMBEDDED_AUTOFST_V2__", autofst_v2_code)
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
@@ -266,6 +302,8 @@ class AdvancedKazakhFSTAnalyzer:
             'мыз', 'міз', 'быз', 'біз', 'пыз', 'піз',
             'сың', 'сің', 'сыздар', 'сіздер'
         ]
+        self.agentive_suffixes = ['ші', 'шы']
+        self.verbalizers = ['лан', 'лен', 'дан', 'ден', 'тан', 'тен']
         self.case_re = re.compile(r'(' + '|'.join(self.cases) + r')$')
         self.poss_re = re.compile(r'(' + '|'.join(self.possessives) + r')$')
         self.plur_re = re.compile(r'(' + '|'.join(self.plurals) + r')$')
@@ -333,14 +371,17 @@ class AdvancedKazakhFSTAnalyzer:
         return " ".join(processed_words)
 
 
+__EMBEDDED_AUTOFST_V2__
+
+
 # -----------------------------------------------------------------------------
 # 2. Embedded Morpheme Sequence Tokenizer
 # -----------------------------------------------------------------------------
 SPECIAL_TOKENS = ["<PAD>", "<UNK>", "<ROOT>", "<LOAN>", "<NOMINAL>", "<VERBAL>", "<EOS>"]
 
 class MorphemeTokenizer:
-    def __init__(self, fst_analyzer: Optional[AdvancedKazakhFSTAnalyzer] = None):
-        self.fst = fst_analyzer or AdvancedKazakhFSTAnalyzer()
+    def __init__(self, fst_analyzer: Optional[Any] = None):
+        self.fst = fst_analyzer or DynamicFSTOverlay()
         self.vocab: Dict[str, int] = {}
         self._build_vocab()
         self.id2token = {idx: tok for tok, idx in self.vocab.items()}
@@ -368,6 +409,15 @@ class MorphemeTokenizer:
             all_affixes.add(f"-{vt}")
         for vp in self.fst.verbal_persons:
             all_affixes.add(f"-{vp}")
+        for adj in getattr(self.fst, "deriv_adjectives", [
+            "ғандықтан", "гендіктен", "қандықтан", "кендіктен",
+            "лық", "лік", "дық", "дік", "тық", "тік", "ша", "ше"
+        ]):
+            all_affixes.add(f"-{adj}")
+        for vb in getattr(self.fst, "verbalizers", ["лан", "лен", "дан", "ден", "тан", "тен"]):
+            all_affixes.add(f"-{vb}")
+        for ep in getattr(self.fst, "EMPHATIC_PARTICLES", ["ғой", "қой", "ау", "мыс", "міс"]):
+            all_affixes.add(f"-{ep}")
         for sfx in sorted(all_affixes):
             self.vocab[sfx] = idx
             idx += 1
@@ -396,6 +446,27 @@ class MorphemeTokenizer:
                 ids = ids + [self.pad_token_id] * (max_length - len(ids))
             batch_ids.append(ids)
         return torch.tensor(batch_ids, dtype=torch.long)
+
+
+def compute_dynamic_gate(raw_text: str, normalizer: Optional[Any] = None) -> float:
+    """
+    Computes the dynamic context-vs-morphology gate weight g in [0.22, 0.74].
+    """
+    if not raw_text or not raw_text.strip():
+        return 0.50
+    norm = normalizer or RussianLayoutNormalizer()
+    words = raw_text.split()
+    if not words:
+        return 0.50
+    norm_words = norm.normalize_text(raw_text).split()
+    ortho_shifts = sum(
+        1
+        for i in range(min(len(words), len(norm_words)))
+        if words[i].lower() != norm_words[i].lower() or norm.has_russian_layout_artifacts(words[i])
+    )
+    ortho_ratio = ortho_shifts / float(len(words))
+    gate = 0.68 - 0.38 * min(1.0, ortho_ratio * 1.5)
+    return round(max(0.22, min(0.74, gate)), 4)
 
 
 # -----------------------------------------------------------------------------
@@ -1291,7 +1362,7 @@ print(f"Eval domain balance: {eval_dom_counts}")
 # -----------------------------------------------------------------------------
 # 9. Tokenizer & Data Loading Initialization
 # -----------------------------------------------------------------------------
-fst_analyzer = AdvancedKazakhFSTAnalyzer()
+fst_analyzer = DynamicFSTOverlay()
 morpheme_tokenizer = MorphemeTokenizer(fst_analyzer=fst_analyzer)
 print(f"MorphemeTokenizer vocab size: {len(morpheme_tokenizer.vocab)}")
 
