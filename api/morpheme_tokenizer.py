@@ -1,14 +1,33 @@
+# -*- coding: utf-8 -*-
+"""Closed-vocabulary morphological sequence tokenizer powered by Auto-FST v2 (DynamicFSTOverlay)."""
+
 import os
 import sys
 
-# Ensure both local and project root imports work
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay, EMPHATIC_PARTICLES
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay, EMPHATIC_PARTICLES
+    except ImportError:
+        if _PROJECT_ROOT not in sys.path:
+            sys.path.insert(0, _PROJECT_ROOT)
+        try:
+            from src.auto_fst.overlay import DynamicFSTOverlay, EMPHATIC_PARTICLES
+        except ImportError:
+            DynamicFSTOverlay = None
+            EMPHATIC_PARTICLES = ["ғой", "қой", "мыс", "міс", "ау"]
+
 try:
     from api.fst_analyzer import AdvancedKazakhFSTAnalyzer
 except ImportError:
     try:
         from fst_analyzer import AdvancedKazakhFSTAnalyzer
     except ImportError:
-        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+        if _PROJECT_ROOT not in sys.path:
+            sys.path.insert(0, _PROJECT_ROOT)
         from fst_analyzer import AdvancedKazakhFSTAnalyzer
 
 SPECIAL_TOKENS = ["<PAD>", "<UNK>", "<ROOT>", "<LOAN>", "<NOMINAL>", "<VERBAL>", "<EOS>"]
@@ -59,7 +78,13 @@ class MorphemeTokenizer:
     """Closed-vocabulary morphological sequence tokenizer for Kazakh FST affixes and roots."""
 
     def __init__(self, fst_analyzer=None):
-        self.fst = fst_analyzer if fst_analyzer is not None else AdvancedKazakhFSTAnalyzer()
+        if fst_analyzer is not None:
+            self.fst = fst_analyzer
+        elif DynamicFSTOverlay is not None:
+            self.fst = DynamicFSTOverlay()
+        else:
+            self.fst = AdvancedKazakhFSTAnalyzer()
+
         self.vocab: dict[str, int] = {}
         self._build_vocab()
         self.id2token = {idx: tok for tok, idx in self.vocab.items()}
@@ -77,32 +102,44 @@ class MorphemeTokenizer:
             self.vocab[tok] = idx
             idx += 1
 
-        # Collect all explicit affixes from the FST analyzer
         all_affixes = set()
-        for c in self.fst.cases:
+        for c in getattr(self.fst, "cases", []):
             all_affixes.add(f"-{c}")
-        for p in self.fst.possessives:
+        for p in getattr(self.fst, "possessives", []):
             all_affixes.add(f"-{p}")
-        for pl in self.fst.plurals:
+        for pl in getattr(self.fst, "plurals", []):
             all_affixes.add(f"-{pl}")
-        for vt in self.fst.verbal_tenses:
+        for vt in getattr(self.fst, "verbal_tenses", []):
             all_affixes.add(f"-{vt}")
-        for vp in self.fst.verbal_persons:
+        for vp in getattr(self.fst, "verbal_persons", []):
             all_affixes.add(f"-{vp}")
+        for vn in getattr(self.fst, "verbal_negations", []):
+            all_affixes.add(f"-{vn}")
+        for vb in getattr(self.fst, "verbalizers", []):
+            all_affixes.add(f"-{vb}")
+        for da in getattr(self.fst, "deriv_adjectives", []):
+            all_affixes.add(f"-{da}")
+        for ag in getattr(self.fst, "agentive_suffixes", []):
+            all_affixes.add(f"-{ag}")
+        for pt in EMPHATIC_PARTICLES:
+            all_affixes.add(f"-{pt}")
 
         for sfx in sorted(all_affixes):
             self.vocab[sfx] = idx
             idx += 1
 
     def tokenize_text(self, text: str) -> list[str]:
-        """Runs FST segmentation and extracts morpheme tokens."""
+        """Runs Auto-FST v2 segmentation and extracts canonical morpheme tokens."""
         if not text or not isinstance(text, str):
             return []
         segmented = self.fst.analyze_and_segment(text)
         tokens = []
-        for word in segmented.split():
-            if word.startswith("-") and len(word) > 1:
-                tokens.append(word)
+        for raw_tok in segmented.split():
+            cleaned = raw_tok.strip(".,!?;:\"'()[]«»—–")
+            if not cleaned:
+                continue
+            if cleaned.startswith("-") and len(cleaned) > 1:
+                tokens.append(cleaned.lower())
             else:
                 tokens.append("<ROOT>")
         return tokens

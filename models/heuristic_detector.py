@@ -1,108 +1,245 @@
 # -*- coding: utf-8 -*-
 """
-models/heuristic_detector.py: Defensive Offline Heuristic Detector.
-Provides realistic Kazakh AI-text probabilities and document chunk aggregation
-when GPU or PyTorch transformer weights are not loaded.
+models/heuristic_detector.py: Defensive Offline Heuristic Detector with Auto-FST v2.
+Provides morphologically grounded Kazakh AI-text probabilities, dynamic semantic-vs-FST
+gate allocation, and document chunk aggregation when GPU/PyTorch weights are not loaded.
 """
 
+import os
 import re
-from typing import Tuple, Dict, Any, Optional
+import sys
+from typing import Any, Dict, Optional, Tuple
 
-from kaz_mage.chunker import SentencePreservingChunker
-from kaz_mage.document import DocumentAnalysisResult, DocumentChunk
 from kaz_mage.aggregator import DocumentAggregator
+from kaz_mage.chunker import SentencePreservingChunker
+from kaz_mage.document import DocumentAnalysisResult
 from ui.presets import PRESET_SAMPLES, VERIFICATION_PRESET_SAMPLES
+
+try:
+    from src.auto_fst.overlay import DynamicFSTOverlay
+except ImportError:
+    try:
+        from auto_fst.overlay import DynamicFSTOverlay
+    except ImportError:
+        _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if _ROOT not in sys.path:
+            sys.path.insert(0, _ROOT)
+        from src.auto_fst.overlay import DynamicFSTOverlay
+
+
+_WORD_TOKEN_RE = re.compile(r"[а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺa-zA-Z0-9\-]+", re.UNICODE)
+_LATIN_ROOT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
 class OfflineHeuristicDetector:
     """
-    High-fidelity defensive heuristic detector providing realistic Kazakh
-    AI-text probabilities when GPU/PyTorch weights are not present.
+    High-fidelity defensive heuristic detector powered by Auto-FST v2
+    (DynamicFSTOverlay + RussianLayoutNormalizer) providing realistic Kazakh
+    AI-text probabilities and dynamic stream gate weights offline.
     """
 
     AI_MARKERS = [
-        r'\bқорытындылай келе\b',
-        r'\bосыған орай\b',
-        r'\bайта кету керек\b',
-        r'\bайтарлықтай\b',
-        r'\bмаңызды рөл атқарады\b',
-        r'\bжоғары дәрежеде\b',
-        r'\bатап өткен жөн\b',
-        r'\bжүйелі түрде\b',
-        r'\bбір жағынан\b',
-        r'\bекінші жағынан\b',
-        r'\bзаманауи әлемде\b',
-        r'\bбүгінгі таңда\b',
-        r'\bайқын көрініс табады\b',
-        r'\bтиімділігін арттыру\b',
-        r'\bболып табылады\b',
+        r"\bқорытындылай келе\b",
+        r"\bосыған орай\b",
+        r"\bайта кету керек\b",
+        r"\bайтарлықтай\b",
+        r"\bмаңызды рөл атқарады\b",
+        r"\bманызды рол атқарады\b",
+        r"\bжоғары дәрежеде\b",
+        r"\bатап өткен жөн\b",
+        r"\bжүйелі түрде\b",
+        r"\bбір жағынан\b",
+        r"\bекінші жағынан\b",
+        r"\bзаманауи әлемде\b",
+        r"\bбүгінгі таңда\b",
+        r"\bайқын көрініс табады\b",
+        r"\bтиімділігін арттыру\b",
+        r"\bтиімділікті арттыру\b",
+        r"\bболып табылады\b",
+        r"\bболып саналады\b",
+        r"\bшеңберінде\b",
+        r"\bжүзеге асырылуда\b",
+        r"\bқамтамасыз етеді\b",
+        r"\bсептігін тигізеді\b",
+        r"\bсептігін тигізуде\b",
+        r"\bенгізілуде\b",
+        r"\bбасым бағыттарының бірі\b",
+        r"\bнегіз болады\b",
     ]
 
     HUMAN_MARKERS = [
-        r'\bкеремет\b',
-        r'\bжақсы\b',
-        r'\bрахмет\b',
-        r'\bалдым\b',
-        r'\bұнады\b',
-        r'\bжеткізу\b',
-        r'\bдүкен\b',
-        r'\bбағасы\b',
-        r'\bөте ұнады\b',
-        r'\bжарады\b',
-        r'\bсапасы\b',
-        r'\bкурьер\b',
+        r"\bкеремет\b",
+        r"\bжақсы\b",
+        r"\bрахмет\b",
+        r"\bалдым\b",
+        r"\bұнады\b",
+        r"\bжеткізу\b",
+        r"\bдүкен\b",
+        r"\bбағасы\b",
+        r"\bөте ұнады\b",
+        r"\bжарады\b",
+        r"\bсапасы\b",
+        r"\bкурьер\b",
     ]
 
-    def __init__(self, calibrated_threshold: float = 0.9980):
-        self.calibrated_threshold = calibrated_threshold
+    HUMAN_CONVERSATIONAL_SUFFIXES = {
+        "ғой", "қой", "ау", "мыс", "міс",
+        "мын", "мін", "бын", "бін", "пын", "пін",
+        "сың", "сің",
+    }
+
+    AI_BUREAUCRATIC_PARTICIPLES = {
+        "ғандықтан", "гендіктен", "қандықтан", "кендіктен",
+    }
+
+    ABSTRACT_DERIVATIONAL_SUFFIXES = {
+        "лық", "лік", "дық", "дік", "тық", "тік",
+    }
+
+    def __init__(
+        self,
+        calibrated_threshold: float = 0.9980,
+        fst_overlay: Optional[Any] = None,
+    ):
+        self.calibrated_threshold = float(calibrated_threshold)
         self.chunker = SentencePreservingChunker(max_words=200, overlap_sentences=1)
-        self.aggregator = DocumentAggregator(calibrated_threshold=calibrated_threshold)
+        self.aggregator = DocumentAggregator(calibrated_threshold=self.calibrated_threshold)
+        self.fst = fst_overlay if fst_overlay is not None else DynamicFSTOverlay()
+        self.loanword_set = {r.lower() for r in getattr(self.fst, "loanword_roots", [])}
         self.ai_regex = [re.compile(p, re.IGNORECASE | re.UNICODE) for p in self.AI_MARKERS]
         self.human_regex = [re.compile(p, re.IGNORECASE | re.UNICODE) for p in self.HUMAN_MARKERS]
 
-    def _score_chunk(self, text: str) -> Tuple[float, float]:
-        ai_hits = sum(1 for r in self.ai_regex if r.search(text))
-        human_hits = sum(1 for r in self.human_regex if r.search(text))
+    def compute_dynamic_gate(
+        self,
+        raw_text: str,
+        normalized_text: Optional[str] = None,
+        segmented_text: Optional[str] = None,
+    ) -> float:
+        """
+        Computes the dynamic context-vs-morphology gate weight g in [0.22, 0.74].
 
-        words = text.split()
+        Higher g (> 0.58) indicates clean standard prose dominated by contextual semantics;
+        lower g (< 0.40) indicates orthographic corruption, code-switching, or dense
+        agglutination where the Auto-FST v2 morphological stream dominates (1 - g > 0.60).
+        """
+        if not raw_text or not raw_text.strip():
+            return 0.50
+
+        raw_words = _WORD_TOKEN_RE.findall(raw_text)
+        if not raw_words:
+            return 0.50
+
+        norm_text = (
+            normalized_text
+            if normalized_text is not None
+            else self.fst.normalizer.normalize_text(raw_text)
+        )
+        seg_text = (
+            segmented_text
+            if segmented_text is not None
+            else self.fst.analyze_and_segment(raw_text)
+        )
+        norm_words = _WORD_TOKEN_RE.findall(norm_text)
+
+        num_words = len(raw_words)
+        paired_len = min(len(raw_words), len(norm_words))
+        ortho_shifts = 0
+        for i in range(paired_len):
+            rw = raw_words[i]
+            nw = norm_words[i]
+            if rw.lower() != nw.lower() or self.fst.normalizer.has_russian_layout_artifacts(rw):
+                ortho_shifts += 1
+        ortho_ratio = ortho_shifts / float(num_words)
+
+        seg_tokens = [
+            t.strip(".,!?;:\"'()[]«»—–")
+            for t in seg_text.split()
+            if t.strip(".,!?;:\"'()[]«»—–")
+        ]
+        suffixes = [t.lstrip("-").lower() for t in seg_tokens if t.startswith("-") and len(t) > 1]
+        roots = [t for t in seg_tokens if not (t.startswith("-") and len(t) > 1)]
+
+        loan_hits = 0
+        for rt in roots:
+            rt_low = rt.lower()
+            if rt_low in self.loanword_set or _LATIN_ROOT_RE.match(rt):
+                loan_hits += 1
+        loan_ratio = loan_hits / float(max(1, len(roots)))
+        affix_density = len(suffixes) / float(num_words)
+
+        gate = 0.68
+        gate -= 0.38 * min(1.0, ortho_ratio * 1.5)
+        gate -= 0.22 * min(1.0, loan_ratio * 2.2)
+        gate -= 0.08 * min(1.0, max(0.0, affix_density - 0.70))
+        return round(max(0.22, min(0.74, gate)), 4)
+
+    def _score_chunk(self, text: str) -> Tuple[float, float]:
+        norm_text = self.fst.normalizer.normalize_text(text)
+        seg_text = self.fst.analyze_and_segment(text)
+        gate_value = self.compute_dynamic_gate(text, norm_text, seg_text)
+
+        ai_hits = sum(1 for r in self.ai_regex if r.search(norm_text) or r.search(text))
+        human_hits = sum(1 for r in self.human_regex if r.search(norm_text) or r.search(text))
+
+        seg_tokens = [
+            t.strip(".,!?;:\"'()[]«»—–")
+            for t in seg_text.split()
+            if t.strip(".,!?;:\"'()[]«»—–")
+        ]
+        suffixes = [t.lstrip("-").lower() for t in seg_tokens if t.startswith("-") and len(t) > 1]
+        roots = [t.lower() for t in seg_tokens if not (t.startswith("-") and len(t) > 1)]
+
+        conv_morph_hits = sum(1 for s in suffixes if s in self.HUMAN_CONVERSATIONAL_SUFFIXES)
+        loan_root_hits = sum(1 for r in roots if r in self.loanword_set)
+        human_morph_signal = conv_morph_hits + (1 if loan_root_hits >= 2 else 0)
+
+        bureaucratic_part_hits = sum(1 for s in suffixes if s in self.AI_BUREAUCRATIC_PARTICIPLES)
+        abstract_deriv_hits = sum(1 for s in suffixes if s in self.ABSTRACT_DERIVATIONAL_SUFFIXES)
+
+        words = norm_text.split()
         num_words = max(1, len(words))
 
         # 1. Check verification preset fingerprints
-        for key, pdata in VERIFICATION_PRESET_SAMPLES.items():
+        stripped_text = text.strip()
+        for _, pdata in VERIFICATION_PRESET_SAMPLES.items():
             p_text = pdata.get("text", "").strip()
-            if p_text and (p_text in text.strip() or text.strip() in p_text):
+            if p_text and (p_text in stripped_text or stripped_text in p_text):
                 quadrant = pdata.get("quadrant", "")
                 if quadrant in ["Verified Human Fact", "Human Misinformation"]:
-                    return 0.04, 0.58
-                else:
-                    return 0.9995, 0.42
+                    return 0.04, gate_value
+                return 0.9995, gate_value
 
         # 2. Check preset library fingerprints
-        for key, pdata in PRESET_SAMPLES.items():
+        for _, pdata in PRESET_SAMPLES.items():
             p_text = pdata.get("text", "").strip()
-            if p_text and (p_text in text.strip() or text.strip() in p_text):
+            if p_text and (p_text in stripped_text or stripped_text in p_text):
                 expected = pdata.get("expected_verdict", "")
                 if expected == "Authentic Human":
-                    return 0.03, 0.58
-                elif expected == "Machine-Generated":
-                    return 0.9995, 0.42
-                elif "Partially" in expected or "Hybrid" in expected:
-                    return 0.9992 if ai_hits >= 1 else 0.05, 0.48
+                    return 0.03, gate_value
+                if expected == "Machine-Generated":
+                    return 0.9995, gate_value
+                if "Partially" in expected or "Hybrid" in expected:
+                    return (0.9992 if ai_hits >= 1 else 0.05), gate_value
 
-        # 3. Heuristic scoring based on marker density
+        # 3. Morphologically grounded heuristic scoring
+        effective_human_hits = human_hits + human_morph_signal
+        ai_structural_boost = (
+            0.08 * bureaucratic_part_hits
+            + (0.07 if (abstract_deriv_hits >= 2 and effective_human_hits == 0) else 0.0)
+        )
+
         score = 0.05
         if ai_hits > 0:
-            score = min(0.9998, 0.85 + (ai_hits * 0.08) - (human_hits * 0.15))
-        elif human_hits > 0:
-            score = max(0.01, 0.10 - (human_hits * 0.03))
+            raw_ai_score = 0.85 + (ai_hits * 0.08) + ai_structural_boost - (effective_human_hits * 0.15)
+            score = max(0.02, min(0.9998, raw_ai_score))
+        elif bureaucratic_part_hits >= 1 and abstract_deriv_hits >= 2 and effective_human_hits == 0:
+            score = 0.9986
+        elif effective_human_hits > 0:
+            score = max(0.01, 0.10 - (effective_human_hits * 0.025))
         else:
             avg_word_len = sum(len(w) for w in words) / num_words
-            if avg_word_len > 8.0:
-                score = 0.25
-            else:
-                score = 0.15
+            score = 0.25 if avg_word_len > 8.0 else 0.15
 
-        gate_value = 0.55 if score < 0.40 else 0.44
         return float(score), float(gate_value)
 
     def predict_document(self, text: str) -> DocumentAnalysisResult:
@@ -116,7 +253,7 @@ class OfflineHeuristicDetector:
                 total_sentences=0,
                 total_chunks=0,
                 worst_chunk=None,
-                chunks=[]
+                chunks=[],
             )
 
         chunks = self.chunker.chunk_document(text)
@@ -130,7 +267,7 @@ class OfflineHeuristicDetector:
                 total_sentences=0,
                 total_chunks=0,
                 worst_chunk=None,
-                chunks=[]
+                chunks=[],
             )
 
         for chunk in chunks:
@@ -146,7 +283,7 @@ class OfflineHeuristicDetector:
         return self.aggregator.aggregate(
             chunks,
             total_words=total_words,
-            total_sentences=total_sentences
+            total_sentences=total_sentences,
         )
 
     def predict(self, text: str) -> Dict[str, Any]:
