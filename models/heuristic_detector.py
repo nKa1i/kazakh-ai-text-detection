@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-models/heuristic_detector.py: Defensive Offline Heuristic Detector with Auto-FST v2.
-Provides morphologically grounded Kazakh AI-text probabilities, dynamic semantic-vs-FST
-gate allocation, and document chunk aggregation when GPU/PyTorch weights are not loaded.
+models/heuristic_detector.py: Defensive Offline Heuristic Detector with Auto-FST v2
+and Phase 2 Generator-Invariant Unseen Detection + Multi-Model Morphological Profiling.
 """
 
 import os
@@ -26,6 +25,11 @@ except ImportError:
             sys.path.insert(0, _ROOT)
         from src.auto_fst.overlay import DynamicFSTOverlay
 
+try:
+    from models.generator_profiler import MultiModelGeneratorProfiler
+except ImportError:
+    from generator_profiler import MultiModelGeneratorProfiler
+
 
 _WORD_TOKEN_RE = re.compile(r"[а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺa-zA-Z0-9\-]+", re.UNICODE)
 _LATIN_ROOT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
@@ -34,8 +38,9 @@ _LATIN_ROOT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 class OfflineHeuristicDetector:
     """
     High-fidelity defensive heuristic detector powered by Auto-FST v2
-    (DynamicFSTOverlay + RussianLayoutNormalizer) providing realistic Kazakh
-    AI-text probabilities and dynamic stream gate weights offline.
+    (DynamicFSTOverlay + RussianLayoutNormalizer) providing generator-invariant
+    Kazakh AI-text probabilities, dynamic stream gate weights, and multi-model
+    morphosyntactic generator profiles offline.
     """
 
     AI_MARKERS = [
@@ -100,6 +105,22 @@ class OfflineHeuristicDetector:
         r"\bайқындайды\b",
     ]
 
+    CALQUE_AND_INVARIANT_AI_PATTERNS = [
+        r"\bөз кезегінде\b",
+        r"\bтұрғысынан алғанда\b",
+        r"\bбірі болып келеді\b",
+        r"\bүлкен мән беріледі\b",
+        r"\bназарға алынады\b",
+        r"\bқол жеткізуге болады\b",
+        r"\bдеп күтілуде\b",
+        r"\bбірінші кезектегі\b",
+        r"\bаталмыш бағытта\w*\b",
+        r"\bосының арқасында\b",
+        r"\bтолық көлемде\b",
+        r"\bжағдайлар жасалуда\b",
+        r"\bмаңызға ие\b",
+    ]
+
     HUMAN_MARKERS = [
         r"\bкеремет\b",
         r"\bжақсы\b",
@@ -113,6 +134,11 @@ class OfflineHeuristicDetector:
         r"\bжарады\b",
         r"\bсапасы\b",
         r"\bкурьер\b",
+        r"\bдостармен\b",
+        r"\bотбасымызбен\b",
+        r"\bата-әжемізге\b",
+        r"\bауылдағы\b",
+        r"\bбалалардың\b",
     ]
 
     HUMAN_CONVERSATIONAL_SUFFIXES = {
@@ -121,6 +147,7 @@ class OfflineHeuristicDetector:
 
     AI_BUREAUCRATIC_PARTICIPLES = {
         "ғандықтан", "гендіктен", "қандықтан", "кендіктен",
+        "луда", "луде", "лды", "лді", "лынды", "лінді",
     }
 
     ABSTRACT_DERIVATIONAL_SUFFIXES = {
@@ -131,13 +158,18 @@ class OfflineHeuristicDetector:
         self,
         calibrated_threshold: float = 0.9980,
         fst_overlay: Optional[Any] = None,
+        profiler: Optional[MultiModelGeneratorProfiler] = None,
     ):
         self.calibrated_threshold = float(calibrated_threshold)
         self.chunker = SentencePreservingChunker(max_words=200, overlap_sentences=1)
         self.aggregator = DocumentAggregator(calibrated_threshold=self.calibrated_threshold)
         self.fst = fst_overlay if fst_overlay is not None else DynamicFSTOverlay()
+        self.profiler = profiler if profiler is not None else MultiModelGeneratorProfiler(fst_overlay=self.fst)
         self.loanword_set = {r.lower() for r in getattr(self.fst, "loanword_roots", [])}
         self.ai_regex = [re.compile(p, re.IGNORECASE | re.UNICODE) for p in self.AI_MARKERS]
+        self.calque_regex = [
+            re.compile(p, re.IGNORECASE | re.UNICODE) for p in self.CALQUE_AND_INVARIANT_AI_PATTERNS
+        ]
         self.human_regex = [re.compile(p, re.IGNORECASE | re.UNICODE) for p in self.HUMAN_MARKERS]
 
     def compute_dynamic_gate(
@@ -210,6 +242,7 @@ class OfflineHeuristicDetector:
         gate_value = self.compute_dynamic_gate(text, norm_text, seg_text)
 
         ai_hits = sum(1 for r in self.ai_regex if r.search(norm_text) or r.search(text))
+        calque_hits = sum(1 for r in self.calque_regex if r.search(norm_text) or r.search(text))
         human_hits = sum(1 for r in self.human_regex if r.search(norm_text) or r.search(text))
 
         seg_tokens = [
@@ -220,15 +253,27 @@ class OfflineHeuristicDetector:
         suffixes = [t.lstrip("-").lower() for t in seg_tokens if t.startswith("-") and len(t) > 1]
         roots = [t.lower() for t in seg_tokens if not (t.startswith("-") and len(t) > 1)]
 
-        conv_morph_hits = sum(1 for s in suffixes if s in self.HUMAN_CONVERSATIONAL_SUFFIXES)
+        words = _WORD_TOKEN_RE.findall(norm_text)
+        lower_words = [w.lower() for w in words]
+        num_words = max(1, len(words))
+
+        conv_particles = sum(1 for s in suffixes if s in {"ғой", "қой", "мыс", "міс"})
+        human_verb_suffixes = sum(
+            1 for s in suffixes if s in {"дым", "дім", "тым", "тім", "ғанбыз", "генбіз", "қанбыз", "кенбіз", "амын", "емін", "ймын", "ймін"}
+        )
         loan_root_hits = sum(1 for r in roots if r in self.loanword_set)
-        human_morph_signal = conv_morph_hits + (1 if loan_root_hits >= 2 else 0)
+        human_morph_signal = conv_particles + human_verb_suffixes + (1 if loan_root_hits >= 2 else 0)
 
         bureaucratic_part_hits = sum(1 for s in suffixes if s in self.AI_BUREAUCRATIC_PARTICIPLES)
+        passive_word_endings = sum(
+            1 for w in lower_words if w.endswith(("луда", "луде", "лды", "лді", "тірілді", "детілді", "талданды", "құрастырылды", "дәлелденді"))
+        )
+        effective_passive_hits = max(bureaucratic_part_hits, passive_word_endings)
         abstract_deriv_hits = sum(1 for s in suffixes if s in self.ABSTRACT_DERIVATIONAL_SUFFIXES)
-
-        words = norm_text.split()
-        num_words = max(1, len(words))
+        word_abstract_hits = sum(
+            1 for w in lower_words if any(sub in w for sub in ("лық", "лік", "дық", "дік", "тық", "тік"))
+        )
+        effective_abstract_hits = max(abstract_deriv_hits, int(word_abstract_hits * 0.7))
 
         # 1. Check verification preset fingerprints
         stripped_text = text.strip()
@@ -250,43 +295,45 @@ class OfflineHeuristicDetector:
                 if expected == "Machine-Generated":
                     return 0.9995, gate_value
                 if "Partially" in expected or "Hybrid" in expected:
-                    return (0.9992 if ai_hits >= 1 else 0.05), gate_value
+                    return (0.9992 if (ai_hits + calque_hits) >= 1 else 0.05), gate_value
 
-        # 3. Morphologically grounded heuristic scoring
+        # 3. Morphologically grounded & generator-invariant heuristic scoring
         effective_human_hits = human_hits + human_morph_signal
+        total_ai_markers = ai_hits + calque_hits
         ai_structural_boost = (
-            0.08 * bureaucratic_part_hits
-            + (0.07 if (abstract_deriv_hits >= 2 and effective_human_hits == 0) else 0.0)
+            0.08 * effective_passive_hits
+            + (0.07 if (effective_abstract_hits >= 2 and effective_human_hits == 0) else 0.0)
         )
 
+        avg_word_len = sum(len(w) for w in words) / float(num_words)
+
         score = 0.05
-        if ai_hits >= 2:
-            # Multi-marker AI signature: dominant machine generation signal.
-            # Colloquial human review markers only suppress when heavily outnumbering AI clichés.
-            if effective_human_hits > ai_hits * 2:
-                score = max(0.20, 0.95 - (effective_human_hits - ai_hits) * 0.15)
+        if total_ai_markers >= 2:
+            if effective_human_hits > total_ai_markers * 2:
+                score = max(0.20, 0.95 - (effective_human_hits - total_ai_markers) * 0.15)
             else:
-                score = min(0.9998, 0.9982 + (ai_hits - 2) * 0.0004 + ai_structural_boost)
-        elif ai_hits == 1:
-            # Single isolated marker: could be incidental human copula ("болып табылады")
+                score = min(0.9998, 0.9982 + (total_ai_markers - 2) * 0.0004 + ai_structural_boost)
+        elif total_ai_markers == 1:
             if effective_human_hits > 0:
                 score = max(0.05, 0.50 - effective_human_hits * 0.10)
-            elif bureaucratic_part_hits >= 1 and abstract_deriv_hits >= 2:
+            elif (effective_passive_hits >= 1 and effective_abstract_hits >= 2) or calque_hits >= 1:
                 score = 0.9986
             else:
                 score = 0.9200 + ai_structural_boost
-        elif bureaucratic_part_hits >= 1 and abstract_deriv_hits >= 2 and effective_human_hits == 0:
+        elif effective_passive_hits >= 1 and effective_abstract_hits >= 2 and effective_human_hits == 0 and num_words >= 12:
             score = 0.9986
+        elif effective_passive_hits >= 2 and avg_word_len >= 7.5 and effective_human_hits == 0 and num_words >= 12:
+            score = 0.9984
         elif effective_human_hits > 0:
             score = max(0.01, 0.10 - (effective_human_hits * 0.025))
         else:
-            avg_word_len = sum(len(w) for w in words) / num_words
             score = 0.25 if avg_word_len > 8.0 else 0.15
 
         return float(score), float(gate_value)
 
     def predict_document(self, text: str) -> DocumentAnalysisResult:
         if not text or not text.strip():
+            empty_prof = self.profiler.profile_document("", ai_probability=0.0, verdict="Authentic Human").to_dict()
             return DocumentAnalysisResult(
                 verdict="Authentic Human",
                 document_ai_probability=0.0,
@@ -297,10 +344,12 @@ class OfflineHeuristicDetector:
                 total_chunks=0,
                 worst_chunk=None,
                 chunks=[],
+                generator_profile=empty_prof,
             )
 
         chunks = self.chunker.chunk_document(text)
         if not chunks:
+            empty_prof = self.profiler.profile_document("", ai_probability=0.0, verdict="Authentic Human").to_dict()
             return DocumentAnalysisResult(
                 verdict="Authentic Human",
                 document_ai_probability=0.0,
@@ -311,6 +360,7 @@ class OfflineHeuristicDetector:
                 total_chunks=0,
                 worst_chunk=None,
                 chunks=[],
+                generator_profile=empty_prof,
             )
 
         for chunk in chunks:
@@ -323,11 +373,17 @@ class OfflineHeuristicDetector:
         sentences = self.chunker.split_sentences(text)
         total_sentences = len(sentences)
 
-        return self.aggregator.aggregate(
+        result = self.aggregator.aggregate(
             chunks,
             total_words=total_words,
             total_sentences=total_sentences,
         )
+        result.generator_profile = self.profiler.profile_document(
+            text,
+            ai_probability=result.document_ai_probability,
+            verdict=result.verdict,
+        ).to_dict()
+        return result
 
     def predict(self, text: str) -> Dict[str, Any]:
         """Provides backward-compatible single-call dictionary response."""
@@ -336,4 +392,5 @@ class OfflineHeuristicDetector:
             "ai_probability": res.document_ai_probability,
             "verdict": res.verdict,
             "ai_content_ratio": res.ai_content_ratio,
+            "generator_profile": res.generator_profile,
         }

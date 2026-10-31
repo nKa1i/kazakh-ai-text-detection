@@ -42,6 +42,7 @@ class DocumentAnalysisResult:
     total_chunks: int = 0
     worst_chunk: Optional[DocumentChunk] = None
     chunks: List[DocumentChunk] = field(default_factory=list)
+    generator_profile: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document analysis result to a dictionary."""
@@ -66,4 +67,5 @@ class DocumentAnalysisResult:
                 c.to_dict() if hasattr(c, "to_dict") else c
                 for c in self.chunks
             ],
+            "generator_profile": self.generator_profile,
         }
