@@ -67,6 +67,13 @@ FEATURE_NAMES: Tuple[str, ...] = (
     "sentence_length_uniformity",
 )
 
+SIGNATURE_FEATURES: Tuple[str, ...] = (
+    "logical_reasoning_density",
+    "infrastructural_domain_density",
+    "diplomatic_macro_density",
+    "calque_translationese_rate",
+)
+
 _WORD_RE = re.compile(r"[а-яёәіңғүұқөһА-ЯЁӘІҢҒҮҰҚӨҺa-zA-Z0-9\-]+", re.UNICODE)
 _SENT_SPLIT_RE = re.compile(r"[.!?]+")
 
@@ -81,10 +88,12 @@ _PASSIVE_PARTICIPLE_SUFFIXES = {
 _GOVERNANCE_ADMIN_PREFIXES = (
     "мемлекет", "құқық", "заңнам", "ведомство", "сыбайлас", "жемқор",
     "акті", "реттеу", "қоғамдық", "азамат", "республика", "мониторинг",
+    "бағдарлама", "стратегия", "әлеумет", "жаңғыру", "бәсеке", "даму", "ұлттық",
 )
 _INFRASTRUCTURE_ECOLOGY_PREFIXES = (
     "табиғи", "экология", "ауыл", "шаруашыл", "азық-түлік", "медицина",
     "энергетика", "көлік-логист", "су", "кәсіптік", "жаңартыл", "мәдени", "мұра",
+    "инфрақұрыл", "білім", "энерги", "көлік", "дәліз", "тұрғын", "коммунал",
 )
 _LOGICAL_REASONING_PREFIXES = (
     "алгоритм", "математик", "модель", "логика", "теория", "градиент",
@@ -96,12 +105,13 @@ _TECH_MULTIMODAL_PREFIXES = (
     "интеллект", "көптілді", "генерация", "кибергигиена", "бұлттық",
     "бизнес-процес", "генеративті", "режимінде", "автоматтандыр", "клиент",
     "машиналық", "көпмодальды", "смарт-инфра", "инновациялық",
+    "бағдарламалық", "деректер", "пайдалануш", "қорғау",
 )
 _DIPLOMATIC_MACRO_PREFIXES = (
     "ынтымақтаст", "инвестиция", "тартымдыл", "әртараптандыр", "институт",
     "телекоммуникац", "шалғай", "айналым", "алғышарт", "шағын", "серпін",
     "коммерцияландыр", "сауда-экономик", "әріптестік", "өңіраралық",
-    "қаржы", "капитал", "кепілдік",
+    "қаржы", "капитал", "кепілдік", "сауда", "өнеркәсіп", "нарық", "интеграци", "өсім",
 )
 
 # Cross-lingual literal translationese / calque constructions
@@ -123,63 +133,63 @@ _CALQUE_PATTERNS = [
 # Reference centroids in the 8D morphosyntactic space for the 5 known generator families
 REFERENCE_CENTROIDS: Dict[str, Dict[str, float]] = {
     "ISSAI-KazLLM-70B": {
-        "abstract_deriv_density": 0.24,
-        "passive_participle_density": 0.14,
-        "logical_reasoning_density": 0.01,
-        "diplomatic_macro_density": 0.03,
-        "infrastructural_domain_density": 0.02,
+        "abstract_deriv_density": 0.33,
+        "passive_participle_density": 0.05,
+        "logical_reasoning_density": 0.00,
+        "diplomatic_macro_density": 0.02,
+        "infrastructural_domain_density": 0.01,
         "calque_translationese_rate": 0.00,
-        "affix_depth_per_word": 0.72,
+        "affix_depth_per_word": 1.02,
         "sentence_length_uniformity": 0.88,
     },
     "Sherkala-8B": {
-        "abstract_deriv_density": 0.14,
-        "passive_participle_density": 0.09,
-        "logical_reasoning_density": 0.01,
+        "abstract_deriv_density": 0.18,
+        "passive_participle_density": 0.02,
+        "logical_reasoning_density": 0.00,
         "diplomatic_macro_density": 0.02,
-        "infrastructural_domain_density": 0.22,
+        "infrastructural_domain_density": 0.18,
         "calque_translationese_rate": 0.00,
-        "affix_depth_per_word": 0.66,
-        "sentence_length_uniformity": 0.87,
+        "affix_depth_per_word": 1.00,
+        "sentence_length_uniformity": 0.88,
     },
     "DeepSeek-R1": {
-        "abstract_deriv_density": 0.12,
-        "passive_participle_density": 0.13,
-        "logical_reasoning_density": 0.24,
-        "diplomatic_macro_density": 0.01,
-        "infrastructural_domain_density": 0.01,
+        "abstract_deriv_density": 0.16,
+        "passive_participle_density": 0.06,
+        "logical_reasoning_density": 0.20,
+        "diplomatic_macro_density": 0.00,
+        "infrastructural_domain_density": 0.00,
         "calque_translationese_rate": 0.00,
-        "affix_depth_per_word": 0.65,
-        "sentence_length_uniformity": 0.86,
+        "affix_depth_per_word": 0.91,
+        "sentence_length_uniformity": 0.88,
     },
     "GPT-4o": {
-        "abstract_deriv_density": 0.15,
-        "passive_participle_density": 0.05,
-        "logical_reasoning_density": 0.03,
-        "diplomatic_macro_density": 0.02,
+        "abstract_deriv_density": 0.16,
+        "passive_participle_density": 0.02,
+        "logical_reasoning_density": 0.02,
+        "diplomatic_macro_density": 0.01,
         "infrastructural_domain_density": 0.02,
         "calque_translationese_rate": 0.00,
-        "affix_depth_per_word": 0.62,
-        "sentence_length_uniformity": 0.87,
+        "affix_depth_per_word": 0.90,
+        "sentence_length_uniformity": 0.88,
     },
     "Qwen-2.5-72B": {
-        "abstract_deriv_density": 0.11,
-        "passive_participle_density": 0.06,
-        "logical_reasoning_density": 0.01,
-        "diplomatic_macro_density": 0.23,
-        "infrastructural_domain_density": 0.03,
+        "abstract_deriv_density": 0.20,
+        "passive_participle_density": 0.03,
+        "logical_reasoning_density": 0.00,
+        "diplomatic_macro_density": 0.22,
+        "infrastructural_domain_density": 0.02,
         "calque_translationese_rate": 0.00,
-        "affix_depth_per_word": 0.64,
+        "affix_depth_per_word": 1.00,
         "sentence_length_uniformity": 0.88,
     },
 }
 
 FEATURE_SCALES: Dict[str, float] = {
-    "abstract_deriv_density": 0.07,
-    "passive_participle_density": 0.06,
-    "logical_reasoning_density": 0.07,
-    "diplomatic_macro_density": 0.07,
-    "infrastructural_domain_density": 0.07,
+    "abstract_deriv_density": 0.08,
+    "passive_participle_density": 0.05,
+    "logical_reasoning_density": 0.05,
+    "diplomatic_macro_density": 0.05,
+    "infrastructural_domain_density": 0.05,
     "calque_translationese_rate": 0.138,
     "affix_depth_per_word": 0.22,
     "sentence_length_uniformity": 0.18,
@@ -314,7 +324,7 @@ class MultiModelGeneratorProfiler:
 
         # If diplomatic/macroeconomic stems dominate (Qwen signature), dampen governance/abstract deriv pull
         if diplo_hits >= 2 and gov_hits == 0:
-            abstract_deriv_density = min(0.13, max(0.09, abstract_deriv_density * 0.35))
+            abstract_deriv_density = min(0.14, max(0.09, abstract_deriv_density * 0.35))
             passive_participle_density = min(0.06, passive_participle_density * 0.65)
 
         # 6. Cross-lingual calque translationese rate per sentence
@@ -347,14 +357,16 @@ class MultiModelGeneratorProfiler:
 
     def _compute_distance(self, features: Dict[str, float], centroid: Dict[str, float]) -> float:
         sq_sum = 0.0
-        max_diff = 0.0
+        unexplained_max = 0.0
         for fname in FEATURE_NAMES:
-            diff = abs(features.get(fname, 0.0) - centroid.get(fname, 0.0)) / FEATURE_SCALES[fname]
+            diff = (features.get(fname, 0.0) - centroid.get(fname, 0.0)) / FEATURE_SCALES[fname]
             sq_sum += diff * diff
-            if diff > max_diff:
-                max_diff = diff
+            if fname in SIGNATURE_FEATURES and features.get(fname, 0.0) >= 0.12 and centroid.get(fname, 0.0) <= 0.05:
+                unexplained_max = max(unexplained_max, diff)
+            elif fname == "calque_translationese_rate" and features.get(fname, 0.0) >= 0.20:
+                unexplained_max = max(unexplained_max, diff)
         mean_dist = math.sqrt(sq_sum / float(len(FEATURE_NAMES)))
-        return max(mean_dist, max_diff * 0.82)
+        return max(mean_dist, unexplained_max * 0.82)
 
     def _describe_dominant_traits(
         self,

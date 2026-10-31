@@ -1,0 +1,142 @@
+{
+  "total_documents": 96,
+  "docs_per_family": 12,
+  "logo_unseen_detection": {
+    "by_held_out_family": {
+      "ISSAI-KazLLM-70B": {
+        "num_docs": 12,
+        "seen_Calibration_families": 4,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 25.0,
+        "recall_gain_pct": 75.0
+      },
+      "Sherkala-8B": {
+        "num_docs": 12,
+        "seen_Calibration_families": 4,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 25.0,
+        "recall_gain_pct": 75.0
+      },
+      "DeepSeek-R1": {
+        "num_docs": 12,
+        "seen_Calibration_families": 4,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 0.0,
+        "recall_gain_pct": 100.0
+      },
+      "GPT-4o": {
+        "num_docs": 12,
+        "seen_Calibration_families": 4,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 16.67,
+        "recall_gain_pct": 83.33
+      },
+      "Qwen-2.5-72B": {
+        "num_docs": 12,
+        "seen_Calibration_families": 4,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 50.0,
+        "recall_gain_pct": 50.0
+      },
+      "Llama-3.3-70B-Calque": {
+        "num_docs": 12,
+        "seen_Calibration_families": 5,
+        "proposed_recall_pct": 100.0,
+        "closed_set_lexical_recall_pct": 0.0,
+        "recall_gain_pct": 100.0
+      }
+    },
+    "mean_unseen_recall_pct": {
+      "proposed_morpho_invariant": 100.0,
+      "closed_set_lexical_baseline": 19.44
+    },
+    "human_fpr_pct": {
+      "proposed_morpho_invariant": 0.0,
+      "closed_set_lexical_baseline": 0.0
+    }
+  },
+  "profiler_attribution_and_ood": {
+    "closed_set_5family_accuracy_pct": 93.33,
+    "per_family_attribution_accuracy_pct": {
+      "ISSAI-KazLLM-70B": 91.67,
+      "Sherkala-8B": 91.67,
+      "DeepSeek-R1": 91.67,
+      "GPT-4o": 100.0,
+      "Qwen-2.5-72B": 91.67
+    },
+    "wild_calque_ood_detection_rate_pct": 100.0,
+    "family_fingerprint_matrix": {
+      "ISSAI-KazLLM-70B": {
+        "abstract_deriv_density": 0.3481,
+        "passive_participle_density": 0.0312,
+        "logical_reasoning_density": 0.0,
+        "diplomatic_macro_density": 0.003,
+        "infrastructural_domain_density": 0.003,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 0.9969,
+        "sentence_length_uniformity": 0.9235
+      },
+      "Sherkala-8B": {
+        "abstract_deriv_density": 0.2069,
+        "passive_participle_density": 0.0074,
+        "logical_reasoning_density": 0.0,
+        "diplomatic_macro_density": 0.0346,
+        "infrastructural_domain_density": 0.1952,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 1.021,
+        "sentence_length_uniformity": 0.9001
+      },
+      "DeepSeek-R1": {
+        "abstract_deriv_density": 0.1413,
+        "passive_participle_density": 0.0524,
+        "logical_reasoning_density": 0.1791,
+        "diplomatic_macro_density": 0.0,
+        "infrastructural_domain_density": 0.0,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 0.8373,
+        "sentence_length_uniformity": 0.9084
+      },
+      "GPT-4o": {
+        "abstract_deriv_density": 0.1744,
+        "passive_participle_density": 0.0125,
+        "logical_reasoning_density": 0.0232,
+        "diplomatic_macro_density": 0.0097,
+        "infrastructural_domain_density": 0.0229,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 0.9933,
+        "sentence_length_uniformity": 0.908
+      },
+      "Qwen-2.5-72B": {
+        "abstract_deriv_density": 0.1946,
+        "passive_participle_density": 0.0214,
+        "logical_reasoning_density": 0.0,
+        "diplomatic_macro_density": 0.2291,
+        "infrastructural_domain_density": 0.0286,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 1.0235,
+        "sentence_length_uniformity": 0.926
+      },
+      "Llama-3.3-70B-Calque": {
+        "abstract_deriv_density": 0.087,
+        "passive_participle_density": 0.0304,
+        "logical_reasoning_density": 0.0,
+        "diplomatic_macro_density": 0.0165,
+        "infrastructural_domain_density": 0.0033,
+        "calque_translationese_rate": 1.0,
+        "affix_depth_per_word": 0.9545,
+        "sentence_length_uniformity": 0.9295
+      },
+      "human": {
+        "abstract_deriv_density": 0.0427,
+        "passive_participle_density": 0.0134,
+        "logical_reasoning_density": 0.0,
+        "diplomatic_macro_density": 0.0017,
+        "infrastructural_domain_density": 0.0159,
+        "calque_translationese_rate": 0.0,
+        "affix_depth_per_word": 0.7203,
+        "sentence_length_uniformity": 0.9179
+      }
+    }
+  },
+  "chart_path": "data/chart_multi_generator_fingerprints_and_logo.png"
+}
