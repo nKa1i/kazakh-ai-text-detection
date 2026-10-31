@@ -1,0 +1,737 @@
+{
+  "total_documents": 96,
+  "docs_per_family": 12,
+  "random_seed": 42,
+  "profiles_by_generator": {
+    "ISSAI-KazLLM-70B": {
+      "archetype": "Sovereign Kazakh Policy LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.6534,
+          "std": 0.3368,
+          "ci95_low": 1.4628,
+          "ci95_high": 1.844,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.946,
+          "std": 0.3816,
+          "ci95_low": 0.7301,
+          "ci95_high": 1.1619,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 1.7488,
+          "std": 1.5553,
+          "ci95_low": 0.8688,
+          "ci95_high": 2.6288,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 6.6121,
+          "std": 2.4622,
+          "ci95_low": 5.219,
+          "ci95_high": 8.0052,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.2778,
+          "std": 0.1924,
+          "ci95_low": 0.1689,
+          "ci95_high": 0.3866,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9897,
+          "std": 0.0153,
+          "ci95_low": 0.981,
+          "ci95_high": 0.9983,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.0849,
+          "std": 0.0504,
+          "ci95_low": 0.0564,
+          "ci95_high": 0.1135,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -1.62,
+        "chain_len_variance": -0.693,
+        "copula_ratio": 2.306,
+        "synthetic_verb_ratio": -2.943,
+        "discourse_rigidity_score": 3.097,
+        "sov_compliance_score": 0.3,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": 0.327,
+        "burstiness": -1.422
+      }
+    },
+    "Sherkala-8B": {
+      "archetype": "Sovereign Kazakh Encyclopedic LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.7286,
+          "std": 0.1841,
+          "ci95_low": 1.6244,
+          "ci95_high": 1.8328,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.8573,
+          "std": 0.1814,
+          "ci95_low": 0.7546,
+          "ci95_high": 0.9599,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 7.3048,
+          "std": 1.5721,
+          "ci95_low": 6.4153,
+          "ci95_high": 8.1943,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 1.7543,
+          "std": 1.558,
+          "ci95_low": 0.8728,
+          "ci95_high": 2.6359,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.0926,
+          "std": 0.1144,
+          "ci95_low": 0.0278,
+          "ci95_high": 0.1573,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9753,
+          "std": 0.0278,
+          "ci95_low": 0.9595,
+          "ci95_high": 0.991,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.1124,
+          "std": 0.041,
+          "ci95_low": 0.0892,
+          "ci95_high": 0.1356,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -1.202,
+        "chain_len_variance": -0.989,
+        "copula_ratio": 10.854,
+        "synthetic_verb_ratio": -5.434,
+        "discourse_rigidity_score": 0.782,
+        "sov_compliance_score": 0.3,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": 0.007,
+        "burstiness": -1.133
+      }
+    },
+    "DeepSeek-R1": {
+      "archetype": "Analytical Reasoning LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.6031,
+          "std": 0.317,
+          "ci95_low": 1.4237,
+          "ci95_high": 1.7824,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.802,
+          "std": 0.3733,
+          "ci95_low": 0.5908,
+          "ci95_high": 1.0132,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 2.3458,
+          "std": 2.8633,
+          "ci95_low": 0.7258,
+          "ci95_high": 3.9659,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 7.9664,
+          "std": 2.6987,
+          "ci95_low": 6.4394,
+          "ci95_high": 9.4933,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.4629,
+          "std": 0.2001,
+          "ci95_low": 0.3497,
+          "ci95_high": 0.5762,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 0.9305,
+          "std": 0.0858,
+          "ci95_low": 0.882,
+          "ci95_high": 0.9791,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 0.9714,
+          "std": 0.0678,
+          "ci95_low": 0.933,
+          "ci95_high": 1.0098,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9748,
+          "std": 0.012,
+          "ci95_low": 0.968,
+          "ci95_high": 0.9816,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.1018,
+          "std": 0.036,
+          "ci95_low": 0.0815,
+          "ci95_high": 0.1222,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -1.899,
+        "chain_len_variance": -1.173,
+        "copula_ratio": 3.224,
+        "synthetic_verb_ratio": -2.248,
+        "discourse_rigidity_score": 5.411,
+        "sov_compliance_score": -1.09,
+        "loan_assimilation_score": -0.372,
+        "lexical_ttr": -0.004,
+        "burstiness": -1.244
+      }
+    },
+    "GPT-4o": {
+      "archetype": "Frontier Multilingual LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.832,
+          "std": 0.1473,
+          "ci95_low": 1.7486,
+          "ci95_high": 1.9153,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.9908,
+          "std": 0.1773,
+          "ci95_low": 0.8905,
+          "ci95_high": 1.0911,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 7.6179,
+          "std": 1.4786,
+          "ci95_low": 6.7813,
+          "ci95_high": 8.4545,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 1.2509,
+          "std": 1.5495,
+          "ci95_low": 0.3742,
+          "ci95_high": 2.1276,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.0556,
+          "std": 0.1005,
+          "ci95_low": -0.0013,
+          "ci95_high": 0.1124,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 0.9444,
+          "std": 0.1297,
+          "ci95_low": 0.871,
+          "ci95_high": 1.0179,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9926,
+          "std": 0.0134,
+          "ci95_low": 0.985,
+          "ci95_high": 1.0002,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.104,
+          "std": 0.0557,
+          "ci95_low": 0.0725,
+          "ci95_high": 0.1354,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -0.628,
+        "chain_len_variance": -0.544,
+        "copula_ratio": 11.335,
+        "synthetic_verb_ratio": -5.692,
+        "discourse_rigidity_score": 0.32,
+        "sov_compliance_score": -0.812,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": 0.391,
+        "burstiness": -1.221
+      }
+    },
+    "Qwen-2.5-72B": {
+      "archetype": "Open-Weights Multilingual LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.787,
+          "std": 0.252,
+          "ci95_low": 1.6445,
+          "ci95_high": 1.9296,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.9863,
+          "std": 0.3734,
+          "ci95_low": 0.775,
+          "ci95_high": 1.1975,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 7.8019,
+          "std": 2.3002,
+          "ci95_low": 6.5005,
+          "ci95_high": 9.1034,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 2.9015,
+          "std": 2.4872,
+          "ci95_low": 1.4942,
+          "ci95_high": 4.3087,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.1111,
+          "std": 0.116,
+          "ci95_low": 0.0454,
+          "ci95_high": 0.1768,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9973,
+          "std": 0.0093,
+          "ci95_low": 0.992,
+          "ci95_high": 1.0026,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.0816,
+          "std": 0.0444,
+          "ci95_low": 0.0565,
+          "ci95_high": 0.1067,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -0.878,
+        "chain_len_variance": -0.559,
+        "copula_ratio": 11.618,
+        "synthetic_verb_ratio": -4.845,
+        "discourse_rigidity_score": 1.014,
+        "sov_compliance_score": 0.3,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": 0.496,
+        "burstiness": -1.457
+      }
+    },
+    "Llama-3.3-70B-Calque": {
+      "archetype": "Unseen Cross-Lingual Calque LLM",
+      "num_documents": 12,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.6884,
+          "std": 0.1469,
+          "ci95_low": 1.6052,
+          "ci95_high": 1.7715,
+          "n": 12
+        },
+        "chain_len_variance": {
+          "mean": 0.8962,
+          "std": 0.202,
+          "ci95_low": 0.782,
+          "ci95_high": 1.0105,
+          "n": 12
+        },
+        "copula_ratio": {
+          "mean": 10.1648,
+          "std": 1.784,
+          "ci95_low": 9.1554,
+          "ci95_high": 11.1742,
+          "n": 12
+        },
+        "synthetic_verb_ratio": {
+          "mean": 0.2451,
+          "std": 0.8491,
+          "ci95_low": -0.2353,
+          "ci95_high": 0.7255,
+          "n": 12
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.7222,
+          "std": 0.1381,
+          "ci95_low": 0.6441,
+          "ci95_high": 0.8004,
+          "n": 12
+        },
+        "sov_compliance_score": {
+          "mean": 0.8194,
+          "std": 0.1322,
+          "ci95_low": 0.7447,
+          "ci95_high": 0.8942,
+          "n": 12
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 12
+        },
+        "lexical_ttr": {
+          "mean": 0.9645,
+          "std": 0.0635,
+          "ci95_low": 0.9285,
+          "ci95_high": 1.0004,
+          "n": 12
+        },
+        "burstiness": {
+          "mean": 0.077,
+          "std": 0.0366,
+          "ci95_low": 0.0563,
+          "ci95_high": 0.0977,
+          "n": 12
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": -1.426,
+        "chain_len_variance": -0.859,
+        "copula_ratio": 15.254,
+        "synthetic_verb_ratio": -6.208,
+        "discourse_rigidity_score": 8.652,
+        "sov_compliance_score": -3.312,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": -0.233,
+        "burstiness": -1.505
+      }
+    },
+    "human": {
+      "archetype": "Authentic Human Control",
+      "num_documents": 24,
+      "metrics": {
+        "chain_len_entropy": {
+          "mean": 1.9454,
+          "std": 0.1799,
+          "ci95_low": 1.8734,
+          "ci95_high": 2.0173,
+          "n": 24
+        },
+        "chain_len_variance": {
+          "mean": 1.1538,
+          "std": 0.322,
+          "ci95_low": 1.025,
+          "ci95_high": 1.2827,
+          "n": 24
+        },
+        "copula_ratio": {
+          "mean": 0.0,
+          "std": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "n": 24
+        },
+        "synthetic_verb_ratio": {
+          "mean": 12.3571,
+          "std": 1.8282,
+          "ci95_low": 11.6257,
+          "ci95_high": 13.0886,
+          "n": 24
+        },
+        "discourse_rigidity_score": {
+          "mean": 0.0,
+          "std": 0.0,
+          "ci95_low": 0.0,
+          "ci95_high": 0.0,
+          "n": 24
+        },
+        "sov_compliance_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 24
+        },
+        "loan_assimilation_score": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95_low": 1.0,
+          "ci95_high": 1.0,
+          "n": 24
+        },
+        "lexical_ttr": {
+          "mean": 0.9817,
+          "std": 0.0339,
+          "ci95_low": 0.9681,
+          "ci95_high": 0.9953,
+          "n": 24
+        },
+        "burstiness": {
+          "mean": 0.0905,
+          "std": 0.0354,
+          "ci95_low": 0.0763,
+          "ci95_high": 0.1047,
+          "n": 24
+        }
+      },
+      "z_score_vs_human_baseline": {
+        "chain_len_entropy": 0.002,
+        "chain_len_variance": -0.001,
+        "copula_ratio": -0.385,
+        "synthetic_verb_ratio": 0.004,
+        "discourse_rigidity_score": -0.375,
+        "sov_compliance_score": 0.3,
+        "loan_assimilation_score": 0.2,
+        "lexical_ttr": 0.149,
+        "burstiness": -1.363
+      }
+    }
+  },
+  "hypothesis_tests_human_vs_ai": {
+    "chain_len_entropy": {
+      "t_stat": 4.9058,
+      "p_value": 9.30504e-07,
+      "mean_diff": 0.2299
+    },
+    "chain_len_variance": {
+      "t_stat": 3.238,
+      "p_value": 0.001203507,
+      "mean_diff": 0.2407
+    },
+    "copula_ratio": {
+      "t_stat": -14.4102,
+      "p_value": 4.46712e-47,
+      "mean_diff": -6.164
+    },
+    "synthetic_verb_ratio": {
+      "t_stat": 16.0533,
+      "p_value": 5.423234e-58,
+      "mean_diff": 8.9021
+    },
+    "discourse_rigidity_score": {
+      "t_stat": -8.6921,
+      "p_value": 3.557521e-18,
+      "mean_diff": -0.287
+    },
+    "sov_compliance_score": {
+      "t_stat": 4.1832,
+      "p_value": 2.874416e-05,
+      "mean_diff": 0.0509
+    },
+    "loan_assimilation_score": {
+      "t_stat": 1.4044,
+      "p_value": 0.160202,
+      "mean_diff": 0.0048
+    },
+    "lexical_ttr": {
+      "t_stat": -0.0801,
+      "p_value": 0.9361282,
+      "mean_diff": -0.0006
+    },
+    "burstiness": {
+      "t_stat": -0.3473,
+      "p_value": 0.7283345,
+      "mean_diff": -0.0031
+    }
+  },
+  "family_weaknesses": {
+    "ISSAI-KazLLM-70B": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "discourse_rigidity_score",
+          "z_score": 3.097,
+          "mean": 0.2778
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -2.943,
+          "mean": 6.6121
+        },
+        {
+          "metric": "copula_ratio",
+          "z_score": 2.306,
+          "mean": 1.7488
+        }
+      ],
+      "qualitative_diagnosis": "Preserves sovereign Kazakh SOV clause finality and moderates analytic copula crutches relative to multilingual peers, but exhibits compressed morpheme chain entropy due to repetitive administrative nominalizations (-лық/-лік) and postpositional frames (шеңберінде, бойынша)."
+    },
+    "Sherkala-8B": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "copula_ratio",
+          "z_score": 10.854,
+          "mean": 7.3048
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -5.434,
+          "mean": 1.7543
+        },
+        {
+          "metric": "chain_len_entropy",
+          "z_score": -1.202,
+          "mean": 1.7286
+        }
+      ],
+      "qualitative_diagnosis": "Maintains grammatical vowel harmony and SOV verb placement, yet over-relies on encyclopedic analytic copula constructions (болып табылады, септігін тигізеді, негіз болады), sharply depleting direct synthetic finite verb predication."
+    },
+    "DeepSeek-R1": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "discourse_rigidity_score",
+          "z_score": 5.411,
+          "mean": 0.4629
+        },
+        {
+          "metric": "copula_ratio",
+          "z_score": 3.224,
+          "mean": 2.3458
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -2.248,
+          "mean": 7.9664
+        }
+      ],
+      "qualitative_diagnosis": "Displays the strongest chain-length compression and high discourse framing rigidity driven by deductive transition formulas (Осыған байланысты, Логикалық қорытындыларға сәйкес, көрсеткендей), alongside occasional impersonal calques (деп есептеледі) and hybrid technical stems."
+    },
+    "GPT-4o": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "copula_ratio",
+          "z_score": 11.335,
+          "mean": 7.6179
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -5.692,
+          "mean": 1.2509
+        },
+        {
+          "metric": "burstiness",
+          "z_score": -1.221,
+          "mean": 0.104
+        }
+      ],
+      "qualitative_diagnosis": "Achieves high surface lexical variety (TTR) and fluent inflection, but substitutes native Kazakh synthetic predicates with English-calqued light-verb templates (жол ашуда, маңызға ие, мүмкіндік береді), lowering synthetic verb density and nominalizing clause endings."
+    },
+    "Qwen-2.5-72B": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "copula_ratio",
+          "z_score": 11.618,
+          "mean": 7.8019
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -4.845,
+          "mean": 2.9015
+        },
+        {
+          "metric": "burstiness",
+          "z_score": -1.457,
+          "mean": 0.0816
+        }
+      ],
+      "qualitative_diagnosis": "Generates uniform sentence lengths (low burstiness) and high analytic light-verb saturation (кепілдік береді, жағдай жасайды, болып табылады) typical of macroeconomic and diplomatic translationese templates."
+    },
+    "Llama-3.3-70B-Calque": {
+      "top_anomalous_dimensions": [
+        {
+          "metric": "copula_ratio",
+          "z_score": 15.254,
+          "mean": 10.1648
+        },
+        {
+          "metric": "discourse_rigidity_score",
+          "z_score": 8.652,
+          "mean": 0.7222
+        },
+        {
+          "metric": "synthetic_verb_ratio",
+          "z_score": -6.208,
+          "mean": 0.2451
+        }
+      ],
+      "qualitative_diagnosis": "Demonstrates severe cross-lingual translationese: extreme analytic copula/passive crutch density (болып келеді, мән беріледі, назарға алынады, қол жеткізуге болады деп күтілуде), peak discourse transition rigidity (Өз кезегінде, Осының арқасында, Тұтастай алғанда), and degraded SOV compliance."
+    }
+  },
+  "dry_run": false
+}
