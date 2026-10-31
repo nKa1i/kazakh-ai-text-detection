@@ -74,6 +74,7 @@ class TestHfSpaceBundleStructure(unittest.TestCase):
         expected_modules = [
             "__init__.py",
             "document_detector.py",
+            "domain_calibrator.py",
             "generator_profiler.py",
             "generator_viz.py",
             "heuristic_detector.py",
@@ -536,6 +537,42 @@ class TestHfSpaceSynchronizedComponents(unittest.TestCase):
             sys.path = old_sys_path
             sys.modules.pop("hf_space_pattern_prober", None)
             sys.modules.pop("hf_space_generator_viz", None)
+
+    def test_phase4_domain_calibrator_and_presets_parity(self):
+        """Verifies Phase 4 domain_calibrator.py, ui/presets.py, and ui/app.py maintain byte parity with hf_space/."""
+        import importlib.util
+
+        rel_files = [
+            os.path.join("models", "domain_calibrator.py"),
+            os.path.join("ui", "presets.py"),
+            os.path.join("ui", "app.py"),
+        ]
+        for rel in rel_files:
+            root_f = os.path.join(PROJECT_ROOT, rel)
+            hf_f = os.path.join(HF_SPACE_DIR, rel)
+            self.assertTrue(os.path.isfile(hf_f), f"Missing hf_space file: {hf_f}")
+            with open(root_f, "rb") as f1, open(hf_f, "rb") as f2:
+                self.assertEqual(
+                    f1.read(),
+                    f2.read(),
+                    f"{rel} must be byte-identical between root and hf_space/",
+                )
+
+        cal_path = os.path.join(HF_SPACE_DIR, "models", "domain_calibrator.py")
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec_c = importlib.util.spec_from_file_location("hf_space_domain_calibrator", cal_path)
+            mod_c = importlib.util.module_from_spec(spec_c)
+            sys.modules["hf_space_domain_calibrator"] = mod_c
+            spec_c.loader.exec_module(mod_c)
+
+            calibrator = mod_c.DomainCalibrator()
+            badge = calibrator.get_domain_robustness_badge("news", lang="en")
+            self.assertIn("FPR<=5% Verified", badge["badge_text"])
+        finally:
+            sys.path = old_sys_path
+            sys.modules.pop("hf_space_domain_calibrator", None)
 
 
 if __name__ == "__main__":

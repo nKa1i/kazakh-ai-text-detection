@@ -58,9 +58,14 @@ from ui.presets import (
     get_verification_preset_choices,
     get_verification_preset_text,
     get_verification_preset_metadata,
+    DOMAIN_PRESET_SAMPLES,
+    get_domain_preset_choices,
+    get_domain_preset_text,
+    get_domain_preset_metadata,
 )
 from verification.verifier import TrustworthyDocumentVerifier
 from verification.evidence import DocumentTrustResult, ClaimVerificationResult
+from models.domain_calibrator import DomainCalibrator
 from models.heuristic_detector import OfflineHeuristicDetector
 from models.pattern_prober import (
     FAMILY_REFERENCE_PROBES,
@@ -1355,6 +1360,35 @@ def handle_preset_change(preset_name: str, lang_choice: str = "en") -> Tuple[str
     return text, meta_md
 
 
+def handle_domain_preset_change(preset_name: str, lang_choice: str = "en") -> Tuple[str, str]:
+    """Loads text and formatted genre robustness metadata when a Phase 4 domain preset is selected."""
+    if not preset_name:
+        return "", ""
+    text = get_domain_preset_text(preset_name)
+    meta = get_domain_preset_metadata(preset_name)
+    if not meta:
+        return text, ""
+
+    lang = _get_lang_key(lang_choice)
+    calibrator = DomainCalibrator()
+    badge = calibrator.get_domain_robustness_badge(meta.get("domain_key", "news"), lang=lang)
+    if lang == "kz":
+        meta_md = (
+            f"**Жанр:** `{meta.get('domain', 'N/A')}` | "
+            f"**Күтілетін үкім:** `{meta.get('expected_verdict', 'N/A')}` | "
+            f"**Тұрақтылық белгісі:** `{badge['badge_text']}`\n\n"
+            f"*{meta.get('description', '')}*"
+        )
+    else:
+        meta_md = (
+            f"**Genre:** `{meta.get('domain', 'N/A')}` | "
+            f"**Expected Verdict:** `{meta.get('expected_verdict', 'N/A')}` | "
+            f"**Robustness Audit:** `{badge['badge_text']}`\n\n"
+            f"*{meta.get('description', '')}*"
+        )
+    return text, meta_md
+
+
 def handle_file_upload(file_obj: Any, lang_choice: str = "en") -> Tuple[str, str]:
     """Loads uploaded file (.txt, .docx, .pdf) defensively with size and word limits."""
     if file_obj is None:
@@ -1787,6 +1821,19 @@ def generate_audit_markdown(res: Dict[str, Any], source_text: str = "") -> str:
             f"- **Sentence Length Burstiness:** {pat_probe.get('burstiness', 0.0):.4f}",
         ])
 
+    dom_badge = res.get("domain_badge")
+    if dom_badge and isinstance(dom_badge, dict):
+        lines.extend([
+            "",
+            "---",
+            "",
+            "## Cross-Domain Robustness & Genre Audit (Phase 4)",
+            "",
+            f"- **Detected Functional Genre:** {dom_badge.get('domain_label', 'News / Journalism')} (`{dom_badge.get('domain_key', 'news')}`)",
+            f"- **Calibrated Threshold:** tau = {dom_badge.get('calibrated_tau', '0.9980')}",
+            f"- **Robustness Status:** {dom_badge.get('badge_text', '')}",
+        ])
+
     lines.extend([
         "",
         "---",
@@ -1973,7 +2020,9 @@ def run_full_analysis_logic(
             "fingerprint_panel": render_linguistic_fingerprint_panel("", lang=lang),
             "pattern_probe": None,
             "sentences_state": [],
-            "generator_profile": None
+            "generator_profile": None,
+            "detected_domain": "news",
+            "domain_badge": None,
         }
 
     # 1. AI Detection & Heatmap via handle_analyze_document
@@ -1988,6 +2037,15 @@ def run_full_analysis_logic(
         s0_morphemes,
         sentences
     ) = handle_analyze_document(text, detector=det, lang_choice=current_lang)
+
+    dom_calibrator = DomainCalibrator(default_threshold=doc_res.calibrated_threshold)
+    detected_domain = dom_calibrator.classify_domain(text)
+    domain_badge = dom_calibrator.get_domain_robustness_badge(detected_domain, lang=lang)
+    safe_dom_badge = html.escape(domain_badge["badge_text"], quote=True)
+    exec_card = (
+        exec_card
+        + f'\n<div class="feature-badge" style="margin-top:6px;">{safe_dom_badge}</div>'
+    )
 
     verdict = doc_res.verdict
     if verdict == "Authentic Human":
@@ -2080,7 +2138,9 @@ def run_full_analysis_logic(
         "fingerprint_panel": fp_panel_html,
         "pattern_probe": probe_dict,
         "sentences_state": sentences,
-        "generator_profile": gen_profile
+        "generator_profile": gen_profile,
+        "detected_domain": detected_domain,
+        "domain_badge": domain_badge,
     }
 
 
@@ -2165,6 +2225,14 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         pill_btn4 = gr.Button(d["pill_4"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
                         pill_btn5 = gr.Button(d["pill_5"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
                         pill_btn6 = gr.Button(d["pill_6"], size="sm", elem_classes=["sample-pill", "quick-sample-pill"], scale=1)
+
+                with gr.Accordion("Phase 4: Multi-Genre Robustness Presets (5 Genres)", open=False):
+                    domain_preset_dropdown = gr.Dropdown(
+                        choices=get_domain_preset_choices(),
+                        value=None,
+                        label="Select Genre Benchmark Preset",
+                    )
+                    domain_preset_meta_md = gr.Markdown("")
 
                 # Single Unified Document Textarea
                 text_input = gr.Textbox(
@@ -2483,6 +2551,12 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
         pill_btn4.click(fn=lambda: QUICK_SAMPLES["pill_4"]["text"], outputs=[text_input])
         pill_btn5.click(fn=lambda: QUICK_SAMPLES["pill_5"]["text"], outputs=[text_input])
         pill_btn6.click(fn=lambda: QUICK_SAMPLES["pill_6"]["text"], outputs=[text_input])
+
+        domain_preset_dropdown.change(
+            fn=handle_domain_preset_change,
+            inputs=[domain_preset_dropdown, lang_radio],
+            outputs=[text_input, domain_preset_meta_md],
+        )
 
         # File Ingestion
         def _on_file_uploaded(f_obj, current_lang):
