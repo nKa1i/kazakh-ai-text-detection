@@ -505,5 +505,42 @@ class TestUiIntegration(unittest.TestCase):
 
 
 
+
+    def test_generator_profile_card_rendering_and_xss_safety(self):
+        """Verifies Phase 2 forensic generator fingerprint card renders known, OOD, and XSS inputs safely."""
+        from ui.highlighting import render_generator_profile_card
+
+        known_prof = {
+            "predicted_family": "DeepSeek-R1",
+            "archetype_label": "Analytical Reasoning LLM",
+            "is_unseen_generator": False,
+            "confidence": 0.84,
+            "ood_distance": 0.92,
+            "ood_threshold": 2.15,
+            "dominant_traits": [
+                "Deductive/analytical reasoning lexicon (0.24/word)",
+                "<script>alert(1)</script>",
+            ],
+        }
+        html_known = render_generator_profile_card(known_prof, lang="en")
+        self.assertIn("DeepSeek-R1", html_known)
+        self.assertIn("Analytical Reasoning LLM", html_known)
+        self.assertNotIn("<script>", html_known)
+        self.assertIn("&lt;script&gt;", html_known)
+
+        ood_prof = {
+            "predicted_family": "Unseen / Out-of-Distribution LLM",
+            "archetype_label": "Unseen Cross-Lingual / OOD LLM",
+            "is_unseen_generator": True,
+            "confidence": 0.91,
+            "ood_distance": 2.68,
+            "ood_threshold": 2.15,
+            "dominant_traits": ["Elevated cross-lingual calque rate (0.67/sent)"],
+        }
+        html_ood = render_generator_profile_card(ood_prof, lang="en")
+        self.assertIn("UNSEEN / OOD GENERATOR", html_ood)
+        self.assertIn("2.68", html_ood)
+
+
 if __name__ == "__main__":
     unittest.main()

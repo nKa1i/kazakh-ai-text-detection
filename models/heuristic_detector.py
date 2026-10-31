@@ -265,10 +265,11 @@ class OfflineHeuristicDetector:
         human_morph_signal = conv_particles + human_verb_suffixes + (1 if loan_root_hits >= 2 else 0)
 
         bureaucratic_part_hits = sum(1 for s in suffixes if s in self.AI_BUREAUCRATIC_PARTICIPLES)
-        passive_word_endings = sum(
-            1 for w in lower_words if w.endswith(("луда", "луде", "лды", "лді", "тірілді", "детілді", "талданды", "құрастырылды", "дәлелденді"))
+        complex_passive_endings = sum(
+            1 for w in lower_words if w.endswith(("тірілді", "детілді", "талданды", "құрастырылды", "дәлелденді", "ландырылды", "лендірілді", "ландырылған", "лендірілген", "луда", "луде"))
         )
-        effective_passive_hits = max(bureaucratic_part_hits, passive_word_endings)
+        general_past_passives = sum(1 for w in lower_words if w.endswith(("лды", "лді")))
+        effective_passive_hits = max(bureaucratic_part_hits, complex_passive_endings)
         abstract_deriv_hits = sum(1 for s in suffixes if s in self.ABSTRACT_DERIVATIONAL_SUFFIXES)
         word_abstract_hits = sum(
             1 for w in lower_words if any(sub in w for sub in ("лық", "лік", "дық", "дік", "тық", "тік"))
@@ -320,9 +321,9 @@ class OfflineHeuristicDetector:
                 score = 0.9986
             else:
                 score = 0.9200 + ai_structural_boost
-        elif effective_passive_hits >= 1 and effective_abstract_hits >= 2 and effective_human_hits == 0 and num_words >= 12:
+        elif complex_passive_endings >= 2 and effective_abstract_hits >= 2 and effective_human_hits == 0 and num_words >= 12:
             score = 0.9986
-        elif effective_passive_hits >= 2 and avg_word_len >= 7.5 and effective_human_hits == 0 and num_words >= 12:
+        elif (complex_passive_endings >= 1 or bureaucratic_part_hits >= 1) and effective_abstract_hits >= 4 and avg_word_len >= 8.5 and effective_human_hits == 0 and num_words >= 12:
             score = 0.9984
         elif effective_human_hits > 0:
             score = max(0.01, 0.10 - (effective_human_hits * 0.025))

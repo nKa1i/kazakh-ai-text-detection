@@ -39,6 +39,7 @@ from ui.highlighting import (
     render_morpheme_table,
     render_confidence_meter,
     render_executive_summary_card,
+    render_generator_profile_card,
     render_fst_decomposition_table,
     render_trust_summary_card,
     render_claims_verification_table,
@@ -1347,7 +1348,8 @@ def handle_analyze_document(
         total_words=doc_res.total_words,
         total_sents=doc_res.total_sentences,
         total_windows=doc_res.total_chunks,
-        ai_ratio=doc_res.ai_content_ratio
+        ai_ratio=doc_res.ai_content_ratio,
+        generator_profile=getattr(doc_res, "generator_profile", None)
     )
 
     # 5. Dynamic linguistic explanation bullets
@@ -1647,6 +1649,29 @@ def generate_audit_markdown(res: Dict[str, Any], source_text: str = "") -> str:
     else:
         lines.append("- **Verdict:** Awaiting Analysis")
 
+    gen_prof = res.get("generator_profile")
+    if gen_prof and isinstance(gen_prof, dict) and gen_prof.get("predicted_family"):
+        pred_fam = gen_prof.get("predicted_family", "Unknown")
+        arch = gen_prof.get("archetype_label", "")
+        ood_d = gen_prof.get("ood_distance", 0.0)
+        ood_th = gen_prof.get("ood_threshold", 2.15)
+        is_ood = gen_prof.get("is_unseen_generator", False)
+        lines.extend([
+            "",
+            "---",
+            "",
+            "## Forensic Multi-Model Generator Profile",
+            "",
+            f"- **Attributed Family:** {pred_fam} ({arch})",
+            f"- **Unseen / OOD Status:** {'Flagged as Unseen Generator' if is_ood else 'Known In-Distribution Family'}",
+            f"- **Centroid Distance:** {ood_d:.2f} (Threshold: {ood_th:.2f})",
+        ])
+        traits = gen_prof.get("dominant_traits", [])
+        if traits:
+            lines.append("- **Dominant Morphosyntactic Traits:**")
+            for t in traits:
+                lines.append(f"  - {t}")
+
     lines.extend([
         "",
         "---",
@@ -1711,7 +1736,8 @@ def run_full_analysis_logic(
             "autofst_table": render_autofst_inductions_table([], lang=lang),
             "trust_card": render_trust_summary_card(None, lang=lang),
             "claims_table": render_claims_verification_table([], lang=lang),
-            "sentences_state": []
+            "sentences_state": [],
+            "generator_profile": None
         }
 
     # 1. AI Detection & Heatmap via handle_analyze_document
@@ -1804,7 +1830,8 @@ def run_full_analysis_logic(
         "autofst_table": autofst_table,
         "trust_card": trust_card,
         "claims_table": claims_table,
-        "sentences_state": sentences
+        "sentences_state": sentences,
+        "generator_profile": getattr(doc_res, "generator_profile", None)
     }
 
 

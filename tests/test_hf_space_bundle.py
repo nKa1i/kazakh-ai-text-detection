@@ -74,6 +74,7 @@ class TestHfSpaceBundleStructure(unittest.TestCase):
         expected_modules = [
             "__init__.py",
             "document_detector.py",
+            "generator_profiler.py",
             "heuristic_detector.py",
             "losses.py",
             "morpho_contrastive_detector.py",
@@ -422,6 +423,40 @@ class TestHfSpaceSynchronizedComponents(unittest.TestCase):
             self.assertTrue(hasattr(mod_over, "DynamicFSTOverlay"))
         finally:
             sys.path = old_sys_path
+
+
+    def test_generator_profiler_and_phase2_parity(self):
+        """Verifies hf_space/models/generator_profiler.py exists, exports symbols, and maintains root byte parity."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "models", "generator_profiler.py")
+        root_path = os.path.join(PROJECT_ROOT, "models", "generator_profiler.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist in hf_space bundle")
+
+        # Parity check
+        with open(root_path, "rb") as f_root, open(target_path, "rb") as f_hf:
+            self.assertEqual(f_root.read(), f_hf.read(), "models/generator_profiler.py and hf_space/models/generator_profiler.py must be byte-identical")
+
+        # Symbol export and execution check
+        mod_name = "hf_space_models_generator_profiler"
+        spec = importlib.util.spec_from_file_location(mod_name, target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        old_sys_path = list(sys.path)
+        sys.modules[mod_name] = mod
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec.loader.exec_module(mod)
+            self.assertTrue(hasattr(mod, "MultiModelGeneratorProfiler"))
+            self.assertTrue(hasattr(mod, "GeneratorProfileResult"))
+            self.assertTrue(hasattr(mod, "KNOWN_GENERATOR_FAMILIES"))
+            profiler = mod.MultiModelGeneratorProfiler()
+            res = profiler.profile_document("Қазақстанның экологиялық қауіпсіздігі маңызды.")
+            self.assertTrue(hasattr(res, "predicted_family"))
+            self.assertTrue(hasattr(res, "is_unseen_generator"))
+            self.assertTrue(hasattr(res, "ood_distance"))
+        finally:
+            sys.path = old_sys_path
+            sys.modules.pop(mod_name, None)
 
 
 if __name__ == "__main__":

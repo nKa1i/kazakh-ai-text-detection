@@ -1185,6 +1185,78 @@ def render_confidence_meter(
     )
 
 
+def render_generator_profile_card(
+    generator_profile: Optional[Dict[str, Any]] = None,
+    lang: str = "en",
+) -> str:
+    """
+    Renders an XSS-safe forensic Multi-Model Generator Fingerprint sub-card.
+    Displays predicted generator family, open-set OOD status badge, standardized
+    centroid distance, and dominant morphosyntactic traits.
+    """
+    if not generator_profile or not isinstance(generator_profile, dict):
+        return ""
+
+    pred_family = str(generator_profile.get("predicted_family", "Awaiting Input"))
+    if pred_family in ("Awaiting Input", ""):
+        return ""
+
+    archetype = str(generator_profile.get("archetype_label", ""))
+    is_unseen = bool(generator_profile.get("is_unseen_generator", False))
+    conf = float(generator_profile.get("confidence", 0.0) or 0.0)
+    ood_dist = float(generator_profile.get("ood_distance", 0.0) or 0.0)
+    ood_thresh = float(generator_profile.get("ood_threshold", 2.15) or 2.15)
+    traits = generator_profile.get("dominant_traits", []) or []
+
+    if is_unseen:
+        status_badge_cls = "badge-warn"
+        status_text = (
+            "[UNSEEN / OOD GENERATOR]" if lang == "en" else "[БЕЙТАНЫС / OOD ГЕНЕРАТОР]"
+        )
+    elif pred_family == "Authentic Human":
+        status_badge_cls = "badge-ok"
+        status_text = "[HUMAN AUTHORSHIP]" if lang == "en" else "[АДАМ АВТОРЛЫҒЫ]"
+    else:
+        status_badge_cls = "badge-info"
+        status_text = "[KNOWN LLM FAMILY]" if lang == "en" else "[БЕЛГІЛІ LLM ПРОФИЛІ]"
+
+    header_title = (
+        "Multi-Model Generator Fingerprint Profile"
+        if lang == "en"
+        else "Көп-Модельді Генератордың Морфологиялық Профилі"
+    )
+    dist_label = (
+        f"OOD Distance: {ood_dist:.2f} (threshold {ood_thresh:.2f}) • Profile Match: {conf * 100:.1f}%"
+        if lang == "en"
+        else f"OOD Қашықтығы: {ood_dist:.2f} (шек {ood_thresh:.2f}) • Сәйкестік: {conf * 100:.1f}%"
+    )
+
+    safe_header = html.escape(header_title, quote=True)
+    safe_family = html.escape(pred_family, quote=True)
+    safe_archetype = html.escape(archetype, quote=True)
+    safe_status = html.escape(status_text, quote=True)
+    safe_dist = html.escape(dist_label, quote=True)
+
+    trait_pills = " ".join(
+        f'<span class="tag-pill morpheme-badge" style="margin-right: 4px;">{html.escape(str(t), quote=True)}</span>'
+        for t in traits[:3]
+    )
+
+    return (
+        f'<div class="morpho-evidence-box" style="margin-top: 12px; padding: 10px 12px;">\n'
+        f'  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">\n'
+        f'    <span class="morpho-diag-label" style="margin: 0;">{safe_header}</span>\n'
+        f'    <span class="morpho-badge {status_badge_cls}">{safe_status}</span>\n'
+        f'  </div>\n'
+        f'  <div style="font-size: 0.90rem; font-weight: 600; color: #f3f4f6; margin-bottom: 4px;">'
+        f'{safe_family} <span style="font-weight: 400; color: #9ca3af; font-size: 0.80rem;">({safe_archetype})</span>'
+        f'</div>\n'
+        f'  <div style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 6px;">{safe_dist}</div>\n'
+        f'  <div>{trait_pills}</div>\n'
+        f'</div>'
+    )
+
+
 def render_executive_summary_card(
     probability: Optional[float] = None,
     verdict: str = "",
@@ -1194,6 +1266,7 @@ def render_executive_summary_card(
     total_windows: int = 0,
     ai_ratio: float = 0.0,
     lexical_coverage: Optional[float] = None,
+    generator_profile: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Renders an all-in-one publication-grade executive summary card (Notion Callout Style):
@@ -1296,6 +1369,7 @@ def render_executive_summary_card(
     safe_sub_verdict = html.escape(sub_verdict, quote=True)
     safe_sub_conf = html.escape(sub_conf, quote=True)
     safe_sub_cov = html.escape(sub_cov, quote=True)
+    gen_card_html = render_generator_profile_card(generator_profile, lang=lang) if generator_profile else ""
 
     return (
         f'<div class="executive-summary-card">\n'
@@ -1334,6 +1408,7 @@ def render_executive_summary_card(
         f'      <div class="executive-kpi-sub">{safe_sub_cov}</div>\n'
         f'    </div>\n'
         f'  </div>\n'
+        f'{gen_card_html}'
         f'</div>'
     )
 
