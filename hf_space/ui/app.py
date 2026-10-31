@@ -62,6 +62,13 @@ from ui.presets import (
 from verification.verifier import TrustworthyDocumentVerifier
 from verification.evidence import DocumentTrustResult, ClaimVerificationResult
 from models.heuristic_detector import OfflineHeuristicDetector
+from models.pattern_prober import (
+    FAMILY_REFERENCE_PROBES,
+    RADAR_AXIS_KEYS,
+    RADAR_AXIS_LABELS,
+    GeneratorPatternProber,
+)
+from models.generator_viz import GeneratorFingerprintVisualizer
 try:
     from auto_fst import RussianLayoutNormalizer, AutoFSTInducer, DynamicFSTOverlay, RegressionGuard
 except ImportError:
@@ -556,6 +563,77 @@ button[variant="secondary"]:hover {
     color: #f3f4f6;
     font-weight: 600;
 }
+.fingerprint-panel-card {
+    background: #1a1b22;
+    border: 1px solid #2d313d;
+    border-radius: 8px;
+    padding: 16px;
+    color: #e5e7eb;
+}
+.fingerprint-kpi-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.fingerprint-kpi-chip {
+    background: #21232d;
+    border: 1px solid #2d313d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    color: #cbd5e1;
+    font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+}
+.fingerprint-kpi-chip strong {
+    color: #38bdf8;
+    font-weight: 600;
+}
+.fingerprint-svg-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.fingerprint-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 12px 0;
+}
+.fp-anomaly-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+.fp-badge-high {
+    background: rgba(244, 63, 94, 0.16);
+    color: #fda4af;
+    border: 1px solid rgba(244, 63, 94, 0.45);
+}
+.fp-badge-medium {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+}
+.fp-badge-normal {
+    background: rgba(16, 185, 129, 0.16);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+}
+.fp-explanation-list {
+    margin: 6px 0 0 18px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #d1d5db;
+}
+.fp-explanation-list li {
+    margin-bottom: 6px;
+}
 """
 
 # Quick Samples Definition (6 curated benchmarks)
@@ -707,6 +785,11 @@ I18N = {
         "autofst_btn": "Auto-FST Талдау (Analyze & Induce)",
         "autofst_clear_btn": "Тазалау (Clear)",
         "autofst_inductions_header": "### Жаңа Анықталған Түбірлер мен Грамматикалық Сәйкестік (Inductions & Safety)",
+        "subtab_fingerprint_title": "Linguistic Fingerprint & Diagnostics / Лингвистикалық қолтаңба",
+        "fingerprint_hero_header": "### Лингвистикалық Қолтаңба және Морфосинтаксистік Диагностика",
+        "fingerprint_empty_prompt": "Морфосинтаксистік радар мен ауытқу графигін көру үшін мәтінді талдаңыз.",
+        "fingerprint_anomalies_title": "Анықталған Лингвистикалық Белгілер",
+        "fingerprint_explanations_title": "Тереңдетілген Морфосинтаксистік Түсіндірме",
     },
     "en": {
         "hero_title": "Kazakh AI-Generated Text Detector & Explainability Dashboard",
@@ -805,6 +888,11 @@ I18N = {
         "autofst_btn": "Run Auto-FST Analysis",
         "autofst_clear_btn": "Clear",
         "autofst_inductions_header": "### Newly Discovered Stems and Phonetic Profile (Auto-Inductions)",
+        "subtab_fingerprint_title": "Linguistic Fingerprint & Diagnostics",
+        "fingerprint_hero_header": "### Deep Linguistic Fingerprint & Morphosyntactic Diagnostics",
+        "fingerprint_empty_prompt": "Run full document analysis to inspect the 8-axis SVG radar fingerprint and human-baseline z-score deviations.",
+        "fingerprint_anomalies_title": "Detected Linguistic Signature Badges",
+        "fingerprint_explanations_title": "Morphosyntactic Pattern Explanations",
     }
 }
 
@@ -1681,6 +1769,24 @@ def generate_audit_markdown(res: Dict[str, Any], source_text: str = "") -> str:
             for t in traits:
                 lines.append(f"  - {t}")
 
+    pat_probe = res.get("pattern_probe")
+    if pat_probe and isinstance(pat_probe, dict):
+        lines.extend([
+            "",
+            "---",
+            "",
+            "## Deep Morphosyntactic Pattern Probe (Phase 3)",
+            "",
+            f"- **Chain Length Entropy:** {pat_probe.get('chain_len_entropy', 0.0):.4f} bits (Variance: {pat_probe.get('chain_len_variance', 0.0):.4f})",
+            f"- **Analytic Copula Density:** {pat_probe.get('copula_ratio', 0.0):.2f} / 100 words",
+            f"- **Synthetic Verb Density:** {pat_probe.get('synthetic_verb_ratio', 0.0):.2f} / 100 words",
+            f"- **Discourse Rigidity Score:** {pat_probe.get('discourse_rigidity_score', 0.0):.4f}",
+            f"- **Head-Final SOV Compliance:** {pat_probe.get('sov_compliance_score', 1.0):.4f}",
+            f"- **Loanword Harmony Assimilation:** {pat_probe.get('loan_assimilation_score', 1.0):.4f}",
+            f"- **Sliding-Window Lexical TTR:** {pat_probe.get('lexical_ttr', 0.0):.4f}",
+            f"- **Sentence Length Burstiness:** {pat_probe.get('burstiness', 0.0):.4f}",
+        ])
+
     lines.extend([
         "",
         "---",
@@ -1702,6 +1808,125 @@ def generate_audit_markdown(res: Dict[str, Any], source_text: str = "") -> str:
     ])
 
     return "\n".join(lines)
+
+_DEFAULT_PATTERN_PROBER: Optional[GeneratorPatternProber] = None
+_DEFAULT_FINGERPRINT_VIZ: Optional[GeneratorFingerprintVisualizer] = None
+
+
+def _get_pattern_prober_and_viz() -> Tuple[GeneratorPatternProber, GeneratorFingerprintVisualizer]:
+    global _DEFAULT_PATTERN_PROBER, _DEFAULT_FINGERPRINT_VIZ
+    if _DEFAULT_PATTERN_PROBER is None:
+        _DEFAULT_PATTERN_PROBER = GeneratorPatternProber()
+    if _DEFAULT_FINGERPRINT_VIZ is None:
+        _DEFAULT_FINGERPRINT_VIZ = GeneratorFingerprintVisualizer()
+    return _DEFAULT_PATTERN_PROBER, _DEFAULT_FINGERPRINT_VIZ
+
+
+def render_linguistic_fingerprint_panel(
+    text: str,
+    lang: str = "en",
+    generator_profile: Optional[Dict[str, Any]] = None,
+    prober: Optional[GeneratorPatternProber] = None,
+    visualizer: Optional[GeneratorFingerprintVisualizer] = None,
+) -> str:
+    """
+    Renders the Phase 3 Linguistic Fingerprint & Diagnostics HTML card containing:
+    1. Summary morphosyntactic metric chips
+    2. 8-axis SVG Radar Chart (Target Document vs. Authentic Human Baseline vs. Family Centroid)
+    3. Diverging SVG Z-Score Deviation Bar Chart
+    4. XSS-escaped Anomaly Badges and bilingual Kazakh/English pattern explanations
+    """
+    lang_key = "kz" if lang == "kz" else "en"
+    d = I18N.get(lang_key, I18N["en"])
+
+    if not text or not text.strip():
+        safe_prompt = html.escape(d["fingerprint_empty_prompt"], quote=True)
+        return f'<div class="fingerprint-panel-card empty-doc-prompt">{safe_prompt}</div>'
+
+    active_prober, active_viz = _get_pattern_prober_and_viz()
+    if prober is not None:
+        active_prober = prober
+    if visualizer is not None:
+        active_viz = visualizer
+
+    probe_res = active_prober.probe(text)
+    if probe_res.total_words == 0:
+        safe_prompt = html.escape(d["fingerprint_empty_prompt"], quote=True)
+        return f'<div class="fingerprint-panel-card empty-doc-prompt">{safe_prompt}</div>'
+
+    deviations = active_prober.compute_deviation(text)
+    explanations = active_prober.explain_patterns(text)
+
+    target_lbl = "Талданатын құжат" if lang_key == "kz" else "Target Document"
+    human_lbl = "Адам эталоны" if lang_key == "kz" else "Human Baseline"
+    radar_series: Dict[str, Dict[str, float]] = {
+        target_lbl: active_prober.normalize_for_radar(probe_res),
+        human_lbl: active_prober.get_human_radar_baseline(),
+    }
+
+    if isinstance(generator_profile, dict):
+        pred_fam = str(generator_profile.get("predicted_family", "")).strip()
+        if pred_fam in FAMILY_REFERENCE_PROBES:
+            fam_radar = active_prober.get_family_radar_profile(pred_fam)
+            if fam_radar:
+                fam_lbl = f"{pred_fam} эталоны" if lang_key == "kz" else f"{pred_fam} Reference"
+                radar_series[fam_lbl] = fam_radar
+
+    axis_labels = [RADAR_AXIS_LABELS[k][lang_key] for k in RADAR_AXIS_KEYS]
+    radar_svg = active_viz.render_radar_chart_svg(
+        probes=radar_series,
+        labels=axis_labels,
+        width=490,
+        height=370,
+        axis_keys=RADAR_AXIS_KEYS,
+    )
+
+    localized_devs = {
+        RADAR_AXIS_LABELS[k][lang_key]: deviations[k]
+        for k in RADAR_AXIS_KEYS
+    }
+    bars_svg = active_viz.render_deviation_bars_svg(
+        deviations=localized_devs,
+        width=490,
+        height=240,
+    )
+
+    badges_html_parts: List[str] = []
+    bullets_html_parts: List[str] = []
+    for exp in explanations:
+        sev_cls = (
+            "fp-badge-high"
+            if exp.severity == "high"
+            else ("fp-badge-medium" if exp.severity == "medium" else "fp-badge-normal")
+        )
+        b_txt = html.escape(exp.badge_kz if lang_key == "kz" else exp.badge_en, quote=True)
+        m_txt = html.escape(exp.message_kz if lang_key == "kz" else exp.message_en, quote=True)
+        badges_html_parts.append(f'<span class="fp-anomaly-badge {sev_cls}">{b_txt}</span>')
+        bullets_html_parts.append(f"<li>{m_txt}</li>")
+
+    anom_title = html.escape(d["fingerprint_anomalies_title"], quote=True)
+    expl_title = html.escape(d["fingerprint_explanations_title"], quote=True)
+
+    return (
+        '<div class="fingerprint-panel-card">'
+        '<div class="fingerprint-kpi-strip">'
+        f'<span class="fingerprint-kpi-chip">Chain Entropy: <strong>{probe_res.chain_len_entropy:.2f}b</strong></span>'
+        f'<span class="fingerprint-kpi-chip">Copula/100w: <strong>{probe_res.copula_ratio:.2f}</strong></span>'
+        f'<span class="fingerprint-kpi-chip">Synth.Verb/100w: <strong>{probe_res.synthetic_verb_ratio:.2f}</strong></span>'
+        f'<span class="fingerprint-kpi-chip">SOV: <strong>{probe_res.sov_compliance_score:.0%}</strong></span>'
+        f'<span class="fingerprint-kpi-chip">Loan Harmony: <strong>{probe_res.loan_assimilation_score:.0%}</strong></span>'
+        "</div>"
+        '<div class="fingerprint-svg-grid">'
+        f"<div>{radar_svg}</div>"
+        f"<div>{bars_svg}</div>"
+        "</div>"
+        f'<div style="font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;">{anom_title}</div>'
+        f'<div class="fingerprint-badge-row">{"".join(badges_html_parts)}</div>'
+        f'<div style="font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;">{expl_title}</div>'
+        f'<ul class="fp-explanation-list">{"".join(bullets_html_parts)}</ul>'
+        "</div>"
+    )
+
 
 def run_full_analysis_logic(
     text: str,
@@ -1745,6 +1970,8 @@ def run_full_analysis_logic(
             "autofst_table": render_autofst_inductions_table([], lang=lang),
             "trust_card": render_trust_summary_card(None, lang=lang),
             "claims_table": render_claims_verification_table([], lang=lang),
+            "fingerprint_panel": render_linguistic_fingerprint_panel("", lang=lang),
+            "pattern_probe": None,
             "sentences_state": [],
             "generator_profile": None
         }
@@ -1825,6 +2052,17 @@ def run_full_analysis_logic(
     choices = dropdown_update.get("choices", []) if isinstance(dropdown_update, dict) else getattr(dropdown_update, "choices", [])
     choice_val = dropdown_update.get("value", None) if isinstance(dropdown_update, dict) else getattr(dropdown_update, "value", None)
 
+    gen_profile = getattr(doc_res, "generator_profile", None)
+    prober_inst, viz_inst = _get_pattern_prober_and_viz()
+    probe_dict = prober_inst.probe(text).to_dict()
+    fp_panel_html = render_linguistic_fingerprint_panel(
+        text,
+        lang=lang,
+        generator_profile=gen_profile,
+        prober=prober_inst,
+        visualizer=viz_inst,
+    )
+
     return {
         "executive_card": exec_card,
         "confidence_meter": conf_meter,
@@ -1839,8 +2077,10 @@ def run_full_analysis_logic(
         "autofst_table": autofst_table,
         "trust_card": trust_card,
         "claims_table": claims_table,
+        "fingerprint_panel": fp_panel_html,
+        "pattern_probe": probe_dict,
         "sentences_state": sentences,
-        "generator_profile": getattr(doc_res, "generator_profile", None)
+        "generator_profile": gen_profile
     }
 
 
@@ -2058,6 +2298,13 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                         verify_claims_header = gr.Markdown(d["verify_claims_header"])
                         verify_table_display = gr.HTML(render_claims_verification_table([], lang="en"))
 
+                    # Sub-Tab 4: Linguistic Fingerprint & Diagnostics (Phase 3)
+                    with gr.Tab(d["subtab_fingerprint_title"], id="tab_fingerprint") as tab_fingerprint:
+                        fingerprint_hero_header = gr.Markdown(d["fingerprint_hero_header"])
+                        fingerprint_panel_display = gr.HTML(
+                            render_linguistic_fingerprint_panel("", lang="en")
+                        )
+
         # Hidden legacy components to retain exact 63-element backward compatibility with switch_ui_language
         with gr.Row(visible=False):
             fst_lab_header = gr.Markdown(d["fst_lab_header"], visible=False)
@@ -2115,6 +2362,7 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 res["autofst_table"],
                 res["trust_card"],
                 res["claims_table"],
+                res["fingerprint_panel"],
                 res["sentences_state"]
             )
 
@@ -2134,6 +2382,7 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 autofst_inductions_table,
                 verify_card_display,
                 verify_table_display,
+                fingerprint_panel_display,
                 raw_sents_state
             ]
         )
@@ -2169,6 +2418,7 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 render_autofst_inductions_table([], lang=lang),
                 render_trust_summary_card(None, lang=lang),
                 render_claims_verification_table([], lang=lang),
+                render_linguistic_fingerprint_panel("", lang=lang),
                 []
             )
 
@@ -2191,6 +2441,7 @@ def create_app(detector: Any = None, verifier: Any = None, load_model: bool = Fa
                 autofst_inductions_table,
                 verify_card_display,
                 verify_table_display,
+                fingerprint_panel_display,
                 raw_sents_state
             ]
         )

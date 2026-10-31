@@ -75,10 +75,12 @@ class TestHfSpaceBundleStructure(unittest.TestCase):
             "__init__.py",
             "document_detector.py",
             "generator_profiler.py",
+            "generator_viz.py",
             "heuristic_detector.py",
             "losses.py",
             "morpho_contrastive_detector.py",
             "morpho_nli_verifier.py",
+            "pattern_prober.py",
         ]
         for mod in expected_modules:
             fpath = os.path.join(models_dir, mod)
@@ -483,6 +485,57 @@ class TestHfSpaceSynchronizedComponents(unittest.TestCase):
         finally:
             sys.path = old_sys_path
             sys.modules.pop(mod_name, None)
+
+    def test_phase3_pattern_prober_and_viz_parity(self):
+        """Verifies Phase 3 pattern_prober.py, generator_viz.py, and ui/app.py maintain byte parity with hf_space/."""
+        import importlib.util
+
+        rel_files = [
+            os.path.join("models", "pattern_prober.py"),
+            os.path.join("models", "generator_viz.py"),
+            os.path.join("ui", "app.py"),
+        ]
+        for rel in rel_files:
+            root_f = os.path.join(PROJECT_ROOT, rel)
+            hf_f = os.path.join(HF_SPACE_DIR, rel)
+            self.assertTrue(os.path.isfile(hf_f), f"Missing hf_space file: {hf_f}")
+            with open(root_f, "rb") as f1, open(hf_f, "rb") as f2:
+                self.assertEqual(
+                    f1.read(),
+                    f2.read(),
+                    f"{rel} must be byte-identical between root and hf_space/",
+                )
+
+        # Standalone load & execution of hf_space/models/pattern_prober.py and generator_viz.py
+        prober_path = os.path.join(HF_SPACE_DIR, "models", "pattern_prober.py")
+        viz_path = os.path.join(HF_SPACE_DIR, "models", "generator_viz.py")
+        old_sys_path = list(sys.path)
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec_p = importlib.util.spec_from_file_location("hf_space_pattern_prober", prober_path)
+            mod_p = importlib.util.module_from_spec(spec_p)
+            sys.modules["hf_space_pattern_prober"] = mod_p
+            spec_p.loader.exec_module(mod_p)
+
+            spec_v = importlib.util.spec_from_file_location("hf_space_generator_viz", viz_path)
+            mod_v = importlib.util.module_from_spec(spec_v)
+            sys.modules["hf_space_generator_viz"] = mod_v
+            spec_v.loader.exec_module(mod_v)
+
+            prober = mod_p.GeneratorPatternProber()
+            viz = mod_v.GeneratorFingerprintVisualizer()
+            sample = "Табиғи ресурстарды тиімді пайдалану мәселелері маңызды бағыттардың бірі болып табылады."
+            probe_res = prober.probe(sample)
+            self.assertGreater(probe_res.copula_ratio, 0.0)
+            svg = viz.render_radar_chart_svg(
+                {"Target": prober.normalize_for_radar(probe_res)},
+                labels=list(mod_p.RADAR_AXIS_KEYS),
+            )
+            self.assertIn("<polygon", svg)
+        finally:
+            sys.path = old_sys_path
+            sys.modules.pop("hf_space_pattern_prober", None)
+            sys.modules.pop("hf_space_generator_viz", None)
 
 
 if __name__ == "__main__":

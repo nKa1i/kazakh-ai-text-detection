@@ -541,6 +541,68 @@ class TestUiIntegration(unittest.TestCase):
         self.assertIn("UNSEEN / OOD GENERATOR", html_ood)
         self.assertIn("2.68", html_ood)
 
+    def test_phase3_linguistic_fingerprint_panel_and_full_pipeline(self):
+        """Verifies Phase 3 SVG radar/deviation panel, anomaly badges, bilingual text, XSS safety, and zero emojis."""
+        import xml.etree.ElementTree as ET
+        from ui.app import (
+            QUICK_SAMPLES,
+            generate_audit_markdown,
+            render_linguistic_fingerprint_panel,
+            run_full_analysis_logic,
+        )
+
+        emoji_pattern = re.compile(r"[𐀀-􏿿☀-⛿✀-➿️]")
+
+        # 1. Empty state rendering
+        empty_html = render_linguistic_fingerprint_panel("", lang="en")
+        self.assertIn("fingerprint-panel-card", empty_html)
+        self.assertIsNone(emoji_pattern.search(empty_html))
+
+        # 2. Machine-generated preset rendering (EN and KZ)
+        ai_text = QUICK_SAMPLES["pill_3"]["text"]
+        ai_prof = {
+            "predicted_family": "Sherkala-8B",
+            "archetype_label": "Sovereign Kazakh Encyclopedic LLM",
+            "is_unseen_generator": False,
+        }
+        panel_en = render_linguistic_fingerprint_panel(ai_text, lang="en", generator_profile=ai_prof)
+        panel_kz = render_linguistic_fingerprint_panel(ai_text, lang="kz", generator_profile=ai_prof)
+
+        self.assertIn("<svg", panel_en)
+        self.assertIn("<polygon", panel_en)
+        self.assertIn("Excessive Analytic Copula", panel_en)
+        self.assertIn("Sherkala-8B", panel_en)
+        self.assertIn("Шамадан тыс көмекші етістік", panel_kz)
+        self.assertIsNone(emoji_pattern.search(panel_en))
+        self.assertIsNone(emoji_pattern.search(panel_kz))
+
+        # Extract embedded SVGs and assert valid XML
+        svg_blocks = re.findall(r"<svg[\s\S]*?</svg>", panel_en)
+        self.assertEqual(len(svg_blocks), 2)
+        for svg_block in svg_blocks:
+            ET.fromstring(svg_block)
+
+        # 3. XSS injection resilience via malicious generator_profile predicted_family
+        xss_prof = {"predicted_family": "<script>alert(1)</script>"}
+        panel_xss = render_linguistic_fingerprint_panel(ai_text, lang="en", generator_profile=xss_prof)
+        self.assertNotIn("<script>", panel_xss)
+
+        # 4. Full pipeline dictionary + Markdown audit integration
+        full_res = run_full_analysis_logic(
+            text=ai_text,
+            autofst_enabled=True,
+            verifier_enabled=False,
+            current_lang="English",
+        )
+        self.assertIn("fingerprint_panel", full_res)
+        self.assertIn("pattern_probe", full_res)
+        self.assertIn("<svg", full_res["fingerprint_panel"])
+
+        audit_md = generate_audit_markdown(full_res, source_text=ai_text)
+        self.assertIn("Deep Morphosyntactic Pattern Probe", audit_md)
+        self.assertIn("Chain Length Entropy", audit_md)
+        self.assertIsNone(emoji_pattern.search(audit_md))
+
 
 if __name__ == "__main__":
     unittest.main()
