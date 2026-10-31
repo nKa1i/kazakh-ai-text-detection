@@ -1,0 +1,402 @@
+{
+  "benchmark_version": "phase4_v1",
+  "calibrated_threshold": 0.998,
+  "dry_run": false,
+  "total_evaluated": 500,
+  "per_domain": {
+    "news": {
+      "domain": "news",
+      "roc_auc": 1.0,
+      "fpr_at_95_tpr": 0.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0,
+      "fpr_at_calibrated_tau": 0.0,
+      "tpr_at_calibrated_tau": 1.0,
+      "recommended_threshold": 0.998,
+      "is_threshold_safe": true,
+      "genre_label": "News / Journalism",
+      "num_records": 100,
+      "attribution_accuracy": 1.0,
+      "unseen_ood_recall": 1.0,
+      "transfer_gap_auc": 0.0,
+      "threshold_stability_curve": [
+        {
+          "threshold": 0.9,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.925,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.95,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.975,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.99,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.995,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.998,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.999,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        }
+      ]
+    },
+    "academic": {
+      "domain": "academic",
+      "roc_auc": 1.0,
+      "fpr_at_95_tpr": 0.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0,
+      "fpr_at_calibrated_tau": 0.0,
+      "tpr_at_calibrated_tau": 1.0,
+      "recommended_threshold": 0.998,
+      "is_threshold_safe": true,
+      "genre_label": "Academic / Technical",
+      "num_records": 100,
+      "attribution_accuracy": 1.0,
+      "unseen_ood_recall": 1.0,
+      "transfer_gap_auc": 0.0,
+      "threshold_stability_curve": [
+        {
+          "threshold": 0.9,
+          "fpr": 0.12,
+          "tpr": 1.0,
+          "f1_score": 0.9398
+        },
+        {
+          "threshold": 0.925,
+          "fpr": 0.12,
+          "tpr": 1.0,
+          "f1_score": 0.9398
+        },
+        {
+          "threshold": 0.95,
+          "fpr": 0.12,
+          "tpr": 1.0,
+          "f1_score": 0.9398
+        },
+        {
+          "threshold": 0.975,
+          "fpr": 0.12,
+          "tpr": 1.0,
+          "f1_score": 0.9398
+        },
+        {
+          "threshold": 0.99,
+          "fpr": 0.12,
+          "tpr": 1.0,
+          "f1_score": 0.9398
+        },
+        {
+          "threshold": 0.995,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.998,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.999,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        }
+      ]
+    },
+    "official_legal": {
+      "domain": "official_legal",
+      "roc_auc": 1.0,
+      "fpr_at_95_tpr": 0.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0,
+      "fpr_at_calibrated_tau": 0.0,
+      "tpr_at_calibrated_tau": 1.0,
+      "recommended_threshold": 0.998,
+      "is_threshold_safe": true,
+      "genre_label": "Government / Legal",
+      "num_records": 100,
+      "attribution_accuracy": 1.0,
+      "unseen_ood_recall": 1.0,
+      "transfer_gap_auc": 0.0,
+      "threshold_stability_curve": [
+        {
+          "threshold": 0.9,
+          "fpr": 0.18,
+          "tpr": 1.0,
+          "f1_score": 0.9093
+        },
+        {
+          "threshold": 0.925,
+          "fpr": 0.16,
+          "tpr": 1.0,
+          "f1_score": 0.9195
+        },
+        {
+          "threshold": 0.95,
+          "fpr": 0.16,
+          "tpr": 1.0,
+          "f1_score": 0.9195
+        },
+        {
+          "threshold": 0.975,
+          "fpr": 0.16,
+          "tpr": 1.0,
+          "f1_score": 0.9195
+        },
+        {
+          "threshold": 0.99,
+          "fpr": 0.16,
+          "tpr": 1.0,
+          "f1_score": 0.9195
+        },
+        {
+          "threshold": 0.995,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.998,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.999,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        }
+      ]
+    },
+    "fiction_literature": {
+      "domain": "fiction_literature",
+      "roc_auc": 1.0,
+      "fpr_at_95_tpr": 0.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0,
+      "fpr_at_calibrated_tau": 0.0,
+      "tpr_at_calibrated_tau": 1.0,
+      "recommended_threshold": 0.998,
+      "is_threshold_safe": true,
+      "genre_label": "Literary / Fiction",
+      "num_records": 100,
+      "attribution_accuracy": 1.0,
+      "unseen_ood_recall": 1.0,
+      "transfer_gap_auc": 0.0,
+      "threshold_stability_curve": [
+        {
+          "threshold": 0.9,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.925,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.95,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.975,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.99,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.995,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.998,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.999,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        }
+      ]
+    },
+    "social_casual": {
+      "domain": "social_casual",
+      "roc_auc": 1.0,
+      "fpr_at_95_tpr": 0.0,
+      "f1_score": 1.0,
+      "accuracy": 1.0,
+      "fpr_at_calibrated_tau": 0.0,
+      "tpr_at_calibrated_tau": 1.0,
+      "recommended_threshold": 0.998,
+      "is_threshold_safe": true,
+      "genre_label": "Casual / Social Media",
+      "num_records": 100,
+      "attribution_accuracy": 1.0,
+      "unseen_ood_recall": 1.0,
+      "transfer_gap_auc": 0.0,
+      "threshold_stability_curve": [
+        {
+          "threshold": 0.9,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.925,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.95,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.975,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.99,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.995,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.998,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        },
+        {
+          "threshold": 0.999,
+          "fpr": 0.0,
+          "tpr": 1.0,
+          "f1_score": 1.0
+        }
+      ]
+    }
+  },
+  "aggregate": {
+    "domain": "aggregate",
+    "roc_auc": 1.0,
+    "fpr_at_95_tpr": 0.0,
+    "f1_score": 1.0,
+    "accuracy": 1.0,
+    "fpr_at_calibrated_tau": 0.0,
+    "tpr_at_calibrated_tau": 1.0,
+    "recommended_threshold": 0.998,
+    "is_threshold_safe": true,
+    "attribution_accuracy": 1.0,
+    "unseen_ood_recall": 1.0,
+    "max_transfer_gap_auc": 0.0,
+    "threshold_stability_curve": [
+      {
+        "threshold": 0.9,
+        "fpr": 0.06,
+        "tpr": 1.0,
+        "f1_score": 0.97
+      },
+      {
+        "threshold": 0.925,
+        "fpr": 0.056,
+        "tpr": 1.0,
+        "f1_score": 0.972
+      },
+      {
+        "threshold": 0.95,
+        "fpr": 0.056,
+        "tpr": 1.0,
+        "f1_score": 0.972
+      },
+      {
+        "threshold": 0.975,
+        "fpr": 0.056,
+        "tpr": 1.0,
+        "f1_score": 0.972
+      },
+      {
+        "threshold": 0.99,
+        "fpr": 0.056,
+        "tpr": 1.0,
+        "f1_score": 0.972
+      },
+      {
+        "threshold": 0.995,
+        "fpr": 0.0,
+        "tpr": 1.0,
+        "f1_score": 1.0
+      },
+      {
+        "threshold": 0.998,
+        "fpr": 0.0,
+        "tpr": 1.0,
+        "f1_score": 1.0
+      },
+      {
+        "threshold": 0.999,
+        "fpr": 0.0,
+        "tpr": 1.0,
+        "f1_score": 1.0
+      }
+    ]
+  }
+}
