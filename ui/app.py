@@ -989,8 +989,17 @@ def extract_detailed_morphemes(sentence_text: str) -> List[Dict[str, Any]]:
 
 def get_detector(load_model: bool = False):
     """
-    Initializes either the full PyTorch DocumentDetector or the defensive OfflineHeuristicDetector.
+    Initializes either the fast CPU ONNXDualStreamDetector (if weights exist),
+    the full PyTorch DocumentDetector (if requested), or the defensive OfflineHeuristicDetector.
     """
+    try:
+        from models.document_detector import ONNXDualStreamDetector
+        onnx_det = ONNXDualStreamDetector()
+        if onnx_det.is_onnx_active:
+            return onnx_det
+    except Exception:
+        pass
+
     if load_model:
         try:
             from kaz_mage.detector import DocumentDetector

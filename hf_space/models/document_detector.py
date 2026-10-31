@@ -7,8 +7,43 @@ Top-K worst-chunk risk score aggregation.
 """
 
 import math
+import os
+import sys
 from contextlib import nullcontext
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+
+try:
+    import onnxruntime as ort
+    HAS_ORT = True
+except ImportError:
+    ort = None
+    HAS_ORT = False
+
+try:
+    from models.heuristic_detector import OfflineHeuristicDetector
+except ImportError:
+    try:
+        from heuristic_detector import OfflineHeuristicDetector
+    except ImportError:
+        OfflineHeuristicDetector = None
+
+try:
+    from models.generator_profiler import MultiModelGeneratorProfiler
+except ImportError:
+    try:
+        from generator_profiler import MultiModelGeneratorProfiler
+    except ImportError:
+        MultiModelGeneratorProfiler = None
+
+try:
+    from api.morpheme_tokenizer import MorphemeTokenizer
+except ImportError:
+    try:
+        from morpheme_tokenizer import MorphemeTokenizer
+    except ImportError:
+        MorphemeTokenizer = None
 
 try:
     import torch
@@ -339,3 +374,252 @@ class DocumentDetector:
             total_words=total_words,
             total_sentences=total_sentences,
         )
+
+
+class ONNXDualStreamDetector:
+    """
+    Production-grade CPU inference runner for Kazakh AI text detection using a unified ONNX graph.
+    Automatically optimizes CPU threads, supports FP32 and dynamic INT8 quantized graphs,
+    and falls back defensively to OfflineHeuristicDetector if models are missing or onnxruntime is absent.
+    """
+
+    DEFAULT_WEIGHT_PATHS = [
+        "models/weights/model_quantized.onnx",
+        "models/weights/model.onnx",
+        "data/weights/model_quantized.onnx",
+        "data/weights/model.onnx",
+        "hf_space/models/weights/model_quantized.onnx",
+        "hf_space/models/weights/model.onnx",
+    ]
+
+    def __init__(
+        self,
+        model_path: Optional[str] = None,
+        raw_tokenizer: Optional[Any] = None,
+        morpheme_tokenizer: Optional[Any] = None,
+        calibrated_threshold: float = 0.9980,
+        max_words: int = 200,
+        overlap_sentences: int = 1,
+        num_threads: int = 4,
+        max_seq_len: int = 256,
+        vocab_size: Optional[int] = None,
+        morpheme_vocab_size: Optional[int] = None,
+    ) -> None:
+        self.calibrated_threshold = float(calibrated_threshold)
+        self.max_words = int(max_words)
+        self.overlap_sentences = int(overlap_sentences)
+        self.num_threads = int(num_threads)
+        self.max_seq_len = int(max_seq_len)
+        self.vocab_size = int(vocab_size) if vocab_size is not None else None
+        self.morpheme_vocab_size = int(morpheme_vocab_size) if morpheme_vocab_size is not None else None
+
+        self.chunker = SentencePreservingChunker(
+            max_words=self.max_words,
+            overlap_sentences=self.overlap_sentences,
+        )
+        self.aggregator = DocumentAggregator(
+            calibrated_threshold=self.calibrated_threshold,
+            top_k_cfg=2,
+        )
+        if MultiModelGeneratorProfiler is not None:
+            self.profiler = MultiModelGeneratorProfiler()
+        else:
+            self.profiler = None
+
+        if OfflineHeuristicDetector is not None:
+            self.fallback_detector = OfflineHeuristicDetector(calibrated_threshold=self.calibrated_threshold)
+        else:
+            self.fallback_detector = None
+
+        self.session = None
+        self.resolved_model_path = None
+        self.is_onnx_active = False
+
+        resolved_path = self._resolve_model_path(model_path)
+        if resolved_path and HAS_ORT and ort is not None:
+            try:
+                sess_options = ort.SessionOptions()
+                sess_options.intra_op_num_threads = self.num_threads
+                sess_options.inter_op_num_threads = 1
+                sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+                self.session = ort.InferenceSession(
+                    resolved_path,
+                    sess_options=sess_options,
+                    providers=["CPUExecutionProvider"],
+                )
+                self.resolved_model_path = resolved_path
+                self.is_onnx_active = True
+            except Exception:
+                self.session = None
+                self.is_onnx_active = False
+
+        self.raw_tokenizer = raw_tokenizer
+        self.morpheme_tokenizer = morpheme_tokenizer
+        if self.morpheme_tokenizer is None and MorphemeTokenizer is not None:
+            try:
+                self.morpheme_tokenizer = MorphemeTokenizer()
+            except Exception:
+                self.morpheme_tokenizer = None
+
+    def _resolve_model_path(self, model_path: Optional[str]) -> Optional[str]:
+        if model_path:
+            if os.path.isfile(model_path):
+                return os.path.abspath(model_path)
+            return None
+
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        for rel in self.DEFAULT_WEIGHT_PATHS:
+            candidate = os.path.join(base_dir, rel)
+            if os.path.isfile(candidate):
+                return candidate
+        return None
+
+    def _tokenize_text(self, texts: List[str]) -> Tuple[np.ndarray, np.ndarray]:
+        b = len(texts)
+        if self.raw_tokenizer is not None:
+            try:
+                tok = self.raw_tokenizer(
+                    texts,
+                    padding=True,
+                    truncation=True,
+                    max_length=self.max_seq_len,
+                    return_tensors="np",
+                )
+                input_ids = np.array(tok["input_ids"], dtype=np.int64)
+                attention_mask = np.array(tok["attention_mask"], dtype=np.int64)
+                return input_ids, attention_mask
+            except Exception:
+                pass
+
+        # Deterministic token ID projection fallback
+        input_ids = np.ones((b, self.max_seq_len), dtype=np.int64)
+        attention_mask = np.zeros((b, self.max_seq_len), dtype=np.int64)
+        for i, text in enumerate(texts):
+            words = text.split()[: self.max_seq_len]
+            for j, w in enumerate(words):
+                input_ids[i, j] = (abs(hash(w)) % 1000) + 1
+                attention_mask[i, j] = 1
+        return input_ids, attention_mask
+
+    def _tokenize_morph(self, texts: List[str], seq_len: int) -> np.ndarray:
+        b = len(texts)
+        if self.morpheme_tokenizer is not None:
+            try:
+                res = self.morpheme_tokenizer.batch_encode(texts, max_length=seq_len)
+                if hasattr(res, "numpy"):
+                    return res.numpy().astype(np.int64)
+                elif hasattr(res, "data"):
+                    return np.array(res.data, dtype=np.int64)
+                elif isinstance(res, (list, tuple)):
+                    return np.array(res, dtype=np.int64)
+            except Exception:
+                pass
+        return np.zeros((b, seq_len), dtype=np.int64)
+
+    def _score_batch(self, texts: List[str]) -> List[Tuple[float, float]]:
+        if not self.is_onnx_active or self.session is None:
+            if self.fallback_detector is not None:
+                return [self.fallback_detector._score_chunk(t) for t in texts]
+            return [(0.0, 0.5) for _ in texts]
+
+        input_ids, attention_mask = self._tokenize_text(texts)
+        if self.vocab_size is not None:
+            input_ids = np.clip(input_ids, 0, self.vocab_size - 1)
+        seq_len = input_ids.shape[1]
+        morph_ids = self._tokenize_morph(texts, seq_len)
+        if self.morpheme_vocab_size is not None:
+            morph_ids = np.clip(morph_ids, 0, self.morpheme_vocab_size - 1)
+
+        expected_inputs = {inp.name for inp in self.session.get_inputs()}
+        ort_inputs = {}
+        if "input_ids" in expected_inputs:
+            ort_inputs["input_ids"] = np.ascontiguousarray(input_ids, dtype=np.int64)
+        if "attention_mask" in expected_inputs:
+            ort_inputs["attention_mask"] = np.ascontiguousarray(attention_mask, dtype=np.int64)
+        if "morph_ids" in expected_inputs:
+            ort_inputs["morph_ids"] = np.ascontiguousarray(morph_ids, dtype=np.int64)
+
+        try:
+            ort_outs = self.session.run(None, ort_inputs)
+            ai_probs = ort_outs[0]
+            gates = ort_outs[1] if len(ort_outs) > 1 else None
+
+            results = []
+            for j in range(len(texts)):
+                p = float(ai_probs[j][0]) if (j < len(ai_probs) and hasattr(ai_probs[j], "__len__")) else float(ai_probs[j])
+                p = max(0.0, min(1.0, p))
+                if gates is not None and j < len(gates):
+                    g = float(gates[j][0]) if hasattr(gates[j], "__len__") else float(gates[j])
+                    g = max(0.0, min(1.0, g))
+                else:
+                    g = 0.5
+                results.append((p, g))
+            return results
+        except Exception:
+            if self.fallback_detector is not None:
+                return [self.fallback_detector._score_chunk(t) for t in texts]
+            return [(0.0, 0.5) for _ in texts]
+
+    def predict_document(
+        self,
+        text: str,
+        top_k: int = 2,
+        batch_size: int = 16,
+    ) -> DocumentAnalysisResult:
+        if not self.is_onnx_active or self.session is None:
+            if self.fallback_detector is not None:
+                return self.fallback_detector.predict_document(text)
+            return self.aggregator.aggregate([], total_words=0, total_sentences=0)
+
+        if not text or not text.strip():
+            if self.fallback_detector is not None:
+                return self.fallback_detector.predict_document(text)
+            return self.aggregator.aggregate([], total_words=0, total_sentences=0)
+
+        chunks = self.chunker.chunk_document(text)
+        if not chunks:
+            if self.fallback_detector is not None:
+                return self.fallback_detector.predict_document(text)
+            return self.aggregator.aggregate([], total_words=0, total_sentences=0)
+
+        effective_batch_size = max(1, int(batch_size))
+        for start_idx in range(0, len(chunks), effective_batch_size):
+            batch_chunks = chunks[start_idx : start_idx + effective_batch_size]
+            batch_texts = [c.text for c in batch_chunks]
+            scores = self._score_batch(batch_texts)
+            for chunk, (prob, gate) in zip(batch_chunks, scores):
+                chunk.ai_probability = prob
+                chunk.gate_value = gate
+                chunk.is_ai = bool(prob >= self.calibrated_threshold)
+
+        total_words = len(text.split())
+        sentences = self.chunker.split_sentences(text)
+        total_sentences = len(sentences)
+
+        aggregator = DocumentAggregator(
+            calibrated_threshold=self.calibrated_threshold,
+            top_k_cfg=top_k,
+        )
+        result = aggregator.aggregate(
+            chunks,
+            total_words=total_words,
+            total_sentences=total_sentences,
+        )
+        if self.profiler is not None:
+            result.generator_profile = self.profiler.profile_document(
+                text,
+                ai_probability=result.document_ai_probability,
+                verdict=result.verdict,
+            ).to_dict()
+        return result
+
+    def predict(self, text: str) -> Dict[str, Any]:
+        """Provides backward-compatible single-call dictionary response."""
+        res = self.predict_document(text)
+        return {
+            "ai_probability": res.document_ai_probability,
+            "verdict": res.verdict,
+            "ai_content_ratio": res.ai_content_ratio,
+            "generator_profile": res.generator_profile,
+        }
+

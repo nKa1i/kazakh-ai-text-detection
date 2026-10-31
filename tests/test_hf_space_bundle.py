@@ -163,6 +163,7 @@ class TestHfSpaceMetadata(unittest.TestCase):
             reqs = f.read()
 
         self.assertIn("gradio", reqs.lower())
+        self.assertIn("onnxruntime", reqs.lower())
         # Ensure heavy ML frameworks are not mandatory in requirements.txt
         self.assertNotIn("torch", reqs.lower())
         self.assertNotIn("transformers", reqs.lower())
@@ -454,6 +455,31 @@ class TestHfSpaceSynchronizedComponents(unittest.TestCase):
             self.assertTrue(hasattr(res, "predicted_family"))
             self.assertTrue(hasattr(res, "is_unseen_generator"))
             self.assertTrue(hasattr(res, "ood_distance"))
+        finally:
+            sys.path = old_sys_path
+            sys.modules.pop(mod_name, None)
+
+    def test_onnx_dual_stream_detector_in_hf_space(self):
+        """Verifies hf_space/models/document_detector.py exports ONNXDualStreamDetector with fallback."""
+        import importlib.util
+        target_path = os.path.join(HF_SPACE_DIR, "models", "document_detector.py")
+        self.assertTrue(os.path.isfile(target_path), f"File {target_path} must exist in hf_space bundle")
+
+        mod_name = "hf_space_models_document_detector"
+        spec = importlib.util.spec_from_file_location(mod_name, target_path)
+        self.assertIsNotNone(spec)
+        mod = importlib.util.module_from_spec(spec)
+        old_sys_path = list(sys.path)
+        sys.modules[mod_name] = mod
+        try:
+            sys.path.insert(0, HF_SPACE_DIR)
+            spec.loader.exec_module(mod)
+            self.assertTrue(hasattr(mod, "ONNXDualStreamDetector"))
+            det = mod.ONNXDualStreamDetector(model_path="non_existent.onnx")
+            self.assertFalse(det.is_onnx_active)
+            res = det.predict_document("Бұл қазақша сынақ мәтіні.")
+            self.assertIsNotNone(res)
+            self.assertTrue(hasattr(res, "document_ai_probability"))
         finally:
             sys.path = old_sys_path
             sys.modules.pop(mod_name, None)
