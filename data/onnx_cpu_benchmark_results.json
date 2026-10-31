@@ -1,0 +1,38 @@
+{
+  "status": "success",
+  "dry_run": false,
+  "iterations": 25,
+  "seq_len": 128,
+  "num_threads": 4,
+  "pytorch_latency_ms": {
+    "mean_ms": 3.484,
+    "std_ms": 1.166,
+    "p50_ms": 3.206,
+    "p90_ms": 5.431,
+    "p99_ms": 6.458,
+    "min_ms": 2.1,
+    "max_ms": 6.477
+  },
+  "fp32_latency_ms": {
+    "mean_ms": 1.047,
+    "std_ms": 0.223,
+    "p50_ms": 0.933,
+    "p90_ms": 1.429,
+    "p99_ms": 1.599,
+    "min_ms": 0.864,
+    "max_ms": 1.626
+  },
+  "int8_latency_ms": {
+    "mean_ms": 0.94,
+    "std_ms": 0.287,
+    "p50_ms": 0.82,
+    "p90_ms": 1.289,
+    "p99_ms": 1.771,
+    "min_ms": 0.676,
+    "max_ms": 1.83
+  },
+  "speedup_int8_vs_pytorch": 3.71,
+  "mae_probability_vs_pytorch": 0.007702,
+  "fp32_size_mb": 0.82,
+  "int8_size_mb": 0.28
+}
