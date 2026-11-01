@@ -110,6 +110,7 @@ class AutoFSTSentinel:
         min_distinct_affixes: int = 2,
         lexicon_path: str = "data/discovered_lexicon.json",
         audit_path: str = "data/sentinel_audit.json",
+        dry_run: bool = False,
     ) -> None:
         self.detector = detector or ONNXDualStreamDetector()
         self.overlay = overlay or DynamicFSTOverlay()
@@ -121,6 +122,7 @@ class AutoFSTSentinel:
         self.min_distinct_affixes = int(min_distinct_affixes)
         self.lexicon_path = lexicon_path
         self.audit_path = audit_path
+        self.dry_run = bool(dry_run)
 
         # Candidate buffer: Map[canon_stem -> dict]
         self.buffer: Dict[str, Dict[str, Any]] = {}
@@ -248,10 +250,14 @@ class AutoFSTSentinel:
 
     def save_discovered_lexicon(self) -> None:
         """Saves current custom roots to discovered lexicon JSON."""
+        if self.dry_run:
+            return
         self.overlay.save_to_json(self.lexicon_path)
 
     def save_audit(self, stats: SentinelRunStats) -> None:
         """Saves run statistics to sentinel audit JSON log with historical log."""
+        if self.dry_run:
+            return
         os.makedirs(os.path.dirname(os.path.abspath(self.audit_path)), exist_ok=True)
         history: List[Dict[str, Any]] = []
         if os.path.isfile(self.audit_path):
