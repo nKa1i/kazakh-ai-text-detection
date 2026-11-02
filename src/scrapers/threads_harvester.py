@@ -10,7 +10,10 @@ import datetime
 import json
 import os
 import re
+import socket
 import sys
+import time
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -293,16 +296,41 @@ def harvest_threads_url(
     Returns:
         ThreadsHarvestResult with status, batch path, and comment count.
     """
+def _resolve_proxy(proxy: Optional[str] = None) -> Optional[str]:
+    """Resolves proxy configuration with environment and local 7890 fallback."""
     proxy_url = proxy or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or os.environ.get("ALL_PROXY")
     if not proxy_url:
         try:
-            import socket
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(0.2)
                 if s.connect_ex(("127.0.0.1", 7890)) == 0:
                     proxy_url = "http://127.0.0.1:7890"
         except Exception:
             pass
+    return proxy_url
+
+
+def harvest_threads_url(
+    url: str,
+    output_dir: str = "data/threads_staged",
+    filter_non_kazakh: bool = True,
+    proxy: Optional[str] = None,
+    timeout_sec: float = 15.0,
+) -> ThreadsHarvestResult:
+    """
+    Public stateless scraper fetching a Threads post or profile without authentication.
+
+    Args:
+        url: Public Threads URL (e.g. https://www.threads.net/@user/post/C_abc123).
+        output_dir: Staging directory for batch JSON files.
+        filter_non_kazakh: If True, auto-discards non-Kazakh comments.
+        proxy: Optional HTTP/HTTPS proxy URL (e.g. http://127.0.0.1:7890).
+        timeout_sec: HTTP request timeout in seconds.
+
+    Returns:
+        ThreadsHarvestResult with status, batch path, and comment count.
+    """
+    proxy_url = _resolve_proxy(proxy)
     # Normalize threads.com mobile share links to threads.net
     target_url = url
     if "threads.com" in target_url:
@@ -356,3 +384,215 @@ def harvest_threads_url(
             success=False,
             error_message=f"Network or parsing exception: {str(exc)}",
         )
+
+
+def search_threads_posts(
+    query: str,
+    limit: int = 15,
+    proxy: Optional[str] = None,
+    timeout_sec: float = 15.0,
+) -> List[str]:
+    """
+    Searches public Threads for a topic/keyword and returns distinct post URLs.
+
+    Args:
+        query: Search term (e.g. 'қазақша', 'алматы', 'каспи').
+        limit: Maximum number of post URLs to retrieve.
+        proxy: Optional proxy URL.
+        timeout_sec: Request timeout in seconds.
+
+    Returns:
+        List of canonical post URLs (https://www.threads.net/t/<post_id>).
+    """
+    proxy_url = _resolve_proxy(proxy)
+    encoded_query = urllib.parse.quote(query.strip())
+    search_url = f"https://www.threads.net/search?q={encoded_query}&serp_type=default"
+
+    client_kwargs: Dict[str, Any] = {
+        "headers": DEFAULT_HEADERS,
+        "follow_redirects": True,
+        "timeout": timeout_sec,
+        "verify": False,
+    }
+    if proxy_url:
+        client_kwargs["proxy"] = proxy_url
+
+    try:
+        with httpx.Client(**client_kwargs) as client:
+            resp = client.get(search_url)
+
+        if resp.status_code != 200:
+            return []
+
+        post_ids = re.findall(r'/(?:@[a-zA-Z0-9_\.]+/)?(?:post|t)/([A-Za-z0-9_\-]+)', resp.text)
+        seen_ids = set()
+        urls: List[str] = []
+        for pid in post_ids:
+            if pid not in seen_ids and len(pid) >= 5:
+                seen_ids.add(pid)
+                urls.append(f"https://www.threads.net/t/{pid}")
+                if len(urls) >= limit:
+                    break
+        return urls
+    except Exception:
+        return []
+
+
+def harvest_threads_user_posts(
+    username: str,
+    limit: int = 10,
+    proxy: Optional[str] = None,
+    timeout_sec: float = 15.0,
+) -> List[str]:
+    """
+    Discovers recent public post URLs for a given Threads creator or channel.
+
+    Args:
+        username: Handle with or without leading '@' (e.g. 'tengrinewskz').
+        limit: Maximum number of post URLs to retrieve.
+        proxy: Optional proxy URL.
+        timeout_sec: Request timeout in seconds.
+
+    Returns:
+        List of canonical post URLs.
+    """
+    clean_user = username.strip().lstrip("@")
+    profile_url = f"https://www.threads.net/@{clean_user}"
+    proxy_url = _resolve_proxy(proxy)
+
+    client_kwargs: Dict[str, Any] = {
+        "headers": DEFAULT_HEADERS,
+        "follow_redirects": True,
+        "timeout": timeout_sec,
+        "verify": False,
+    }
+    if proxy_url:
+        client_kwargs["proxy"] = proxy_url
+
+    try:
+        with httpx.Client(**client_kwargs) as client:
+            resp = client.get(profile_url)
+
+        if resp.status_code != 200:
+            return []
+
+        post_ids = re.findall(r'/(?:@[a-zA-Z0-9_\.]+/)?(?:post|t)/([A-Za-z0-9_\-]+)', resp.text)
+        seen_ids = set()
+        urls: List[str] = []
+        for pid in post_ids:
+            if pid not in seen_ids and len(pid) >= 5:
+                seen_ids.add(pid)
+                urls.append(f"https://www.threads.net/t/{pid}")
+                if len(urls) >= limit:
+                    break
+        return urls
+    except Exception:
+        return []
+
+
+def harvest_threads_bulk(
+    urls: List[str],
+    output_dir: str = "data/threads_staged",
+    filter_non_kazakh: bool = True,
+    proxy: Optional[str] = None,
+    delay_sec: float = 0.5,
+    timeout_sec: float = 15.0,
+) -> ThreadsHarvestResult:
+    """
+    Fetches comments from multiple Threads posts and aggregates them into a single batch.
+
+    Args:
+        urls: List of post URLs to scrape.
+        output_dir: Destination staging folder.
+        filter_non_kazakh: If True, automatically marks non-Kazakh text as discarded.
+        proxy: Optional proxy URL.
+        delay_sec: Delay between post requests to respect polite scraping rates.
+        timeout_sec: Per-request timeout in seconds.
+
+    Returns:
+        Combined ThreadsHarvestResult.
+    """
+    if not urls:
+        return ThreadsHarvestResult(
+            success=False,
+            error_message="No URLs provided for bulk harvesting",
+        )
+
+    proxy_url = _resolve_proxy(proxy)
+    client_kwargs: Dict[str, Any] = {
+        "headers": DEFAULT_HEADERS,
+        "follow_redirects": True,
+        "timeout": timeout_sec,
+        "verify": False,
+    }
+    if proxy_url:
+        client_kwargs["proxy"] = proxy_url
+
+    all_comments: List[Dict[str, Any]] = []
+    seen_texts = set()
+
+    with httpx.Client(**client_kwargs) as client:
+        for idx, post_url in enumerate(urls):
+            target_url = post_url.replace("threads.com", "threads.net")
+            post_id_match = re.search(r'/(?:post|t)/([A-Za-z0-9_\-]+)', target_url)
+            default_pid = post_id_match.group(1) if post_id_match else f"p_{idx+1}"
+
+            try:
+                resp = client.get(target_url)
+                if resp.status_code == 200:
+                    comments = extract_comments_from_html(resp.text, default_post_id=default_pid)
+                    for c in comments:
+                        txt = c.get("text_anonymized", "")
+                        if txt and txt not in seen_texts:
+                            seen_texts.add(txt)
+                            all_comments.append(c)
+            except Exception:
+                pass
+
+            if delay_sec > 0 and idx < len(urls) - 1:
+                time.sleep(delay_sec)
+
+    if not all_comments:
+        return ThreadsHarvestResult(
+            success=False,
+            error_message="Failed to parse comments from any of the provided URLs",
+        )
+
+    batch_path, batch_data = create_staging_batch(
+        source_query=f"bulk://{len(urls)}_posts",
+        raw_items=all_comments,
+        output_dir=output_dir,
+        filter_non_kazakh=filter_non_kazakh,
+    )
+
+    return ThreadsHarvestResult(
+        success=True,
+        batch_file_path=batch_path,
+        batch_id=batch_data["batch_id"],
+        comments_count=len(all_comments),
+    )
+
+
+def harvest_threads_search(
+    query: str,
+    limit: int = 15,
+    output_dir: str = "data/threads_staged",
+    filter_non_kazakh: bool = True,
+    proxy: Optional[str] = None,
+) -> ThreadsHarvestResult:
+    """
+    End-to-end convenience workflow: searches Threads by keyword, crawls discovered
+    posts, filters out non-Kazakh text, and creates a combined staging batch.
+    """
+    discovered_urls = search_threads_posts(query=query, limit=limit, proxy=proxy)
+    if not discovered_urls:
+        return ThreadsHarvestResult(
+            success=False,
+            error_message=f"No posts found for query '{query}'",
+        )
+    return harvest_threads_bulk(
+        urls=discovered_urls,
+        output_dir=output_dir,
+        filter_non_kazakh=filter_non_kazakh,
+        proxy=proxy,
+    )
