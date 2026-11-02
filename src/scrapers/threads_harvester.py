@@ -14,6 +14,8 @@ import sys
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.scrapers.language_filter import detect_comment_language
+
 import httpx
 
 # Ensure project root is on sys.path
@@ -173,6 +175,7 @@ def create_staging_batch(
     source_query: str,
     raw_items: List[Dict[str, Any]],
     output_dir: str = "data/threads_staged",
+    filter_non_kazakh: bool = True,
 ) -> Tuple[str, Dict[str, Any]]:
     """
     Creates an immutable staging batch file matching the ThreadsSentinel data contract.
@@ -181,6 +184,8 @@ def create_staging_batch(
         source_query: Source post URL or username query.
         raw_items: List of raw items with keys (comment_id, post_id, text/text_anonymized).
         output_dir: Staging destination folder.
+        filter_non_kazakh: If True, automatically marks non-Kazakh (e.g. Russian)
+            comments as discarded to shield human review and FST induction.
 
     Returns:
         Tuple of (batch_file_path, batch_data_dict).
@@ -199,13 +204,30 @@ def create_staging_batch(
         if not text_anon:
             text_anon = anonymize_social_text(str(item.get("text") or ""))
 
+        # Run language identification filter
+        lang, conf, reason = detect_comment_language(text_anon)
+
+        already_verified = bool(item.get("verified", False))
+        already_discarded = bool(item.get("discarded", False))
+
+        discarded = already_discarded
+        discard_reason = item.get("discard_reason")
+
+        if filter_non_kazakh and not already_verified and not already_discarded:
+            if lang not in ("kk", "mixed"):
+                discarded = True
+                discard_reason = f"auto_filtered_{lang}"
+
         items.append({
             "comment_id": cid,
             "post_id": pid,
             "text_anonymized": text_anon,
-            "verified": False,
-            "discarded": False,
-            "reviewed_at": None,
+            "lang": lang,
+            "lang_confidence": conf,
+            "verified": already_verified,
+            "discarded": discarded,
+            "discard_reason": discard_reason,
+            "reviewed_at": item.get("reviewed_at"),
         })
 
     batch_data = {
@@ -226,6 +248,7 @@ def create_staging_batch(
 def harvest_threads_url(
     url: str,
     output_dir: str = "data/threads_staged",
+    filter_non_kazakh: bool = True,
     timeout_sec: float = 15.0,
 ) -> ThreadsHarvestResult:
     """
@@ -234,6 +257,7 @@ def harvest_threads_url(
     Args:
         url: Public Threads URL (e.g. https://www.threads.net/@user/post/C_abc123).
         output_dir: Staging directory for batch JSON files.
+        filter_non_kazakh: If True, auto-discards non-Kazakh comments.
         timeout_sec: HTTP request timeout in seconds.
 
     Returns:
@@ -263,6 +287,7 @@ def harvest_threads_url(
             source_query=url,
             raw_items=comments,
             output_dir=output_dir,
+            filter_non_kazakh=filter_non_kazakh,
         )
 
         return ThreadsHarvestResult(

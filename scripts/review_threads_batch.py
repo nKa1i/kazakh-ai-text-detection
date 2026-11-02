@@ -125,7 +125,8 @@ def triage_batch_interactive(file_path: str) -> Dict[str, Any]:
 
         cid = item.get("comment_id")
         text = item.get("text_anonymized", "")
-        print(f"[{idx + 1}/{len(items)}] ID: {cid}")
+        lang = str(item.get("lang") or "und").upper()
+        print(f"[{idx + 1}/{len(items)}] ID: {cid} | Language: [{lang}]")
         print(f"Text: {text}")
 
         if approve_rest:

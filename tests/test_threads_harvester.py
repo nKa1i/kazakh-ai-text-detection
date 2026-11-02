@@ -153,6 +153,39 @@ class TestThreadsHarvester(unittest.TestCase):
             self.assertFalse(item["discarded"])
             self.assertIsNone(item["reviewed_at"])
 
+    def test_create_staging_batch_filters_russian_comments(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            raw_items = [
+                {
+                    "comment_id": "c_kk",
+                    "post_id": "p1",
+                    "text": "Каспиден жаңа тауар алдым, өте жақсы екен.",
+                },
+                {
+                    "comment_id": "c_ru",
+                    "post_id": "p1",
+                    "text": "Здравствуйте, подскажите пожалуйста, сколько стоит доставка в Алматы?",
+                },
+            ]
+            batch_path, batch_data = create_staging_batch(
+                source_query="https://www.threads.net/@user/post/p1",
+                raw_items=raw_items,
+                output_dir=tmpdir,
+                filter_non_kazakh=True,
+            )
+
+            items = batch_data["items"]
+            self.assertEqual(len(items), 2)
+
+            # Kazakh item is kept active
+            self.assertEqual(items[0]["lang"], "kk")
+            self.assertFalse(items[0]["discarded"])
+
+            # Russian item is automatically marked discarded
+            self.assertEqual(items[1]["lang"], "ru")
+            self.assertTrue(items[1]["discarded"])
+            self.assertIn("auto_filtered_ru", items[1]["discard_reason"])
+
     @patch("httpx.Client.get")
     def test_harvest_threads_url_mocked_success(self, mock_get):
         mock_resp = MagicMock()
