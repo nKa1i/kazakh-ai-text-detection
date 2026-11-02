@@ -82,19 +82,20 @@ def triage_batch_non_interactive(
     for item in data.get("items", []):
         cid = item.get("comment_id")
         if approve_all:
-            item["verified"] = True
-            item["discarded"] = False
-            item["reviewed_at"] = now_iso
-            any_approved = True
+            # Only approve active, non-discarded comments
+            if not item.get("discarded", False):
+                item["verified"] = True
+                item["reviewed_at"] = now_iso
+                any_approved = True
         elif cid in discard_set:
             item["verified"] = False
             item["discarded"] = True
             item["reviewed_at"] = now_iso
         elif approve_remaining:
-            item["verified"] = True
-            item["discarded"] = False
-            item["reviewed_at"] = now_iso
-            any_approved = True
+            if not item.get("discarded", False):
+                item["verified"] = True
+                item["reviewed_at"] = now_iso
+                any_approved = True
 
     # Mark batch as verified if at least one item was approved
     if any_approved or approve_all:

@@ -29,11 +29,14 @@ DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/128.0.0.0 Safari/537.36"
+        "Chrome/124.0.0.0 Safari/537.36"
     ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "kk,ru;q=0.9,en;q=0.8",
-    "Sec-Fetch-Site": "same-origin",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "kk,ru,en;q=0.9",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
 }
 
 
@@ -151,6 +154,26 @@ def extract_comments_from_html(
                     "text": desc,
                 })
 
+    # 4. Parse text / plaintext fields in script tags (for modern Threads SSR bundles)
+    script_matches = re.findall(r'<script[^>]*>(.*?)</script>', html_str, re.DOTALL)
+    text_pattern = re.compile(r'"(?:text|plaintext)"\s*:\s*"((?:\\.|[^"\\])+)"')
+    for script_content in script_matches:
+        for m in text_pattern.findall(script_content):
+            try:
+                val = json.loads(f'"{m}"').strip()
+            except Exception:
+                val = m.strip()
+
+            if len(val) < 3 or val.lower() in ("true", "false", "null", "none", "center", "inherit", "auto"):
+                continue
+            if not re.search(r'[a-zA-Zа-яёА-ЯЁәғқңөұүһіӘҒҚҢӨҰҮҺІ]', val):
+                continue
+            raw_nodes.append({
+                "comment_id": f"th_{default_post_id or 'node'}_{len(raw_nodes)+1}",
+                "post_id": default_post_id or "post_main",
+                "text": val,
+            })
+
     # Deduplicate and anonymize PII
     seen_texts = set()
     cleaned_comments: List[Dict[str, Any]] = []
@@ -190,11 +213,16 @@ def create_staging_batch(
     Returns:
         Tuple of (batch_file_path, batch_data_dict).
     """
-    os.makedirs(output_dir, exist_ok=True)
+    if not os.path.isabs(output_dir):
+        resolved_dir = os.path.join(_PROJECT_ROOT, output_dir)
+    else:
+        resolved_dir = output_dir
+
+    os.makedirs(resolved_dir, exist_ok=True)
     now = datetime.datetime.now(datetime.timezone.utc)
     timestamp_str = now.strftime("%Y%m%dT%H%M%SZ")
     batch_id = f"batch_{timestamp_str}"
-    batch_file = os.path.join(output_dir, f"{batch_id}.json")
+    batch_file = os.path.join(resolved_dir, f"{batch_id}.json")
 
     items: List[Dict[str, Any]] = []
     for idx, item in enumerate(raw_items):
@@ -249,6 +277,7 @@ def harvest_threads_url(
     url: str,
     output_dir: str = "data/threads_staged",
     filter_non_kazakh: bool = True,
+    proxy: Optional[str] = None,
     timeout_sec: float = 15.0,
 ) -> ThreadsHarvestResult:
     """
@@ -258,14 +287,39 @@ def harvest_threads_url(
         url: Public Threads URL (e.g. https://www.threads.net/@user/post/C_abc123).
         output_dir: Staging directory for batch JSON files.
         filter_non_kazakh: If True, auto-discards non-Kazakh comments.
+        proxy: Optional HTTP/HTTPS proxy URL (e.g. http://127.0.0.1:7890).
         timeout_sec: HTTP request timeout in seconds.
 
     Returns:
         ThreadsHarvestResult with status, batch path, and comment count.
     """
+    proxy_url = proxy or os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or os.environ.get("ALL_PROXY")
+    if not proxy_url:
+        try:
+            import socket
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.2)
+                if s.connect_ex(("127.0.0.1", 7890)) == 0:
+                    proxy_url = "http://127.0.0.1:7890"
+        except Exception:
+            pass
+    # Normalize threads.com mobile share links to threads.net
+    target_url = url
+    if "threads.com" in target_url:
+        target_url = target_url.replace("threads.com", "threads.net")
+
     try:
-        with httpx.Client(headers=DEFAULT_HEADERS, follow_redirects=True, timeout=timeout_sec) as client:
-            resp = client.get(url)
+        client_kwargs: Dict[str, Any] = {
+            "headers": DEFAULT_HEADERS,
+            "follow_redirects": True,
+            "timeout": timeout_sec,
+            "verify": False,
+        }
+        if proxy_url:
+            client_kwargs["proxy"] = proxy_url
+
+        with httpx.Client(**client_kwargs) as client:
+            resp = client.get(target_url)
 
         if resp.status_code != 200:
             return ThreadsHarvestResult(
